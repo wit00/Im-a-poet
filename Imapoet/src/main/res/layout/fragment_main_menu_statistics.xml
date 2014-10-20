@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <TableLayout
+        android:layout_marginTop="15dp"
+        android:layout_centerHorizontal="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+        <TableRow
+            style="@style/Statistics_Row"
+            android:id="@+id/poems_saved_statistic">
+            <TextView
+                android:id="@+id/poems_saved_label"
+                android:text="@string/statistics_total_saves"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+            <TextView
+                style="@style/Statistics_Value"
+                android:id="@+id/poems_saved_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </TableRow>
+        <TableRow
+            style="@style/Statistics_Row"
+            android:id="@+id/poems_update_statistic">
+            <TextView
+                android:id="@+id/poems_update_label"
+                android:text="@string/statistics_total_updates"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+            <TextView
+                style="@style/Statistics_Value"
+                android:id="@+id/poems_update_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </TableRow>
+        <TableRow
+            style="@style/Statistics_Row"
+            android:id="@+id/number_magnets_finished_poem_statistic">
+            <TextView
+                android:id="@+id/number_magnets_finished_poem_label"
+                android:text="@string/statistics_most_words_saved_poem"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+            <TextView
+                style="@style/Statistics_Value"
+                android:id="@+id/number_magnets_finished_poem_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </TableRow>
+        <TableRow
+            style="@style/Statistics_Row"
+            android:id="@+id/magnets_used_session_statistic">
+            <TextView
+                android:id="@+id/magnets_used_session_label"
+                android:text="@string/statistics_most_words_used_at_one_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+            <TextView
+                style="@style/Statistics_Value"
+                android:id="@+id/magnets_used_session_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </TableRow>
+        <TableRow
+            style="@style/Statistics_Row"
+            android:id="@+id/number_packs_used_session_statistic">
+            <TextView
+                android:id="@+id/number_packs_used_session_label"
+                android:text="@string/statistics_most_packs_used_at_one_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+            <TextView
+                style="@style/Statistics_Value"
+                android:id="@+id/number_packs_used_session_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </TableRow>
+        <TableRow
+            style="@style/Statistics_Row"
+            android:id="@+id/delete_statistic">
+            <TextView
+                android:id="@+id/delete_statistic_label"
+                android:text="@string/statistics_magnets_deleted"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+            <TextView
+                style="@style/Statistics_Value"
+                android:id="@+id/delete_statistic_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </TableRow>
+    </TableLayout>
+</RelativeLayout>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">I\'m a poet</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">settings</string>
+    <string name="action_share">share your poem</string>
+    <string name="title_activity_menu">Menu</string>
+    <string name="title_section1">Section 1</string>
+    <string name="title_section2">Section 2</string>
+    <string name="title_section3">Section 3</string>
+    <string name="title_activity_main_menu">Menu</string>
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="add_a_new_magnet_button_description">Add a New Magnet</string>
+    <string name="delete_a_magnet_button_description">delete_a_button</string>
+    <string name="app_icon_description">app icon</string>
+    <string name="no_saved_poems">You haven\'t saved any poems yet, but when you do they\'ll be here.</string>
+    <string name="share_intent_title">Share your poem!</string>
+    <string name="award_medal_image_content_description">Award Medal Image</string>
+    <string name="statistics_total_saves">Total Saves:</string>
+    <string name="statistics_total_updates">Total Updates:</string>
+    <string name="statistics_most_words_saved_poem">Most Words in a Saved Poem:</string>
+    <string name="statistics_most_words_used_at_one_time">Most Words Used at One Time:</string>
+    <string name="statistics_most_packs_used_at_one_time">Most Packs Used at One Time:</string>
+    <string name="statistics_magnets_deleted">Number of Magnets Deleted:</string>
+    <string name="requires_an_in_app_purchase_spinner_adapter">* requires an in-app purchase</string>
+    <string-array name="magnets_array">
+            <item>Basic</item>
+            <item>Love</item>
+            <item>Science!</item>
+        </string-array>
+
+
+
+
+</resources>

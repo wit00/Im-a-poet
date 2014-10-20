@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="application_blue">#BADDD6</color>
+    <color name="application_light_green">#C1E47E</color>
+    <color name="application_yellow_green">#CCD94B</color>
+    <color name="application_yellow">#EAE857</color>
+    <color name="application_brown">#3C332A</color>
+    <color name="canvas_background">#F1F8F7</color>
+</resources>

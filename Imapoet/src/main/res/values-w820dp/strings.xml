@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="add_a_new_magnet_button_description">Add a New Magnet</string>
+    <string name="delete_a_magnet_button_description">delete_a_button</string>
+</resources>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent" android:layout_height="fill_parent"
+    android:layout_margin="@dimen/indent">
+
+    <TextView
+        android:text="test 1"
+        android:id="@+id/inAppPurchaseTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+    <TextView
+        android:layout_marginRight="@dimen/_big_top_margin"
+        android:id="@+id/inAppPrice"
+        android:gravity="end"
+        android:text="price"
+        android:layout_toRightOf="@id/inAppPurchaseTitle"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+    <TextView
+        android:layout_marginLeft="@dimen/indent"
+        android:text="test 2"
+        android:layout_below="@id/inAppPurchaseTitle"
+        android:id="@+id/inAppPurchaseDetail"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+</RelativeLayout>

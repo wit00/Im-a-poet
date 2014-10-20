@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/saved_poem_title"
+        android:textStyle="bold"
+        android:layout_marginTop="@dimen/indent"
+        android:layout_marginLeft="@dimen/extra_margin"
+        android:layout_toRightOf="@id/saved_poem_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+    <TextView
+        android:id="@+id/saved_poem_date"
+        android:text="last saved: "
+        android:layout_marginLeft="20dp"
+        android:layout_below="@id/saved_poem_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+    <TextView
+        android:id="@+id/saved_poem_date_value"
+        android:layout_toRightOf="@id/saved_poem_date"
+        android:layout_marginLeft="@dimen/indent"
+        android:layout_below="@id/saved_poem_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+    <ImageView
+        android:id="@+id/delete_poem_button"
+        android:onClick="loadDeletePoem"
+        android:layout_margin="@dimen/extra_margin"
+        android:layout_alignParentRight="true"
+        android:src="@drawable/delete_poem"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+</RelativeLayout>

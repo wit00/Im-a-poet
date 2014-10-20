@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="20dp"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:text="Who made this?"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
+        android:id="@+id/credits_header"
+        android:layout_width="wrap_content"
+        android:paddingLeft="40dp"
+        android:paddingRight="40dp"
+        android:layout_height="wrap_content" />
+
+    <TableLayout
+        android:layout_below="@id/credits_header"
+        android:layout_centerHorizontal="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+        <TableRow
+            android:layout_marginTop="15dp"
+            android:layout_below="@id/credits_header"
+            android:layout_centerHorizontal="true"
+            android:paddingBottom="5dp">
+            <TextView
+                android:paddingTop="10dp"
+                android:id="@+id/music_credits_label"
+                android:text="Music:"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+            <TextView
+                android:paddingLeft="10dp"
+                android:id="@+id/music_credits_value"
+                android:text="Music Credit"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+            <ImageView
+                android:paddingLeft="10dp"
+                android:onClick="loadWebsite"
+                android:src="@drawable/to_website"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/music_website_link"/>
+
+        </TableRow>
+
+        <TableRow
+            android:layout_marginTop="10dp"
+            android:layout_below="@id/credits_header"
+            android:layout_centerHorizontal="true">
+            <TextView
+                android:paddingTop="10dp"
+                android:id="@+id/other_credits_label"
+                android:text="Programmer:"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+            <TextView
+                android:paddingLeft="10dp"
+                android:id="@+id/other_credits_value"
+                android:text="Whitney Powell"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+            <ImageView
+                android:paddingLeft="10dp"
+                android:onClick="loadMyWebsite"
+                android:src="@drawable/to_website"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/my_website_link"/>
+            <ImageView
+                android:paddingLeft="10dp"
+                android:onClick="loadMyTwitter"
+                android:src="@drawable/to_twitter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/my_twitter_link"/>
+        </TableRow>
+    </TableLayout>
+
+</RelativeLayout>

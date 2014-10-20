@@ -1,0 +1,53 @@
+{
+  "STATISTICS_AND_AWARDS": [
+    {
+    "STATISTIC_NAME":"Number of poems saved",  
+    "STATISTIC_ID":1,  
+    "AWARDS":
+      [
+        {
+          "AWARD_NAME":"1st Saved Poem",
+          "DESCRIPTION":"Congrats! You're officially a poet. You get this award when you've saved your first poem to the database",
+          "STATISTIC_VALUE":1,
+          "COMPLETED_IMAGE_ID":"blue_ribbon",
+          "UNCOMPLETED_IMAGE_ID":"ribbon_outline"
+        },
+        {
+          "AWARD_NAME":"5 Saved Poems",
+          "DESCRIPTION":"You're well on your way to poem mastery and have written and saved five poems",
+          "STATISTIC_VALUE":5,
+          "COMPLETED_IMAGE_ID":"blue_ribbon",
+          "UNCOMPLETED_IMAGE_ID":"ribbon_outline"
+        }    
+      ]
+    },
+    {
+    "STATISTIC_NAME":"Most magnets used in a session", 
+    "STATISTIC_ID":2,   
+    "AWARDS":
+      [
+        {
+          "AWARD_NAME":"The Wordsmith",
+          "DESCRIPTION":"The wordsmith has worked with 5 or more words at a time.",
+          "STATISTIC_VALUE":5,
+          "COMPLETED_IMAGE_ID":"blue_ribbon",
+          "UNCOMPLETED_IMAGE_ID":"ribbon_outline"
+        },
+        {
+          "AWARD_NAME":"The Super Wordsmith",
+          "DESCRIPTION":"The super wordsmith has juggled 10 or more words at a time.",
+          "STATISTIC_VALUE":10,
+          "COMPLETED_IMAGE_ID":"blue_ribbon",
+          "UNCOMPLETED_IMAGE_ID":"ribbon_outline"
+        },
+        {
+          "AWARD_NAME":"The Super-Duper Wordsmith",
+          "DESCRIPTION":"The super-duper wordsmith has handled an impressive 25 or more words at a time.",
+          "STATISTIC_VALUE":25,
+          "COMPLETED_IMAGE_ID":"blue_ribbon",
+          "UNCOMPLETED_IMAGE_ID":"ribbon_outline"
+        }      
+      ]
+    },
+  ]
+}

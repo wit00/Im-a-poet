@@ -1,0 +1,78 @@
+{
+  "STATISTICS_AND_AWARDS": [
+    {
+    "STATISTIC_NAME":"numberPoemsSaved",  
+    "AWARDS":
+      [
+        {
+          "AWARD_NAME":"1st Saved Poem",
+          "DESCRIPTION":"Congrats! You're officially a poet. You get this award when you've saved your first poem to the database.",
+          "STATISTIC_VALUE":1,
+          "COMPLETED_IMAGE_ID":"blue_ribbon",
+          "UNCOMPLETED_IMAGE_ID":"ribbon_outline"
+        },
+        {
+          "AWARD_NAME":"5 Saved Poems",
+          "DESCRIPTION":"You're well on your way to poem mastery and have written and saved five poems.",
+          "STATISTIC_VALUE":5,
+          "COMPLETED_IMAGE_ID":"green_ribbon",
+          "UNCOMPLETED_IMAGE_ID":"ribbon_outline"
+        },
+        {
+          "AWARD_NAME":"15 Saved Poems",
+          "DESCRIPTION":"You'll receive this award when you have written and saved 15 poems.",
+          "STATISTIC_VALUE":15,
+          "COMPLETED_IMAGE_ID":"red_ribbon",
+          "UNCOMPLETED_IMAGE_ID":"ribbon_outline"
+        },
+        {
+          "AWARD_NAME":"25 Saved Poems",
+          "DESCRIPTION":"Wow, that's a bunch of poems! You get this award when you've saved 25 poems.",
+          "STATISTIC_VALUE":25,
+          "COMPLETED_IMAGE_ID":"blue_ribbon",
+          "UNCOMPLETED_IMAGE_ID":"ribbon_outline"
+        }        
+      ]
+    },
+    {
+    "STATISTIC_NAME":"numberMagnetsFinishedPoem",  
+    "AWARDS":
+      [
+        {
+          "AWARD_NAME":"Not Much to Say",
+          "DESCRIPTION":"Wow. You've mastered the art of simplicity. You'll get this award when you've saved or shared a poem that only has a single word or letter.",
+          "STATISTIC_VALUE":1,
+          "COMPLETED_IMAGE_ID":"green_ribbon",
+          "UNCOMPLETED_IMAGE_ID":"ribbon_outline"
+        },
+        {
+          "AWARD_NAME":"So Much to Say",
+          "DESCRIPTION":"You have too much to express to limit yourself to only a few words. You'll get this award when you've saved or shared a poem with 40 or more words or letters.",
+          "STATISTIC_VALUE":40,
+          "COMPLETED_IMAGE_ID":"red_ribbon",
+          "UNCOMPLETED_IMAGE_ID":"ribbon_outline"
+        }    
+      ]
+    },
+    {
+    "STATISTIC_NAME":"updateStatistics",  
+    "AWARDS":
+      [
+        {
+          "AWARD_NAME":"First Update",
+          "DESCRIPTION":"The first update award is given when you have updated your first poem.",
+          "STATISTIC_VALUE":1,
+          "COMPLETED_IMAGE_ID":"green_ribbon",
+          "UNCOMPLETED_IMAGE_ID":"ribbon_outline"
+        },
+        {
+          "AWARD_NAME":"The Update Master",
+          "DESCRIPTION":"You understand the importance of good editing. You will receive the update master award when you have updated 10 or more poems.",
+          "STATISTIC_VALUE":10,
+          "COMPLETED_IMAGE_ID":"red_ribbon",
+          "UNCOMPLETED_IMAGE_ID":"ribbon_outline"
+        }    
+      ]
+    }
+  ]
+}
