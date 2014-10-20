@@ -7,20 +7,20 @@ import android.graphics.PointF;
  */
 public class MagnetSide implements Comparable<MagnetSide>{
     public int id;
-    public MagnetTile referenceToMagnetTile;
+    public Magnet referenceToMagnet;
     public PointF xAndyDistances = new PointF(0,0);
 
     @Override
     public int compareTo(MagnetSide anotherSide) {
         return Math.abs((int)(xAndyDistances.x*xAndyDistances.y) - (int)(anotherSide.xAndyDistances.x*anotherSide.xAndyDistances.y));
     }
-    public MagnetSide(int id, MagnetTile referenceToMagnetTile, float xDistance, float yDistance) {
+    public MagnetSide(int id, Magnet referenceToMagnet, float xDistance, float yDistance) {
         this.id = id;
-        this.referenceToMagnetTile = referenceToMagnetTile;
+        this.referenceToMagnet = referenceToMagnet;
         this.xAndyDistances.set(xDistance,yDistance);
     }
     /* This function returns the closest side as a magnetSide object depending on which of four quadrants the moving tile is in.*/
-    protected static MagnetSide closestSide(MagnetTile movingTile, MagnetTile stationaryTile) {
+    protected static MagnetSide closestSide(Magnet movingTile, Magnet stationaryTile) {
         if(movingTile.x() <= stationaryTile.x()) {
             if(movingTile.y() <= stationaryTile.y()) {
                 return MagnetSide.getQuadrant1Side(movingTile, stationaryTile);
@@ -41,7 +41,7 @@ public class MagnetSide implements Comparable<MagnetSide>{
         return (side1Distances.x == 0 && side2Distances.x == 0) || (side1Distances.y == 0 && side2Distances.y == 0);
     }
 
-    protected static MagnetSide getQuadrant1Side(MagnetTile movingTile, MagnetTile stationaryTile) {
+    protected static MagnetSide getQuadrant1Side(Magnet movingTile, Magnet stationaryTile) {
         float xDifference = stationaryTile.leftTopCornerX() - movingTile.rightBottomCornerX();
         float yDifference = stationaryTile.leftTopCornerY() - movingTile.rightBottomCornerY();
         if(xDifference >= 0 && yDifference < 0) { // move right, moving tile is to the left and in line
@@ -52,7 +52,7 @@ public class MagnetSide implements Comparable<MagnetSide>{
             return new MagnetSide(movingTile.id(),stationaryTile,0,yDifference);
         }
     }
-    protected static MagnetSide getQuadrant2Side(MagnetTile movingTile, MagnetTile stationaryTile) {
+    protected static MagnetSide getQuadrant2Side(Magnet movingTile, Magnet stationaryTile) {
         float xDifference = stationaryTile.rightTopCornerX() - movingTile.leftBottomCornerX();
         float yDifference = stationaryTile.rightTopCornerY() - movingTile.leftBottomCornerY();
         if(xDifference < 0 && yDifference >= 0) { // move right, moving tile is to the left and in line
@@ -66,7 +66,7 @@ public class MagnetSide implements Comparable<MagnetSide>{
         }
     }
 
-    protected static MagnetSide getQuadrant3Side(MagnetTile movingTile, MagnetTile stationaryTile) {
+    protected static MagnetSide getQuadrant3Side(Magnet movingTile, Magnet stationaryTile) {
         float xDifference = stationaryTile.leftBottomCornerX() - movingTile.rightTopCornerX();
         float yDifference =  stationaryTile.leftBottomCornerY() - movingTile.rightTopCornerY();
         if(xDifference >= 0 && yDifference <= 0) { // move right, moving tile is to the left and in line
@@ -80,7 +80,7 @@ public class MagnetSide implements Comparable<MagnetSide>{
         }
     }
 
-    protected static MagnetSide getQuadrant4Side(MagnetTile movingTile, MagnetTile stationaryTile) {
+    protected static MagnetSide getQuadrant4Side(Magnet movingTile, Magnet stationaryTile) {
         float xDifference =  stationaryTile.rightBottomCornerX() - movingTile.leftTopCornerX();
         float yDifference = stationaryTile.rightBottomCornerY() - movingTile.leftTopCornerY();
 

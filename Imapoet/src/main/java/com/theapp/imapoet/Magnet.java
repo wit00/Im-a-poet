@@ -6,7 +6,7 @@ import android.graphics.Paint;
 import android.graphics.PointF;
 import java.util.ArrayList;
 
-public class MagnetTile {
+public class Magnet {
     private float scaleFactor;
     private int id;
     private String word;
@@ -41,7 +41,7 @@ public class MagnetTile {
         return paint;
     }
 
-    public MagnetTile(String word,int id, float scaleFactor, int packID){
+    public Magnet(String word, int id, float scaleFactor, int packID){
         textPaint.setTextSize(textPaintSize);
         this.word = word;
         this.scaleFactor = scaleFactor;
@@ -128,7 +128,7 @@ public class MagnetTile {
     }
     public int id() { return id; }
     public int packID() { return packID; }
-    public void updateScaleFactor(float scaleFactor, ArrayList<MagnetTile> magnetTiles) {
+    public void updateScaleFactor(float scaleFactor, ArrayList<Magnet> magnets) {
         this.scaleFactor = scaleFactor;
         //borderWidth = borderWidth * scaleFactor;
         width = unscaledWidth * scaleFactor;

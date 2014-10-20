@@ -262,8 +262,6 @@ public class AwardManager {
                         magnetTilesChanged(awardManagerListener.getInitialNumberMagnets());
                         break;
                     case 2:
-                        //System.out.println("cursor poems size: "+Integer.toString(cursor.getCount()));
-                        //todo what if cursor is null?
                         while(cursor.moveToNext()) {
                             if(cursor.getInt(cursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry.COLUMN_COMPLETED)) != 1) { // the award is not completed
                                 ((ArrayList)cookie).add(new award(cursor.getString(cursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry.COLUMN_AWARD_NAME)),

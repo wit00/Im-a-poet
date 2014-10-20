@@ -26,11 +26,11 @@ public class SD_CardHelper {
                 Environment.DIRECTORY_PICTURES), albumName);
         if (!file.mkdirs()) {
             Log.e("", "Directory not created");
-            System.out.println("directory not created");
         }
         return file;
     }
 
+    // save a bitmap to a file
     public static boolean saveBitmap(File saveToFile, Bitmap bitmapToSave) {
         try {
             FileOutputStream fileOutputStream = new FileOutputStream(saveToFile);
@@ -47,10 +47,7 @@ public class SD_CardHelper {
         return true;
     }
 
-    // If the filename exists, adds a number in parenthesis to the filename, so that it
-    // can be saved without overriding the file. For example, if "untitled" was an existing file,
-    // it would be saved as "untitled (1)". If "untitled (1)" existed, the new file would be
-    // titled "untitled (2)", etc.
+    // If the filename exists, adds a number in parenthesis to the filename, so that it can be saved without overriding the file. For example, if "untitled" was an existing file, it would be saved as "untitled (1)". If "untitled (1)" existed, the new file would be titled "untitled (2)", etc.
     public static File appendNumberToFilenameIfExists(String fileName, File directory) {
         File newFile = new File(directory,fileName);
         int nextFile = 0;

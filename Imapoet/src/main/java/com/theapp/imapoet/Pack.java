@@ -3,6 +3,7 @@ package com.theapp.imapoet;
 import java.util.ArrayList;
 
 /**
+ * The pack objects are used in the drawer fragment spinner
  * Created by whitney on 7/24/14.
  */
 public class Pack {
@@ -15,18 +16,6 @@ public class Pack {
         if(isAvailable) return 1;
         else return 0;
     }
-
-
-    Pack(String title, int id) {
-        this.title = title;
-        this.id = id;
-        //this.magnets = magnets;
-    }
-   /* Pack(ArrayList<String> words) {
-        this.title = words.get(0);
-        words.remove(0);
-        magnets = words;
-    }*/
 
     Pack(String title, ArrayList<String> words, boolean isAvailable) {
         this.title = title;

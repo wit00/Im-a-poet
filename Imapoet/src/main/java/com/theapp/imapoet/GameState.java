@@ -20,11 +20,8 @@ import java.util.ArrayList;
  * Created by whitney on 8/1/14.
  */
 public class GameState {
-    //private boolean savedPoem = false;
-    //private String savedPoemID = null;
-    //private String savedPoemName = null;
     private AsyncQueryHandler queryHandler;
-    private ArrayList<MagnetTile> currentPoem;
+    private ArrayList<Magnet> currentPoem;
     private Context context;
     private AwardManager awardManager;
 
@@ -104,19 +101,19 @@ public class GameState {
     }
 
     /* set the last poem to be loaded on onResume (autosave) */
-    public void deleteCurrentPoem(ArrayList<MagnetTile> theCurrentPoem) {
+    public void deleteCurrentPoem(ArrayList<Magnet> theCurrentPoem) {
         queryHandler.startDelete(1,theCurrentPoem,Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/delete/currentPoem"),null,null);
 
     }
 
-    public void insertANewPoem(String title, String date, ArrayList<MagnetTile> magnetTiles) {
+    public void insertANewPoem(String title, String date, ArrayList<Magnet> magnets) {
         drawingPanelListener.setSavedPoemState(true,title);
         ContentValues poemValues = new ContentValues();
         poemValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_TITLE,title);
         poemValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_DATE_SAVED,date);
         queryHandler.startInsert(1,currentPoem,Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/insert/poem"),poemValues);
-        currentPoem = magnetTiles;
-        awardManager.newPoemInsert(magnetTiles.size());
+        currentPoem = magnets;
+        awardManager.newPoemInsert(magnets.size());
     }
 
     public void insertANewMagnet(String newMagnetText, int currentPack) {
@@ -126,12 +123,12 @@ public class GameState {
         magnetValue.put(MagnetDatabaseContract.MagnetEntry.COLUMN_TIMES_USED_SAVED_OR_SHARED,0);
         queryHandler.startInsert(3, null, Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/insert/pack/magnet"), magnetValue);
     }
-    public void updateAnExistingPoem(String date, ArrayList<MagnetTile> magnetTiles) {
+    public void updateAnExistingPoem(String date, ArrayList<Magnet> magnets) {
         ContentValues poemValues = new ContentValues();
         poemValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_DATE_SAVED,date);
         queryHandler.startUpdate(1,null,Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/update/poem"),poemValues, MagnetDatabaseContract.MagnetEntry._ID + " = " + drawingPanelListener.getSavedPoemId(),null);
-        currentPoem = magnetTiles;
-        awardManager.updatePoem(magnetTiles.size());
+        currentPoem = magnets;
+        awardManager.updatePoem(magnets.size());
     }
 
     public void insertANewPoemFromText(Pack pack) {
@@ -254,13 +251,13 @@ public class GameState {
             protected void onDeleteComplete(int token, Object cookie, int result) {
                 switch (token) {
                     case 1:
-                        for(MagnetTile magnetTile : (ArrayList<MagnetTile>)cookie) {
+                        for(Magnet magnet : (ArrayList<Magnet>)cookie) {
                             ContentValues updateCurrentPoemValues = new ContentValues();
-                            updateCurrentPoemValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_MAGNET_X,magnetTile.x());
-                            updateCurrentPoemValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_MAGNET_Y,magnetTile.y());
-                            updateCurrentPoemValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_MAGNET_COLOR,magnetTile.magnetColor());
-                            updateCurrentPoemValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_MAGNET_TEXT,magnetTile.word());
-                            updateCurrentPoemValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_MAGNET_PACK_ID,magnetTile.packID());
+                            updateCurrentPoemValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_MAGNET_X, magnet.x());
+                            updateCurrentPoemValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_MAGNET_Y, magnet.y());
+                            updateCurrentPoemValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_MAGNET_COLOR, magnet.magnetColor());
+                            updateCurrentPoemValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_MAGNET_TEXT, magnet.word());
+                            updateCurrentPoemValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_MAGNET_PACK_ID, magnet.packID());
                             if(drawingPanelListener.getSavedPoemState()) {
                                 updateCurrentPoemValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_IF_SAVED_TITLE,drawingPanelListener.getSavedPoemName());
                                 updateCurrentPoemValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_IF_SAVED_ID,drawingPanelListener.getSavedPoemId());
@@ -272,14 +269,14 @@ public class GameState {
                         }
                         break;
                     case 2: // insert saved poem detail
-                        for(MagnetTile magnetTile : currentPoem) {
+                        for(Magnet magnet : currentPoem) {
                             ContentValues poemDetailValues = new ContentValues();
                             poemDetailValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_POEM_ID,drawingPanelListener.getSavedPoemId());
-                            poemDetailValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_WORD_TEXT, magnetTile.word());
-                            poemDetailValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_X_LOCATION, magnetTile.x());
-                            poemDetailValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_Y_LOCATION, magnetTile.y());
-                            poemDetailValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_COLOR, magnetTile.magnetColor());
-                            poemDetailValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_MAGNET_PACK_ID, magnetTile.packID());
+                            poemDetailValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_WORD_TEXT, magnet.word());
+                            poemDetailValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_X_LOCATION, magnet.x());
+                            poemDetailValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_Y_LOCATION, magnet.y());
+                            poemDetailValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_COLOR, magnet.magnetColor());
+                            poemDetailValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_MAGNET_PACK_ID, magnet.packID());
                             queryHandler.startInsert(0,null,Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/insert/poem/detail"),poemDetailValues);
                         }
                         break;
@@ -298,14 +295,14 @@ public class GameState {
                         queryHandler.startUpdate(0, null, Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/update/currentPoem"), updateCurrentPoemValues,
                                 null, null);
 
-                        for(MagnetTile magnetTile : currentPoem) {
+                        for(Magnet magnet : currentPoem) {
                             ContentValues poemDetailValues = new ContentValues();
                             poemDetailValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_POEM_ID,poemID);
-                            poemDetailValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_WORD_TEXT,magnetTile.word());
-                            poemDetailValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_X_LOCATION,magnetTile.x());
-                            poemDetailValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_Y_LOCATION,magnetTile.y());
-                            poemDetailValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_COLOR,magnetTile.magnetColor());
-                            poemDetailValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_MAGNET_PACK_ID,magnetTile.packID());
+                            poemDetailValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_WORD_TEXT, magnet.word());
+                            poemDetailValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_X_LOCATION, magnet.x());
+                            poemDetailValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_Y_LOCATION, magnet.y());
+                            poemDetailValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_COLOR, magnet.magnetColor());
+                            poemDetailValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_MAGNET_PACK_ID, magnet.packID());
                             queryHandler.startInsert(0,null,Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/insert/poem/detail"),poemDetailValues);
                         }
                         break;

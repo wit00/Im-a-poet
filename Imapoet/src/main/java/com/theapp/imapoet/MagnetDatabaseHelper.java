@@ -5,6 +5,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 /**
+ * Database Helper class, very similar to examples in the android docs, extends SQLiteOpenHelper to create and delete the tables used in the application. The Strings are stored in MagnetDatabaseContract.
  * Created by whitney on 7/1/14.
  */
 public class MagnetDatabaseHelper extends SQLiteOpenHelper {
@@ -31,7 +32,16 @@ public class MagnetDatabaseHelper extends SQLiteOpenHelper {
     }
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         // discard the data and start over
-        db.execSQL(MagnetDatabaseContract.MagnetEntry.SQL_DELETE_ENTRIES);
+        db.execSQL(MagnetDatabaseContract.MagnetEntry.SQL_DELETE_PACKS);
+        db.execSQL(MagnetDatabaseContract.MagnetEntry.SQL_DELETE_MAGNETS);
+        db.execSQL(MagnetDatabaseContract.MagnetEntry.SQL_DELETE_SAVED_POEMS);
+        db.execSQL(MagnetDatabaseContract.MagnetEntry.SQL_DELETE_SAVED_POEMS_DETAIL);
+        db.execSQL(MagnetDatabaseContract.MagnetEntry.SQL_DELETE_CONTINUOUS_STATISTICS);
+        db.execSQL(MagnetDatabaseContract.MagnetEntry.SQL_DELETE_ON_SAVE_STATISTICS);
+        db.execSQL(MagnetDatabaseContract.MagnetEntry.SQL_DELETE_CONTINUOUS_AWARDS);
+        db.execSQL(MagnetDatabaseContract.MagnetEntry.SQL_DELETE_ON_SAVE_AWARDS);
+        db.execSQL(MagnetDatabaseContract.MagnetEntry.SQL_DELETE_SETTINGS);
+        db.execSQL(MagnetDatabaseContract.MagnetEntry.SQL_DELETE_LAST_POEM);
         onCreate(db);
     }
 

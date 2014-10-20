@@ -39,11 +39,13 @@ import java.util.ArrayList;
 
 
 public class MainActivity extends FragmentActivity implements DrawerFragment.OnFragmentInteractionListener,
-        NewPoemSaveAlertDialog.NewPoemSaveAlertDialogListener, AdapterView.OnItemSelectedListener,
-        ExistingPoemSaveAlertDialog.ExistingPoemDialogListener, DrawingPanel.CanvasListener, demoDisplayFragment.DemoListener{
+        NewPoemSaveAlertDialog.NewPoemSaveAlertDialogListener, ExistingPoemSaveAlertDialog.ExistingPoemDialogListener, DrawingPanel.CanvasListener, DemoFragment.DemoListener{
 
-
-    private demoDisplayFragment demoFragment = null;
+    private DemoFragment demoFragment = null;
+    private Context helperContext = this;
+    private DrawerFragment drawerFragment;
+    private DrawingPanelFragment drawingPanelFragment;
+    private GameState gameState;
 
 
     private void highlight(int viewID) {
@@ -59,7 +61,6 @@ public class MainActivity extends FragmentActivity implements DrawerFragment.OnF
     }
 
 
-
     public void highlightButtons(boolean highlightButtons) {
         if(highlightButtons) {
             highlight(R.id.share_buttons);
@@ -72,11 +73,6 @@ public class MainActivity extends FragmentActivity implements DrawerFragment.OnF
     public void highlightDrawer(boolean highlightDrawer) {
         if(highlightDrawer) highlight(R.id.drawer_button);
         else  clearHighlight(R.id.drawer_button);
-    }
-
-    public void highlightMagnets(boolean highlightMagnets) {
-        if(highlightMagnets) highlight(R.id.gridview);
-        else clearHighlight(R.id.gridview);
     }
 
 
@@ -102,7 +98,7 @@ public class MainActivity extends FragmentActivity implements DrawerFragment.OnF
         FragmentManager fragmentManager = getFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         fragmentTransaction.setCustomAnimations(R.anim.demo_slide_in, R.anim.demo_slide_in);//, R.anim.abc_fade_in, animPopExit);
-        demoFragment = demoDisplayFragment.newInstance("Welcome to I'm a poet! Let's get started. There is a drawer on the left side of the screen that holds all of your words. You can open it by swiping from the left or by clicking the drawer button. Open the drawer to continue.\"","");
+        demoFragment = DemoFragment.newInstance(getString(R.string.demo_opening_string));
         fragmentTransaction.add(android.R.id.content, demoFragment);
         fragmentTransaction.addToBackStack(null);
         fragmentTransaction.commit();
@@ -128,11 +124,6 @@ public class MainActivity extends FragmentActivity implements DrawerFragment.OnF
         demoFragment = null;
     }
 
-    private Context helperContext = this;
-    private DrawerFragment drawerFragment;
-    private DrawingPanelFragment drawingPanelFragment;
-    private GameState gameState;
-    //private Demo demo;
 
     public void magnetTilesChanged(int numberMagnetTiles) {
         //magnetListener.magnetAdded();
@@ -183,19 +174,12 @@ public class MainActivity extends FragmentActivity implements DrawerFragment.OnF
         } else {
             gameState = new GameState(this, drawingPanelFragment.drawingPanel(),false);
         }
-        //todo, don't delete this until i've checked it's not needed
-
         Bundle extras = getIntent().getExtras();
         if(extras != null) {
             gameState.loadSavedMagnets(extras);
         } else {
             drawingPanelFragment.loadMagnets();
         }
-        //    gameState.loadSavedMagnets(extras);
-        //} else {
-
-            //gameState.loadLastPoem();
-        //}
     }
 
 
@@ -396,24 +380,20 @@ public class MainActivity extends FragmentActivity implements DrawerFragment.OnF
 
 
     private String getDate() {
-        // unix time
-       // Date now = new Date();
-        //return (int)(now.getTime()/1000L);
         return (new SimpleDateFormat("MM-dd-yyyy")).format(new Date());
     }
 
 
-    private void insertPoemIntoDatabase(String title, ArrayList<MagnetTile> magnetTiles, boolean update) {
-        // first check if update or insert
+    private void insertPoemIntoDatabase(String title, ArrayList<Magnet> magnets, boolean update) {
         if(update) {
-            gameState.updateAnExistingPoem(getDate(),magnetTiles);
+            gameState.updateAnExistingPoem(getDate(), magnets);
         } else {
-            gameState.insertANewPoem(title,getDate(),magnetTiles);
+            gameState.insertANewPoem(title,getDate(), magnets);
         }
     }
 
 
-
+    /* Update the auto-save poem information during onPause using the gameState.deleteCurrentPoem method. */
     @Override
     protected void onPause() {
         super.onPause();
@@ -423,6 +403,7 @@ public class MainActivity extends FragmentActivity implements DrawerFragment.OnF
 
     }
 
+    /* If the user shares a poem, a temporary bitmap is created in the cache directory. Delete that bitmap when the activity completes.*/
     @Override
     protected void onStop() {
         super.onStop();

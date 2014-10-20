@@ -24,6 +24,16 @@
     <string name="statistics_most_packs_used_at_one_time">Most Packs Used at One Time:</string>
     <string name="statistics_magnets_deleted">Number of Magnets Deleted:</string>
     <string name="requires_an_in_app_purchase_spinner_adapter">* requires an in-app purchase</string>
+    <string name="demo_drawer_opened">Excellent! Your words are separated into packs. To use a new pack, select it from the drop down list above. Select a new pack to continue.</string>
+    <string name="demo_packs_selected">You can use a word by dragging it to the right. Drag a word to the right to continue. </string>
+    <string name="demo_magnet_tiles_changed">You can win awards by completing certain tasks. When you win an award, the award icon will light up. Click on the award icon to continue.</string>
+    <string name="demo_award_clicked">You can delete magnets by dragging them into the trash can. Delete a magnet to continue.</string>
+    <string name="demo_magnet_deleted">That\'s it! The buttons above take you to the menu, let you save your poems, help you share them with the world, and more! Start exploring. Click one of the buttons above to end this demo</string>
+    <string name="open_drawer_image_description">Open the Application Drawer</string>
+    <string name="overflow_button_image_resource">Overflow Button</string>
+    <string name="share_button_image_content_description">Share Poem Button</string>
+    <string name="save_button_image_content_description">Save Button</string>
+    <string name="demo_opening_string">Welcome to I\'m a poet! Let\'s get started. There is a drawer on the left side of the screen that holds all of your words. You can open it by swiping from the left or by clicking the drawer button. Open the drawer to continue.\"</string>
     <string-array name="magnets_array">
             <item>Basic</item>
             <item>Love</item>

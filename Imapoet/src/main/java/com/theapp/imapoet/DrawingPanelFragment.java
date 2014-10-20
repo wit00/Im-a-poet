@@ -1,9 +1,7 @@
 package com.theapp.imapoet;
 
 import android.app.Activity;
-import android.content.ActivityNotFoundException;
 import android.content.AsyncQueryHandler;
-import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -14,7 +12,6 @@ import android.support.v4.content.Loader;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 
 import java.util.ArrayList;
 
@@ -59,7 +56,7 @@ public class DrawingPanelFragment extends Fragment implements LoaderManager.Load
     }
 
 
-    public ArrayList<MagnetTile> getPoem() {
+    public ArrayList<Magnet> getPoem() {
         return drawingPanel.getPoem();
     }
 

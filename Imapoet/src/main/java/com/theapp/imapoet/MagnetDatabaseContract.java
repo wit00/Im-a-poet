@@ -1,9 +1,9 @@
 package com.theapp.imapoet;
 
-import android.app.SearchManager;
 import android.provider.BaseColumns;
 
 /**
+ * Static class that holds the strings used for accessing the database
  * Created by whitney on 7/1/14.
  */
 public class MagnetDatabaseContract {
@@ -68,15 +68,12 @@ public class MagnetDatabaseContract {
         public static final String COLUMN_IF_SAVED_ID = "ifSavedPoemID";
         public static final String COLUMN_IF_SAVED_TITLE = "ifSavedPoemTitle";
 
-        public static final String IMAGES_TABLE_NAME = "ImagesTable";
-        public static final String COLUMN_IMAGES = "Image";
 
         private static final String TEXT_TYPE = " TEXT";
         private static final String INTEGER_TYPE = " INTEGER";
-        private static final String BLOB_TYPE = " BLOB";
         private static final String COMMA_SEP = ",";
-        public static final String COLLATE_NOCASE_ASC = " COLLATE NOCASE ASC";
-        public static final String COLLATE_NOCASE_DESC = " COLLATE NOCASE DESC";
+        //public static final String COLLATE_NOCASE_ASC = " COLLATE NOCASE ASC";
+        //public static final String COLLATE_NOCASE_DESC = " COLLATE NOCASE DESC";
         public static final String ASC = " ASC";
         public static final String DESC = " DESC";
 
@@ -171,8 +168,17 @@ public class MagnetDatabaseContract {
                         ");";
 
 
-        public static final String SQL_DELETE_ENTRIES =
-                "DROP TABLE IF EXISTS " + PACKS_TABLE_NAME;
+        public static final String SQL_DELETE_PACKS = "DROP TABLE IF EXISTS " + PACKS_TABLE_NAME;
+        public static final String SQL_DELETE_MAGNETS = "DROP TABLE IF EXISTS " + MAGNETS_TABLE_NAME;
+        public static final String SQL_DELETE_SAVED_POEMS = "DROP TABLE IF EXISTS " + SAVED_POEMS_TABLE_NAME;
+        public static final String SQL_DELETE_SAVED_POEMS_DETAIL = "DROP TABLE IF EXISTS " + SAVED_POEMS_MAGNET_DETAIL_TABLE_NAME;
+        public static final String SQL_DELETE_CONTINUOUS_STATISTICS = "DROP TABLE IF EXISTS " + CONTINUOUS_STATISTICS_TABLE_NAME;
+        public static final String SQL_DELETE_ON_SAVE_STATISTICS = "DROP TABLE IF EXISTS " + ON_SAVE_STATISTICS_TABLE_NAME;
+        public static final String SQL_DELETE_CONTINUOUS_AWARDS = "DROP TABLE IF EXISTS " + CONTINUOUS_AWARDS_TABLE_NAME;
+        public static final String SQL_DELETE_ON_SAVE_AWARDS = "DROP TABLE IF EXISTS " + ON_SAVE_AWARDS_TABLE_NAME;
+        public static final String SQL_DELETE_SETTINGS = "DROP TABLE IF EXISTS " + SETTINGS_TABLE_NAME;
+        public static final String SQL_DELETE_LAST_POEM = "DROP TABLE IF EXISTS " + LAST_POEM_TABLE_NAME;
+
 
 
     }

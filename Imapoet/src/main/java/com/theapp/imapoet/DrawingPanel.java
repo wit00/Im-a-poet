@@ -28,18 +28,18 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
     private ScaleGestureDetector scaleGestureDetector;
     private GestureDetector gestureDetector;
     private String word = "";
-    private ArrayList<MagnetTile> magnetTiles = new ArrayList<MagnetTile>();
+    private ArrayList<Magnet> magnets = new ArrayList<Magnet>();
     private boolean notAddedTile = false;
     private float scaleFactor = 1.5f;
-    private ArrayList<MagnetTile> clickedMagnetTiles = new ArrayList<MagnetTile>();
-    public MagnetTile clickedMagnetTile = null;
+    private ArrayList<Magnet> clickedMagnets = new ArrayList<Magnet>();
+    public Magnet clickedMagnet = null;
     public float collisionZonePadding = 10;
     private boolean soundEffects = false;
     private boolean music = false;
     private TrashCan trashCan;
     private AwardAlert awardAlert;
     private boolean magnetIsAboveTrashCan = false; // a boolean that tells if a magnet is to be deleted
-    private ArrayList<MagnetTile> toHighlightMagnets = new ArrayList<MagnetTile>();
+    private ArrayList<Magnet> toHighlightMagnets = new ArrayList<Magnet>();
     private MediaPlayer mediaPlayer = MediaPlayer.create(getContext(),R.raw.clonk);
     private ArrayList<Integer> packsUsedIds = new ArrayList<Integer>(5);
     private int packID;
@@ -69,14 +69,14 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
     /* Implements GameState.drawingPanelListener. The listener calls this function during onResume when the magnets need to be loaded back onto the canvas. This call covers magnets restored from the auto-save and the manual save. */
     public String loadMagnets(Cursor cursor, String packIDColumn, String textColumn, String xColumn, String yColumn, String idColumn) {
         int id = -1;
-        magnetTiles.clear();
+        magnets.clear();
         String ifSavedPoemTitle = null;
         for(int i = 0; i < cursor.getCount(); i++) {
             int thisPackID = cursor.getInt(cursor.getColumnIndex(packIDColumn));
-            magnetTiles.add(new MagnetTile(cursor.getString(cursor.getColumnIndex(textColumn)),magnetTiles.size(),scaleFactor,thisPackID));
-            MagnetTile currentMagnetTile = magnetTiles.get(magnetTiles.size()-1);
-            currentMagnetTile.setX(cursor.getInt(cursor.getColumnIndex(xColumn)));
-            currentMagnetTile.setY(cursor.getInt(cursor.getColumnIndex(yColumn)));
+            magnets.add(new Magnet(cursor.getString(cursor.getColumnIndex(textColumn)), magnets.size(),scaleFactor,thisPackID));
+            Magnet currentMagnet = magnets.get(magnets.size()-1);
+            currentMagnet.setX(cursor.getInt(cursor.getColumnIndex(xColumn)));
+            currentMagnet.setY(cursor.getInt(cursor.getColumnIndex(yColumn)));
             id = cursor.getInt(cursor.getColumnIndex(idColumn));
             ifSavedPoemTitle = cursor.getString(cursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry.COLUMN_IF_SAVED_TITLE));
             if(!packsUsedIds.contains(thisPackID)) packsUsedIds.add(thisPackID);
@@ -96,13 +96,13 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
     public String loadSavedMagnets(Cursor cursor, String packIDColumn, String textColumn, String xColumn, String yColumn, String idColumn) {
         System.out.println("loading: " + previouslySavedPoemName);
         int id = -1;
-        magnetTiles.clear();
+        magnets.clear();
         while(cursor.moveToNext()) {
             int thisPackID = cursor.getInt(cursor.getColumnIndex(packIDColumn));
-            magnetTiles.add(new MagnetTile(cursor.getString(cursor.getColumnIndex(textColumn)),magnetTiles.size(),scaleFactor,thisPackID));
-            MagnetTile currentMagnetTile = magnetTiles.get(magnetTiles.size()-1);
-            currentMagnetTile.setX(cursor.getInt(cursor.getColumnIndex(xColumn)));
-            currentMagnetTile.setY(cursor.getInt(cursor.getColumnIndex(yColumn)));
+            magnets.add(new Magnet(cursor.getString(cursor.getColumnIndex(textColumn)), magnets.size(),scaleFactor,thisPackID));
+            Magnet currentMagnet = magnets.get(magnets.size()-1);
+            currentMagnet.setX(cursor.getInt(cursor.getColumnIndex(xColumn)));
+            currentMagnet.setY(cursor.getInt(cursor.getColumnIndex(yColumn)));
             id = cursor.getInt(cursor.getColumnIndex(idColumn));
             if(!packsUsedIds.contains(thisPackID)) packsUsedIds.add(thisPackID);
         }
@@ -134,20 +134,20 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
 
     public String load(Cursor cursor, String packIDColumn, String textColumn, String xColumn, String yColumn, String idColumn) {
         String id = "";
-        magnetTiles.clear();
+        magnets.clear();
         //canvasListener.reportSavedId(cursor.getInt(cursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry.COLUMN_IF_SAVED_ID)));
         for(int i = 0; i < cursor.getCount(); i++) {
             int thisPackID = cursor.getInt(cursor.getColumnIndex(packIDColumn));
-            magnetTiles.add(new MagnetTile(cursor.getString(cursor.getColumnIndex(textColumn)),magnetTiles.size(),scaleFactor,thisPackID));
-            MagnetTile currentMagnetTile = magnetTiles.get(magnetTiles.size()-1);
-            currentMagnetTile.setX(cursor.getInt(cursor.getColumnIndex(xColumn)));
-            currentMagnetTile.setY(cursor.getInt(cursor.getColumnIndex(yColumn)));
+            magnets.add(new Magnet(cursor.getString(cursor.getColumnIndex(textColumn)), magnets.size(),scaleFactor,thisPackID));
+            Magnet currentMagnet = magnets.get(magnets.size()-1);
+            currentMagnet.setX(cursor.getInt(cursor.getColumnIndex(xColumn)));
+            currentMagnet.setY(cursor.getInt(cursor.getColumnIndex(yColumn)));
             id = cursor.getString(cursor.getColumnIndex(idColumn));
             if(!packsUsedIds.contains(thisPackID)) packsUsedIds.add(thisPackID);
             cursor.moveToNext();
         }
         System.out.println("loading");
-        System.out.println("loading "+Integer.toString(magnetTiles.size())+","+cursor.getCount());
+        System.out.println("loading "+Integer.toString(magnets.size())+","+cursor.getCount());
         invalidate(); // redraw the canvas
         return  id;
     }
@@ -168,21 +168,21 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
 
     /* Implements the AwardManager Listener. Lets the drawing panel know that the awards manager is alive and returns the number of magnets on the screen at this time. */
     public int getInitialNumberMagnets() {
-        return magnetTiles.size();
+        return magnets.size();
     }
 
     /* Clears the magnets from the screen and memory.
        Called by the MainActivity when the clear the screen
        button is pressed. */
     public void clearMagnets() {
-        magnetTiles.clear();
+        magnets.clear();
         packsUsedIds.clear();
         invalidate();
     }
 
     /* Called by the MainActivity, getPoem() returns the magnetTiles ArrayList */
-    public ArrayList<MagnetTile> getPoem() {
-        return magnetTiles;
+    public ArrayList<Magnet> getPoem() {
+        return magnets;
     }
 
 
@@ -191,27 +191,27 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
     *  Implements View.OnDragListener */
     @Override
     public boolean onDrag(View view, DragEvent dragEvent) {
-        int currentTile = magnetTiles.size() - 1 ;
+        int currentTile = magnets.size() - 1 ;
         switch (dragEvent.getAction()) {
             case DragEvent.ACTION_DRAG_STARTED: // The magnet has been clicked (a long-click event in the drawerFragment)
                 notAddedTile = true;
                 return true;
             case DragEvent.ACTION_DRAG_ENTERED: // The magnet has entered the drawing area
                 currentTile = addTileToCanvas();
-                clickedMagnetTile = magnetTiles.get(currentTile);
+                clickedMagnet = magnets.get(currentTile);
                 break;
             case DragEvent.ACTION_DRAG_LOCATION: // Called every time the magnet is moved in the drawing area
                 if(currentTile != -1) {
-                    handleMovingClickedTile(magnetTiles.get(currentTile), dragEvent.getX(), dragEvent.getY());
+                    handleMovingClickedTile(magnets.get(currentTile), dragEvent.getX(), dragEvent.getY());
                 } else {
-                    handleMovingClickedTile(magnetTiles.get(0), dragEvent.getX(), dragEvent.getY());
+                    handleMovingClickedTile(magnets.get(0), dragEvent.getX(), dragEvent.getY());
                 }
                 break;
             case DragEvent.ACTION_DROP: // The magnet is dropped when the finger moves up, off the screen
                 if(notAddedTile) {
                     currentTile = addTileToCanvas();
-                    magnetTiles.get(currentTile).setX(dragEvent.getX());
-                    magnetTiles.get(currentTile).setY(dragEvent.getY());
+                    magnets.get(currentTile).setX(dragEvent.getX());
+                    magnets.get(currentTile).setY(dragEvent.getY());
                 }
                 adjustTheClickedTile();
                 break;
@@ -222,21 +222,21 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
 
     /* addTileToCanvas is used only by the onDrag event listener to add a new magnet tile */
     private int addTileToCanvas() {
-        magnetTiles.add(new MagnetTile(word,magnetTiles.size(),scaleFactor,packID));
+        magnets.add(new Magnet(word, magnets.size(),scaleFactor,packID));
         notAddedTile = false;
-        canvasListener.magnetTilesChanged(magnetTiles.size());
-        return magnetTiles.size()-1;
+        canvasListener.magnetTilesChanged(magnets.size());
+        return magnets.size()-1;
     }
 
     /* adjustTheClickedTile is used by the onTouch and onDrag event listeners to adjust a magnet tile after the drop/up action. It also clears the clickedMagnetTile and sidesToLockToNext variables*/
     private void adjustTheClickedTile() {
         if(!sidesToLockToNext.isEmpty()) {
             for(MagnetSide magnetSide : sidesToLockToNext) {
-                clickedMagnetTile.setXAndY(clickedMagnetTile.x() + magnetSide.xAndyDistances.x, clickedMagnetTile.y() + magnetSide.xAndyDistances.y);
+                clickedMagnet.setXAndY(clickedMagnet.x() + magnetSide.xAndyDistances.x, clickedMagnet.y() + magnetSide.xAndyDistances.y);
                 if(soundEffects) mediaPlayer.start();
             }
         }
-        clickedMagnetTile = null;
+        clickedMagnet = null;
         sidesToLockToNext.clear();
     }
 
@@ -253,9 +253,9 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
                 break;
             case MotionEvent.ACTION_MOVE:
                 // does the user have a magnet? If so, deal with magnet-magnet collisions, etc.
-                if(clickedMagnetTile != null) {
+                if(clickedMagnet != null) {
                     sidesToLockToNext.clear();
-                    handleMovingClickedTile(clickedMagnetTile,motionEvent.getX(),motionEvent.getY());
+                    handleMovingClickedTile(clickedMagnet,motionEvent.getX(),motionEvent.getY());
                 }
                 break;
             case MotionEvent.ACTION_UP:
@@ -272,21 +272,21 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
     private void ifThereIsAMagnetOverTheTrashCanDeleteIt() {
         if(magnetIsAboveTrashCan) { // the clicked magnet tile is being held over the trash can
             magnetIsAboveTrashCan = false;
-            magnetTiles.remove(clickedMagnetTile);
+            magnets.remove(clickedMagnet);
             canvasListener.magnetDeleted();
-            canvasListener.magnetTilesChanged(magnetTiles.size());
+            canvasListener.magnetTilesChanged(magnets.size());
         }
     }
 
     /* onTouchEvent calls this method when the user presses down on the drawable area to check if the user has touched a magnet tile or the award image. If so, clickedMagnetTile is set or the award dialog is set. */
     private void checkForTouchCollisions(MotionEvent motionEvent) {
-        for(MagnetTile magnetTile : magnetTiles) {
-            if(theUserHasTouchedAMagnet(magnetTile, motionEvent.getX(), motionEvent.getY())) {
+        for(Magnet magnet : magnets) {
+            if(theUserHasTouchedAMagnet(magnet, motionEvent.getX(), motionEvent.getY())) {
                 performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
-                clickedMagnetTile = magnetTile;
+                clickedMagnet = magnet;
             }
         }
-        if(clickedMagnetTile == null && theUserHasTouchedTheAward(motionEvent.getX(),motionEvent.getY())) {
+        if(clickedMagnet == null && theUserHasTouchedTheAward(motionEvent.getX(),motionEvent.getY())) {
             performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
             loadAwardDialog();
         }
@@ -300,9 +300,9 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
     }
 
     /* This function checks if a user has touched a particular magnet tile. It is called by checkForTouchCollisions and collidesWith */
-    private boolean theUserHasTouchedAMagnet(MagnetTile magnetTile, float touchedX, float touchedY) {
-        return isTouchInBox(touchedX,touchedY,magnetTile.leftTopCornerY(),magnetTile.leftBottomCornerY(),
-                magnetTile.leftBottomCornerX(),magnetTile.rightBottomCornerX(),0);
+    private boolean theUserHasTouchedAMagnet(Magnet magnet, float touchedX, float touchedY) {
+        return isTouchInBox(touchedX,touchedY, magnet.leftTopCornerY(), magnet.leftBottomCornerY(),
+                magnet.leftBottomCornerX(), magnet.rightBottomCornerX(),0);
     }
 
     /* isTouchInBox runs the touch collision detection for when the user touches a magnet or the award image. The box can be expanded by adding boxPadding > 0*/
@@ -320,11 +320,11 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
     *  If there are collisions, play the collision sound and adjust the tiles so that they don't overlap.
     *  Otherwise, if the moving tile is not near any other tiles, just move the darn thing.
     * */
-    private void handleMovingClickedTile(MagnetTile clickedTile, float xTouchPosition, float yTouchPosition) {
+    private void handleMovingClickedTile(Magnet clickedTile, float xTouchPosition, float yTouchPosition) {
         checkIfTheMagnetIsAboveTheTrashCan(clickedTile);
-        ArrayList<MagnetTile> closeMagnets = getCloseMagnets(clickedTile,xTouchPosition, yTouchPosition,50);
+        ArrayList<Magnet> closeMagnets = getCloseMagnets(clickedTile,xTouchPosition, yTouchPosition,50);
         if (!closeMagnets.isEmpty()) { // if there are close magnets
-            ArrayList<MagnetTile> tilesThatCollideWithClickedTile = getCollidingMagnets(clickedTile,closeMagnets,xTouchPosition,yTouchPosition);
+            ArrayList<Magnet> tilesThatCollideWithClickedTile = getCollidingMagnets(clickedTile,closeMagnets,xTouchPosition,yTouchPosition);
             if(tilesThatCollideWithClickedTile.isEmpty()) { // no collisions
                 setUpHighlightingForCloseButNotTouchingTiles(clickedTile,xTouchPosition,yTouchPosition,closeMagnets);
             } else { // if it has already collided
@@ -337,11 +337,11 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
     }
 
     /* A convenience method called by handleMovingTile that gets all of the locking sides of the close magnet tiles, adds them to sidesToLockToNext and highlights them. When all is said and done, it moves the clicked tile. */
-    private void setUpHighlightingForCloseButNotTouchingTiles(MagnetTile clickedTile, float xTouchPosition, float yTouchPosition, ArrayList<MagnetTile> closeMagnets) {
+    private void setUpHighlightingForCloseButNotTouchingTiles(Magnet clickedTile, float xTouchPosition, float yTouchPosition, ArrayList<Magnet> closeMagnets) {
         ArrayList<MagnetSide> lockingSides = getLockingSides(clickedTile,closeMagnets);
         if(lockingSides != null) {
             for(MagnetSide side : lockingSides) {
-                toHighlightMagnets.add(side.referenceToMagnetTile);
+                toHighlightMagnets.add(side.referenceToMagnet);
                 sidesToLockToNext.add(side);
             }
         }
@@ -350,23 +350,23 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
 
     // todo, look at this one.
     /* A convenience method called by handleMovingTile when there has been a collision between the moving tile and other tiles. This function plays the soundEffect (if the setting is on) and makes the clickedTile back up so it is not overlapping any other tile. */
-    private void adjustCollidingMagnetTiles(MagnetTile clickedTile, float xTouchPosition, float yTouchPosition, ArrayList<MagnetTile> collidesWithTiles) {
+    private void adjustCollidingMagnetTiles(Magnet clickedTile, float xTouchPosition, float yTouchPosition, ArrayList<Magnet> collidesWithTiles) {
         if(soundEffects) mediaPlayer.start();
         ArrayList<MagnetSide> lockingSides = getLockingSides(clickedTile,collidesWithTiles);
         if(lockingSides != null) {
-            makeMagnetBackUp(clickedTile,lockingSides.get(0).referenceToMagnetTile); // should be closest if > 1 sides bc of sort in get locking sides
+            makeMagnetBackUp(clickedTile,lockingSides.get(0).referenceToMagnet); // should be closest if > 1 sides bc of sort in get locking sides
         }
     }
 
     /* A convenience method called by handleMovingClickedTile to set the magnetIsAboveTrashCan class variable.*/
-    private void checkIfTheMagnetIsAboveTheTrashCan(MagnetTile clickedTile) {
+    private void checkIfTheMagnetIsAboveTheTrashCan(Magnet clickedTile) {
         magnetIsAboveTrashCan = trashCan.collidesWithTrashCan(clickedTile,getWidth(),getHeight());
     }
 
     /* Returns all of the magnets out of the set of close magnets that physically collide with the moving magnet tile. */
-    private ArrayList<MagnetTile> getCollidingMagnets(MagnetTile clickedTile,ArrayList<MagnetTile> closeTiles, float xTouchPosition, float yTouchPosition) {
-        ArrayList<MagnetTile> collidesWithTiles = new ArrayList<MagnetTile>();
-        for(MagnetTile closeTile : closeTiles) {
+    private ArrayList<Magnet> getCollidingMagnets(Magnet clickedTile,ArrayList<Magnet> closeTiles, float xTouchPosition, float yTouchPosition) {
+        ArrayList<Magnet> collidesWithTiles = new ArrayList<Magnet>();
+        for(Magnet closeTile : closeTiles) {
             if(theseTwoTilesCollide(clickedTile,closeTile,xTouchPosition,yTouchPosition)) collidesWithTiles.add(closeTile);
         }
         return collidesWithTiles;
@@ -374,27 +374,27 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
 
     //todo this isn't right
     /* Returns true if the user's finger has touched the close tile or the close tile is in the collision zone of the moving clicked tile. Called by getCollidingMagnets */
-    private boolean theseTwoTilesCollide(MagnetTile clickedTile, MagnetTile closeTile, float xTouchPosition, float yTouchPosition) {
+    private boolean theseTwoTilesCollide(Magnet clickedTile, Magnet closeTile, float xTouchPosition, float yTouchPosition) {
         // add case for point outside of collision zone that must have gone through the collision zone (rectangle, line segment intersection?)
         return theUserHasTouchedAMagnet(closeTile,xTouchPosition,yTouchPosition) || isTouchInBox(xTouchPosition,yTouchPosition,closeTile.leftTopCornerY(),closeTile.leftBottomCornerY(),closeTile.leftBottomCornerX(),closeTile.rightBottomCornerX(),0);
     }
 
     /* Another convenience function used by handleMovingClickedTile. This function calls isTouchInBox on the clicked magnet tile and all of the other magnet tiles in  the drawing area to find the number of magnet tiles within a set area (within the padding zone). */
-    private ArrayList<MagnetTile> getCloseMagnets(MagnetTile clickedTile, float xTouchPosition, float yTouchPosition, int padding) {
-        ArrayList<MagnetTile> closeMagnetTiles = new ArrayList<MagnetTile>();
-        for(MagnetTile magnetTile : magnetTiles) {
-            if(clickedTile.id() != magnetTile.id()) {
-                if(isTouchInBox(xTouchPosition,yTouchPosition,magnetTile.leftTopCornerY(),magnetTile.leftBottomCornerY(),magnetTile.leftBottomCornerX(),magnetTile.rightBottomCornerX(),padding))
-                    closeMagnetTiles.add(magnetTile);
+    private ArrayList<Magnet> getCloseMagnets(Magnet clickedTile, float xTouchPosition, float yTouchPosition, int padding) {
+        ArrayList<Magnet> closeMagnets = new ArrayList<Magnet>();
+        for(Magnet magnet : magnets) {
+            if(clickedTile.id() != magnet.id()) {
+                if(isTouchInBox(xTouchPosition,yTouchPosition, magnet.leftTopCornerY(), magnet.leftBottomCornerY(), magnet.leftBottomCornerX(), magnet.rightBottomCornerX(),padding))
+                    closeMagnets.add(magnet);
             }
         }
-        return closeMagnetTiles;
+        return closeMagnets;
     }
 
     /* getSides is a convenience function for getLockingSides that returns the closest side of each magnet tile in closeMagnets. (The closest side is the side closest to tile the user is moving with their finger. */
-    private ArrayList<MagnetSide> getSides(MagnetTile clickedTile,ArrayList<MagnetTile> closeMagnets) {
+    private ArrayList<MagnetSide> getSides(Magnet clickedTile,ArrayList<Magnet> closeMagnets) {
         ArrayList<MagnetSide> possibleMagnetSides = new ArrayList<MagnetSide>();
-        for(MagnetTile closeTile : closeMagnets) {
+        for(Magnet closeTile : closeMagnets) {
             MagnetSide magnetSide = MagnetSide.closestSide(clickedTile,closeTile);
             if(magnetSide != null) possibleMagnetSides.add(magnetSide);
         }
@@ -427,7 +427,7 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
     }
 
     /* getLockingSides returns the one or two MagnetSide objects that will be used to make the moving magnet 'lock' to one or two close magnets when the user releases their finger from the screen. */
-    private ArrayList<MagnetSide> getLockingSides(MagnetTile clickedTile, ArrayList<MagnetTile> closeMagnets) {
+    private ArrayList<MagnetSide> getLockingSides(Magnet clickedTile, ArrayList<Magnet> closeMagnets) {
         // get all the possible sides from all of the possible magnets that are in the collision zone
         ArrayList<MagnetSide> sides = getSides(clickedTile,closeMagnets);
         if(sides.isEmpty()) {
@@ -442,7 +442,7 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
         Collections.sort(sides);
         MagnetSide side1 = sides.get(0);
         MagnetSide side2 = sides.get(1);
-        if(side1.referenceToMagnetTile.id() == side2.referenceToMagnetTile.id()) { // if they are the same, just add the one
+        if(side1.referenceToMagnet.id() == side2.referenceToMagnet.id()) { // if they are the same, just add the one
             ArrayList<MagnetSide> lockingSides = new ArrayList<MagnetSide>(1);
             lockingSides.add(side1);
             return lockingSides;
@@ -462,7 +462,7 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
     }
 
     /* toDo rewrite! */
-    private void makeMagnetBackUp(MagnetTile clickedTile, MagnetTile collidedMagnet) {
+    private void makeMagnetBackUp(Magnet clickedTile, Magnet collidedMagnet) {
         float halfWidth = clickedTile.width()/2;
         float halfHeight = clickedTile.height()/2;
         float leftSide = clickedTile.x() - halfWidth;
@@ -492,7 +492,7 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
         //clickedMagnetTile.setXAndY(clickedMagnetTile.x() + magnetSide.xAndyDistances.x, clickedMagnetTile.y() + magnetSide.xAndyDistances.y);
     }
 
-    private side returnSide(MagnetTile movingTile, MagnetTile stationaryTile) {
+    private side returnSide(Magnet movingTile, Magnet stationaryTile) {
         float xDifference = movingTile.x() - stationaryTile.x();
         float yDifference = movingTile.y() - stationaryTile.y();
         //left or right
@@ -516,15 +516,15 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
 
     }
 
-    private void resetIfPastCanvasBoundary(MagnetTile magnetTile, float rightBoundary, float bottomBoundary) {
-        float halfWidth = magnetTile.width()/2;
-        float halfHeight = magnetTile.height()/2;
-        if((magnetTile.x() + halfWidth) > rightBoundary) magnetTile.setX(rightBoundary - halfWidth);
-        if(magnetTile.x() - halfWidth < 0) {
-            magnetTile.setX(halfWidth);
+    private void resetIfPastCanvasBoundary(Magnet magnet, float rightBoundary, float bottomBoundary) {
+        float halfWidth = magnet.width()/2;
+        float halfHeight = magnet.height()/2;
+        if((magnet.x() + halfWidth) > rightBoundary) magnet.setX(rightBoundary - halfWidth);
+        if(magnet.x() - halfWidth < 0) {
+            magnet.setX(halfWidth);
         }
-        if (magnetTile.y() + halfHeight > bottomBoundary) magnetTile.setY(bottomBoundary - halfHeight);
-        if (magnetTile.y() - halfHeight < 0) magnetTile.setY(halfHeight);
+        if (magnet.y() + halfHeight > bottomBoundary) magnet.setY(bottomBoundary - halfHeight);
+        if (magnet.y() - halfHeight < 0) magnet.setY(halfHeight);
     }
 
 
@@ -588,13 +588,13 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
             animateAward = awardAlert.drawAwardAlert(canvas,getWidth());
         }
 
-        for(MagnetTile toHighlightMagnetTile : toHighlightMagnets) {
-            toHighlightMagnetTile.setHighlight(true);
+        for(Magnet toHighlightMagnet : toHighlightMagnets) {
+            toHighlightMagnet.setHighlight(true);
         }
-        for(MagnetTile magnetTile : magnetTiles) {
-            resetIfPastCanvasBoundary(magnetTile,getWidth(),getHeight());
-            magnetTile.draw(canvas, getWidth(),  getHeight());
-            magnetTile.setHighlight(false);
+        for(Magnet magnet : magnets) {
+            resetIfPastCanvasBoundary(magnet,getWidth(),getHeight());
+            magnet.draw(canvas, getWidth(),  getHeight());
+            magnet.setHighlight(false);
         }
         toHighlightMagnets.clear();
         // if the trash can should be shaking, keep drawing
@@ -638,8 +638,8 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
             scaleFactor *= scaleGestureDetector.getScaleFactor();
             // Don't let the object get too small or too large.
             scaleFactor = Math.max(0.1f, Math.min(scaleFactor, 5.0f));
-            for(MagnetTile magnetTile : magnetTiles) {
-                magnetTile.updateScaleFactor(scaleFactor,magnetTiles);
+            for(Magnet magnet : magnets) {
+                magnet.updateScaleFactor(scaleFactor, magnets);
             }
             invalidate();
             return true;

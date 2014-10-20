@@ -16,14 +16,11 @@ public class DrawerMagnetsAdapter extends SimpleCursorAdapter{
 
     public DrawerMagnetsAdapter(Context context, Cursor cursor, String[] from, int[] to) {
         super(context,R.layout.fragment_awards_grid_item,cursor,from,to,0);
-        //this.context = context;
-        //this.layout = R.layout.fragment_awards_grid_item;
         this.inflater = LayoutInflater.from(context);
     }
 
     @Override
     public View newView (Context context, Cursor cursor, ViewGroup parent) {
-        //return inflater.inflate(layout, null);
         return (inflater).inflate(R.layout.fragment_drawer_gridview_row,null);
     }
 
@@ -32,7 +29,5 @@ public class DrawerMagnetsAdapter extends SimpleCursorAdapter{
         super.bindView(view, context, cursor);
         TextView magnet = (TextView) view.findViewById(R.id.tile_text);
         magnet.setText(cursor.getString(cursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry.COLUMN_WORD_TEXT)));
-
-
     }
 }

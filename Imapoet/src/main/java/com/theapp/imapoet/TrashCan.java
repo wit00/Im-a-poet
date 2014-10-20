@@ -146,7 +146,7 @@ public class TrashCan {
         canvas.drawBitmap(trashCan, width - trashCanWidth - trashCanPadding, height - trashCanHeight - trashCanPadding, null);
     }
 
-    public boolean collidesWithTrashCan(MagnetTile movingTile, float width, float height) {
+    public boolean collidesWithTrashCan(Magnet movingTile, float width, float height) {
         float halfPaddingWidth = (movingTile.width() )/2;
         float halfPaddingHeight = (movingTile.height())/2;
         return !(width - trashCanWidth > movingTile.x() + halfPaddingWidth ||
