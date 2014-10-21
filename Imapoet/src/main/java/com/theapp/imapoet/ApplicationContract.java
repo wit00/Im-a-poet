@@ -28,7 +28,18 @@ public class ApplicationContract {
     protected static final Uri getPacks_URI = Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/packs");
     protected static final Uri getMagnets_URI = Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/magnets");
     protected static final Uri getStatistics_URI = Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/statistics/all");
-
+    protected static final Uri getSavedPoem_URI = Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/savedPoem");
+    protected static final Uri deleteCurrentPoem_URI = Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/delete/currentPoem");
+    protected static final Uri insertNewCurrentPoem_URI = Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/insert/currentPoem");
+    protected static final Uri deletePoemDetailBeforeUpdate_URI = Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/delete/poem/detail");
+    protected static final Uri insertPoemDetail_URI = Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/insert/poem/detail");
+    protected static final Uri insertPoem_URI = Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/insert/poem");
+    protected static final Uri updatePoem_URI = Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/update/poem");
+    protected static final Uri insertPacks_URI = Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/insert/packs");
+    protected static final Uri updateCurrentPoem_URI = Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/update/currentPoem");
+    protected static final Uri insertMagnet_URI = Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/insert/pack/magnet");
+    protected static final Uri insertOnSaveAwards_URI = Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/insert/award/on_save");
+    protected static final Uri insertContinuousAwards_URI = Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/insert/award/continuous");
 
 
     //public ArrayList<String> skuList = new ArrayList<String>(Arrays.asList("Shakespeare","Japanese Alphabet"));
@@ -41,4 +52,5 @@ public class ApplicationContract {
 
 
     }
+
  }

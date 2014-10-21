@@ -66,45 +66,49 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
         return packsUsedIds.size();
     }
 
+    // used by loadMagnets and loadSavedMagnets to put the magnets and pack info into the appropriate member variables from the Cursor
+    private int getMagnetsAndPacksFromCursor(Cursor cursor, String packIDColumn, String textColumn, String xColumn, String yColumn, String idColumn) {
+        int thisPackID = cursor.getInt(cursor.getColumnIndex(packIDColumn));
+        magnets.add(new Magnet(cursor.getString(cursor.getColumnIndex(textColumn)), magnets.size(),scaleFactor,thisPackID));
+        Magnet currentMagnet = magnets.get(magnets.size()-1);
+        currentMagnet.setX(cursor.getInt(cursor.getColumnIndex(xColumn)));
+        currentMagnet.setY(cursor.getInt(cursor.getColumnIndex(yColumn)));
+        int id = cursor.getInt(cursor.getColumnIndex(idColumn));
+        if(!packsUsedIds.contains(thisPackID)) packsUsedIds.add(thisPackID);
+        return id;
+    }
+
+    // Set the values for the previously saved poem member variables
+    private void setPreviouslySavedPoem(Boolean saved, String id, String title) {
+        previouslySavedPoem = saved;
+        previouslySavedPoemID = id;
+        previouslySavedPoemName = title;
+    }
+
     /* Implements GameState.drawingPanelListener. The listener calls this function during onResume when the magnets need to be loaded back onto the canvas. This call covers magnets restored from the auto-save and the manual save. */
     public String loadMagnets(Cursor cursor, String packIDColumn, String textColumn, String xColumn, String yColumn, String idColumn) {
         int id = -1;
         magnets.clear();
         String ifSavedPoemTitle = null;
         for(int i = 0; i < cursor.getCount(); i++) {
-            int thisPackID = cursor.getInt(cursor.getColumnIndex(packIDColumn));
-            magnets.add(new Magnet(cursor.getString(cursor.getColumnIndex(textColumn)), magnets.size(),scaleFactor,thisPackID));
-            Magnet currentMagnet = magnets.get(magnets.size()-1);
-            currentMagnet.setX(cursor.getInt(cursor.getColumnIndex(xColumn)));
-            currentMagnet.setY(cursor.getInt(cursor.getColumnIndex(yColumn)));
-            id = cursor.getInt(cursor.getColumnIndex(idColumn));
+            id = getMagnetsAndPacksFromCursor(cursor,packIDColumn,textColumn,xColumn,yColumn,idColumn);
             ifSavedPoemTitle = cursor.getString(cursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry.COLUMN_IF_SAVED_TITLE));
-            if(!packsUsedIds.contains(thisPackID)) packsUsedIds.add(thisPackID);
             cursor.moveToNext();
         }
         if(id != -1) {
-            previouslySavedPoem = true;
-            previouslySavedPoemID = Integer.toString(id);
-            previouslySavedPoemName = ifSavedPoemTitle;
+            setPreviouslySavedPoem(true,Integer.toString(id),ifSavedPoemTitle);
         } else {
-            previouslySavedPoem = false;
+            setPreviouslySavedPoem(false,null,null);
         }
         invalidate(); // redraw the canvas
         return  Integer.toString(id);
     }
 
     public String loadSavedMagnets(Cursor cursor, String packIDColumn, String textColumn, String xColumn, String yColumn, String idColumn) {
-        System.out.println("loading: " + previouslySavedPoemName);
         int id = -1;
         magnets.clear();
         while(cursor.moveToNext()) {
-            int thisPackID = cursor.getInt(cursor.getColumnIndex(packIDColumn));
-            magnets.add(new Magnet(cursor.getString(cursor.getColumnIndex(textColumn)), magnets.size(),scaleFactor,thisPackID));
-            Magnet currentMagnet = magnets.get(magnets.size()-1);
-            currentMagnet.setX(cursor.getInt(cursor.getColumnIndex(xColumn)));
-            currentMagnet.setY(cursor.getInt(cursor.getColumnIndex(yColumn)));
-            id = cursor.getInt(cursor.getColumnIndex(idColumn));
-            if(!packsUsedIds.contains(thisPackID)) packsUsedIds.add(thisPackID);
+            id = getMagnetsAndPacksFromCursor(cursor,packIDColumn,textColumn,xColumn,yColumn,idColumn);
         }
         invalidate(); // redraw the canvas
         return  Integer.toString(id);

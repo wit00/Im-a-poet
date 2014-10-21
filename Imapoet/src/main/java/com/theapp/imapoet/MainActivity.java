@@ -25,7 +25,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.PopupMenu;
 import android.widget.TextView;
@@ -192,13 +191,13 @@ public class MainActivity extends FragmentActivity implements DrawerFragment.OnF
         if(demoFragment != null) demoFragment.packsSelected();
     }
 
-    private void insertNewMagnetIntoDatabase(String newMagnetText) {
+    /*private void insertNewMagnetIntoDatabase(String newMagnetText) {
         gameState.insertANewMagnet(newMagnetText,drawerFragment.getCurrentPack());
         DrawerFragment drawerFragment = (DrawerFragment)getSupportFragmentManager().findFragmentById(R.id.drawer_layout);
         drawerFragment.restartMainLoader();
-    }
+    }*/
 
-    public void addMagnet(View view) {
+    /*public void addMagnet(View view) {
         final EditText magnetInput = new EditText(this);
         magnetInput.setHint("new word");
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -218,11 +217,11 @@ public class MainActivity extends FragmentActivity implements DrawerFragment.OnF
             }
         });
         (builder.create()).show();
-    }
+    }*/
 
-    public void deleteMagnet(View view) {
+   /* public void deleteMagnet(View view) {
         gameState.deleteMagnet(Integer.toString(drawerFragment.getCurrentPack()));
-    }
+    }*/
 
     private void setFirstLaunchToFalse(SharedPreferences sharedPreferences) {
         SharedPreferences.Editor sharedPreferencesEditor = sharedPreferences.edit();
@@ -393,26 +392,28 @@ public class MainActivity extends FragmentActivity implements DrawerFragment.OnF
     }
 
 
-    /* Update the auto-save poem information during onPause using the gameState.deleteCurrentPoem method. */
+    /* Update the auto-save poem information during onPause using the gameState.setCurrentPoemForAutoSave method. */
     @Override
     protected void onPause() {
         super.onPause();
-        gameState.deleteCurrentPoem(drawingPanelFragment.getPoem());
+        gameState.setCurrentPoemForAutoSave(drawingPanelFragment.getPoem());
         getIntent().removeExtra("poem_name");
         getIntent().removeExtra("poem_id");
 
     }
 
+
     /* If the user shares a poem, a temporary bitmap is created in the cache directory. Delete that bitmap when the activity completes.*/
     @Override
-    protected void onStop() {
-        super.onStop();
+    protected void onDestroy() {
+        super.onDestroy();
         new File(this.getCacheDir(), "tempShareBitmap.jpg").delete();
+
     }
 
     private void createExistingPoemSaveAlertDialog() {
         Bundle bundle = new Bundle();
-        bundle.putString("loadedPoemName",gameState.loadedName());
+        bundle.putString("loadedPoemName",drawingPanelFragment.drawingPanel().getSavedPoemName());
         ExistingPoemSaveAlertDialog existingPoemSaveAlertDialog = new ExistingPoemSaveAlertDialog();
         existingPoemSaveAlertDialog.setArguments(bundle);
         existingPoemSaveAlertDialog.show(getFragmentManager(),null);
@@ -424,7 +425,7 @@ public class MainActivity extends FragmentActivity implements DrawerFragment.OnF
 
     public void loadSave(View view) {
         if(demoFragment != null ) demoFragment.buttonsClicked(); // the demo is running and a button has been clicked
-        if(gameState.isLoaded()) {
+        if(drawingPanelFragment.drawingPanel().getSavedPoemState()) {
             createExistingPoemSaveAlertDialog();
         } else {
             createNewPoemSaveAlertDialog();
@@ -436,8 +437,8 @@ public class MainActivity extends FragmentActivity implements DrawerFragment.OnF
         sendIntent.setAction(Intent.ACTION_SEND);
         sendIntent.setType("image/*");
         sendIntent.putExtra(Intent.EXTRA_STREAM, bitmapUri);
-        sendIntent.putExtra(Intent.EXTRA_TEXT, "I made a poem with I'm a poet!");
-        sendIntent.putExtra("sms_body", "I made a poem with I'm a poet!");
+        sendIntent.putExtra(Intent.EXTRA_TEXT, getString(R.string.share_extra_text));
+        sendIntent.putExtra("sms_body", getString(R.string.share_extra_sms_body));
         startActivity(Intent.createChooser(sendIntent, getResources().getText(R.string.share_intent_title)));
     }
 
@@ -524,7 +525,7 @@ public class MainActivity extends FragmentActivity implements DrawerFragment.OnF
         }
         @Override
         protected void onPostExecute(JSONArray statisticsAndAwards) {
-            gameState.insertStatisticsAndAwardsData(statisticsAndAwards, Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/insert/statistic/on_save"),4);
+            gameState.insertStatisticsAndAwardsData(statisticsAndAwards, Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/insert/statistic/on_save"),true);
         }
     }
 
@@ -535,7 +536,7 @@ public class MainActivity extends FragmentActivity implements DrawerFragment.OnF
         }
         @Override
         protected void onPostExecute(JSONArray statisticsAndAwards) {
-            gameState.insertStatisticsAndAwardsData(statisticsAndAwards, Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/insert/statistic/continuous"),5);
+            gameState.insertStatisticsAndAwardsData(statisticsAndAwards, Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/insert/statistic/continuous"),false);
         }
     }
 
@@ -545,7 +546,7 @@ public class MainActivity extends FragmentActivity implements DrawerFragment.OnF
         }
         protected void onPostExecute(ArrayList<Pack> packs) {
             for(Pack pack : packs) {
-                gameState.insertANewPoemFromText(pack);
+                gameState.insertPacksFromTextFiles(pack);
             }
         }
     }

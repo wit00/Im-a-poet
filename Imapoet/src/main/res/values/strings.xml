@@ -34,6 +34,8 @@
     <string name="share_button_image_content_description">Share Poem Button</string>
     <string name="save_button_image_content_description">Save Button</string>
     <string name="demo_opening_string">Welcome to I\'m a poet! Let\'s get started. There is a drawer on the left side of the screen that holds all of your words. You can open it by swiping from the left or by clicking the drawer button. Open the drawer to continue.\"</string>
+    <string name="share_extra_text">I made a poem with I\'m a poet!</string>
+    <string name="share_extra_sms_body">I made a poem with I\'m a poet!</string>
     <string-array name="magnets_array">
             <item>Basic</item>
             <item>Love</item>

@@ -39,10 +39,8 @@ public class StatisticsFragment extends android.support.v4.app.Fragment implemen
                 MagnetDatabaseContract.MagnetEntry.COLUMN_STATISTIC_NAME,
                 MagnetDatabaseContract.MagnetEntry.COLUMN_VALUE
         };
-
         return new CursorLoader(getActivity(), ApplicationContract.getStatistics_URI, projection,null,null, MagnetDatabaseContract.MagnetEntry.COLUMN_STATISTIC_NAME + MagnetDatabaseContract.MagnetEntry.ASC);
     }
-
 
     private boolean isTheSameStatistic(String cursorStatisticName, ApplicationContract.StatisticNames statisticName) {
         return cursorStatisticName.equals((statisticName.toString()));
