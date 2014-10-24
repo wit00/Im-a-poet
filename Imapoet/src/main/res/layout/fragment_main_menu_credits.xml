@@ -1,23 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-
+<!-- Credits fragment layout -->
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent">
-
     <TextView
         android:layout_centerHorizontal="true"
         android:layout_marginTop="20dp"
         android:textSize="18sp"
         android:textStyle="bold"
-        android:text="Who made this?"
-        android:paddingTop="10dp"
-        android:paddingBottom="10dp"
+        android:text="@string/credits_title"
+        android:paddingTop="@dimen/extra_margin"
+        android:paddingBottom="@dimen/extra_margin"
         android:id="@+id/credits_header"
         android:layout_width="wrap_content"
-        android:paddingLeft="40dp"
-        android:paddingRight="40dp"
+        android:paddingLeft="@dimen/_big_top_margin"
+        android:paddingRight="@dimen/_big_top_margin"
         android:layout_height="wrap_content" />
-
     <TableLayout
         android:layout_below="@id/credits_header"
         android:layout_centerHorizontal="true"
@@ -25,62 +23,73 @@
         android:layout_height="wrap_content">
         <TableRow
             android:layout_marginTop="15dp"
-            android:layout_below="@id/credits_header"
-            android:layout_centerHorizontal="true"
-            android:paddingBottom="5dp">
+            android:paddingBottom="@dimen/indent">
             <TextView
-                android:paddingTop="10dp"
+                android:paddingTop="@dimen/extra_margin"
                 android:id="@+id/music_credits_label"
-                android:text="Music:"
+                android:text="@string/credits_settings"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
             <TextView
-                android:paddingLeft="10dp"
+                android:paddingLeft="@dimen/extra_margin"
+                android:paddingRight="@dimen/extra_margin"
+                android:paddingEnd="@dimen/extra_margin"
+                android:paddingStart="@dimen/extra_margin"
                 android:id="@+id/music_credits_value"
-                android:text="Music Credit"
+                android:text="@string/music_credit_name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
             <ImageView
-                android:paddingLeft="10dp"
+                android:paddingLeft="@dimen/extra_margin"
+                android:paddingRight="@dimen/extra_margin"
+                android:paddingStart="@dimen/extra_margin"
+                android:paddingEnd="@dimen/extra_margin"
                 android:onClick="loadWebsite"
                 android:src="@drawable/to_website"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:id="@+id/music_website_link"/>
-
+                android:id="@+id/music_website_link"
+                android:contentDescription="@string/content_description_music_credit_link" />
         </TableRow>
-
         <TableRow
-            android:layout_marginTop="10dp"
-            android:layout_below="@id/credits_header"
-            android:layout_centerHorizontal="true">
+            android:layout_marginTop="@dimen/extra_margin">
             <TextView
-                android:paddingTop="10dp"
+                android:paddingTop="@dimen/extra_margin"
                 android:id="@+id/other_credits_label"
-                android:text="Programmer:"
+                android:text="@string/credits_programmer"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
             <TextView
-                android:paddingLeft="10dp"
+                android:paddingLeft="@dimen/extra_margin"
+                android:paddingRight="@dimen/extra_margin"
+                android:paddingEnd="@dimen/extra_margin"
+                android:paddingStart="@dimen/extra_margin"
                 android:id="@+id/other_credits_value"
-                android:text="Whitney Powell"
+                android:text="@string/programmer_credit_name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
             <ImageView
-                android:paddingLeft="10dp"
+                android:paddingLeft="@dimen/extra_margin"
+                android:paddingRight="@dimen/extra_margin"
+                android:paddingEnd="@dimen/extra_margin"
+                android:paddingStart="@dimen/extra_margin"
                 android:onClick="loadMyWebsite"
                 android:src="@drawable/to_website"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:id="@+id/my_website_link"/>
+                android:id="@+id/my_website_link"
+                android:contentDescription="@string/link_to_my_website_content_description" />
             <ImageView
-                android:paddingLeft="10dp"
+                android:paddingLeft="@dimen/indent"
+                android:paddingRight="@dimen/extra_margin"
+                android:paddingEnd="@dimen/extra_margin"
+                android:paddingStart="@dimen/extra_margin"
                 android:onClick="loadMyTwitter"
                 android:src="@drawable/to_twitter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:id="@+id/my_twitter_link"/>
+                android:id="@+id/my_twitter_link"
+                android:contentDescription="@string/link_to_my_twitter_content_description" />
         </TableRow>
     </TableLayout>
-
 </RelativeLayout>

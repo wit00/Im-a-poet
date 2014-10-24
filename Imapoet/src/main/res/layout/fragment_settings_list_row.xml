@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent" android:layout_height="match_parent"
     android:padding="@dimen/indent">
     <ImageView
-        android:paddingStart="20dp"
-        android:paddingLeft="20dp"
-        android:paddingRight="5dp"
-        android:paddingEnd="5dp"
+        android:paddingStart="@dimen/large_margin"
+        android:paddingLeft="@dimen/large_margin"
+        android:paddingRight="@dimen/indent"
+        android:paddingEnd="@dimen/indent"
         android:id="@+id/settingsRowImage"
         android:layout_width="wrap_content"
         android:layout_centerVertical="true"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/background_for_settings_content_description" />
     <TextView
         android:id="@+id/settingsRow"
         android:layout_toRightOf="@id/settingsRowImage"
+        android:layout_toEndOf="@id/settingsRowImage"
         android:layout_centerVertical="true"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
-
 </RelativeLayout>

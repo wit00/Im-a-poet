@@ -93,11 +93,11 @@ public class MainActivity extends FragmentActivity implements DrawerFragment.OnF
         }
     }
 
-    public void addDemoFragment() {
+    public void addDemoFragment(String placement) {
         FragmentManager fragmentManager = getFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         fragmentTransaction.setCustomAnimations(R.anim.demo_slide_in, R.anim.demo_slide_in);//, R.anim.abc_fade_in, animPopExit);
-        demoFragment = DemoFragment.newInstance(getString(R.string.demo_opening_string));
+        demoFragment = DemoFragment.newInstance(getString(R.string.demo_opening_string),placement);
         fragmentTransaction.add(android.R.id.content, demoFragment);
         fragmentTransaction.addToBackStack(null);
         fragmentTransaction.commit();
@@ -109,7 +109,8 @@ public class MainActivity extends FragmentActivity implements DrawerFragment.OnF
 
 
     public void drawerOpened() {
-        if(demoFragment != null) demoFragment.drawerOpened();
+        //if(demoFragment != null) demoFragment.drawerOpened();
+        if(demoFragment != null) demoFragment.runDemo(DemoFragment.DemoPart.DRAWER_OPENED);
     }
 
     public void demoComplete() {
@@ -128,13 +129,13 @@ public class MainActivity extends FragmentActivity implements DrawerFragment.OnF
         //magnetListener.magnetAdded();
         gameState.magnetTilesChanged(numberMagnetTiles);
         if(demoFragment != null) {
-            demoFragment.magnetTilesChanged();
+            demoFragment.runDemo(DemoFragment.DemoPart.MAGNET_ADDED);
         }
     }
 
     public void magnetDeleted() {
         if(demoFragment != null) {
-            demoFragment.magnetDeleted();
+            demoFragment.runDemo(DemoFragment.DemoPart.MAGNET_DELETED);
         } else {
             gameState.magnetDeleted();
         }
@@ -142,7 +143,7 @@ public class MainActivity extends FragmentActivity implements DrawerFragment.OnF
 
     public void awardClicked() {
         if(demoFragment!=null) {
-            demoFragment.awardClicked();
+            demoFragment.runDemo(DemoFragment.DemoPart.AWARD_CLICKED);
             gameState.demoComplete();
         }
     }
@@ -166,18 +167,23 @@ public class MainActivity extends FragmentActivity implements DrawerFragment.OnF
 
         SharedPreferences sharedPreferences = getPreferences(0);
         if(sharedPreferences.getBoolean(ApplicationContract.FIRST_LAUNCH,true)) {
-            addDemoFragment();
+            addDemoFragment(DemoFragment.DemoPart.START.toString());
             loadValuesIntoDatabase();
             setFirstLaunchToFalse(sharedPreferences);
             gameState = new GameState(this, drawingPanelFragment.drawingPanel(),true);
         } else {
             gameState = new GameState(this, drawingPanelFragment.drawingPanel(),false);
         }
+
         Bundle extras = getIntent().getExtras();
         if(extras != null) {
             gameState.loadSavedMagnets(extras);
         } else {
             drawingPanelFragment.loadMagnets();
+        }
+        String demoRunning = sharedPreferences.getString(ApplicationContract.DEMO,"");
+        if(!demoRunning.equals("")) {
+            addDemoFragment(demoRunning);
         }
     }
 
@@ -188,7 +194,7 @@ public class MainActivity extends FragmentActivity implements DrawerFragment.OnF
     }
 
     public void onSpinnerClicked() {
-        if(demoFragment != null) demoFragment.packsSelected();
+        if(demoFragment != null) demoFragment.runDemo(DemoFragment.DemoPart.PACKS_SELECTED);
     }
 
     /*private void insertNewMagnetIntoDatabase(String newMagnetText) {
@@ -320,7 +326,7 @@ public class MainActivity extends FragmentActivity implements DrawerFragment.OnF
                             case R.id.action_demo:
                                 //demo = new Demo(MainActivity.this,helperContext);
                                 //demo.runDemoIntro();
-                                if(demoFragment == null) addDemoFragment();
+                                if(demoFragment == null) addDemoFragment(DemoFragment.DemoPart.START.toString());
                                 break;
                             case R.id.action_rate:
                                 String packageName = helperContext.getPackageName();
@@ -367,7 +373,7 @@ public class MainActivity extends FragmentActivity implements DrawerFragment.OnF
     }
 
     public void loadMenu(View view) {
-        if(demoFragment != null ) demoFragment.buttonsClicked(); // the demo is running and a button has been clicked
+        if(demoFragment != null ) demoFragment.runDemo(DemoFragment.DemoPart.BUTTONS_CLICKED); // the demo is running and a button has been clicked
         Intent mainMenuIntent = new Intent(this, MainMenu.class);
         startActivity(mainMenuIntent);
     }
@@ -396,6 +402,22 @@ public class MainActivity extends FragmentActivity implements DrawerFragment.OnF
     @Override
     protected void onPause() {
         super.onPause();
+        if(demoFragment != null) { // if the demo is going on, set current demo fragment
+            SharedPreferences sharedPreferences = getPreferences(0);
+            SharedPreferences.Editor sharedPreferencesEditor = sharedPreferences.edit();
+            sharedPreferencesEditor.putString(ApplicationContract.DEMO, demoFragment.getCurrentDemoPart().toString());
+
+
+            //sharedPreferencesEditor.remove(ApplicationContract.DEMO);
+
+            sharedPreferencesEditor.apply();
+        } else {
+            SharedPreferences sharedPreferences = getPreferences(0);
+            SharedPreferences.Editor sharedPreferencesEditor = sharedPreferences.edit();
+            sharedPreferencesEditor.putString(ApplicationContract.DEMO, "");
+            //sharedPreferencesEditor.remove(ApplicationContract.DEMO);
+            sharedPreferencesEditor.apply();
+        }
         gameState.setCurrentPoemForAutoSave(drawingPanelFragment.getPoem());
         getIntent().removeExtra("poem_name");
         getIntent().removeExtra("poem_id");
@@ -424,7 +446,7 @@ public class MainActivity extends FragmentActivity implements DrawerFragment.OnF
     }
 
     public void loadSave(View view) {
-        if(demoFragment != null ) demoFragment.buttonsClicked(); // the demo is running and a button has been clicked
+        if(demoFragment != null ) demoFragment.runDemo(DemoFragment.DemoPart.BUTTONS_CLICKED); // the demo is running and a button has been clicked
         if(drawingPanelFragment.drawingPanel().getSavedPoemState()) {
             createExistingPoemSaveAlertDialog();
         } else {
@@ -468,7 +490,7 @@ public class MainActivity extends FragmentActivity implements DrawerFragment.OnF
     }
 
     public void loadShareDialog(View view) {
-        if(demoFragment != null ) demoFragment.buttonsClicked(); // the demo is running and a button has been clicked
+        if(demoFragment != null ) demoFragment.runDemo(DemoFragment.DemoPart.BUTTONS_CLICKED); // the demo is running and a button has been clicked
         //new ShareDialog().show(getFragmentManager(), null);
         // make bitmap
         (new ShareTask()).execute();

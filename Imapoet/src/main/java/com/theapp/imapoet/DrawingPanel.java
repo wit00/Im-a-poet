@@ -4,6 +4,7 @@ package com.theapp.imapoet;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -165,8 +166,9 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
     /* Implements the AwardManager.AwardManager Listener. Sets a new award to be displayed and makes a call to redraw the canvas. */
     public void loadAward(String name, String description, int id) {
         awardAlert.setAlert(true);
-        awardAlert.awardName = name;
-        awardAlert.awardDescription = description;
+        //awardAlert.awardName = name;
+        //awardAlert.awardDescription = description;
+        awardAlert.addNewAward(name,description);
         invalidate();
     }
 
@@ -532,24 +534,43 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
     }
 
 
-
-
+    // load the award dialog when the award icon has been clicked, different dialogs are displayed depending on the number of awards the user has not looked at
     private void loadAwardDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-        if(awardAlert.awardName == null) {
-            builder.setTitle("You haven't received any awards this session")
+        final AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        final int numberOfAwards = awardAlert.getAwardsSize();
+        if(numberOfAwards == 0) {
+            builder.setTitle("You don't have any current awards to view")
                     .setMessage("Check out the awards page to check out which awards you've received and all of the awards you can get!")
-                    .setPositiveButton("ok", new DialogInterface.OnClickListener() {
+                    .setPositiveButton("No thanks", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
                             canvasListener.awardClicked();
                         }
+                    })
+                    .setNegativeButton("See my awards", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            getContext().startActivity(new Intent(getContext(), MainMenu.class));
+                        }
                     });
-        } else {
-            builder.setTitle("Your newest award: " + awardAlert.awardName)
-                    .setMessage("About this award: " + awardAlert.awardDescription)
-                    .setPositiveButton("ok", new DialogInterface.OnClickListener() {
+        } else if(numberOfAwards == 1){
+            award thisAward = awardAlert.getNextAward();
+            builder.setTitle("Your newest award: " + thisAward.name())
+                    .setMessage("About this award: " + thisAward.description())
+                    .setPositiveButton("Okay", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
                             canvasListener.awardClicked();
+                            awardAlert.removeLastAward();
+                        }
+                    });
+        } else {
+            award thisAward = awardAlert.getNextAward();
+            builder.setTitle("Your newest award: " + thisAward.name())
+                    .setMessage("About this award: " + thisAward.description())
+                    .setPositiveButton("See the next award", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            awardAlert.removeLastAward();
+                            loadAwardDialog();
                         }
                     });
         }
@@ -557,18 +578,19 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
         builder.show();
     }
 
+    // used during the demo to animate the trash can until the user pulls the magnet into it
     public void continuouslyAnimateTrashCan(boolean animateTrashCan) {
-        continuouslyAnimateTrashCan = animateTrashCan;
+        if(trashCan != null) continuouslyAnimateTrashCan = animateTrashCan;
         invalidate();
     }
 
+    // used during the demo to animate the award until the user clicks it
     public void continuouslyAnimateAward(boolean continuouslyAnimateAward) {
         this.continuouslyAnimateAward = continuouslyAnimateAward;
         if(continuouslyAnimateAward) {
-            awardAlert.awardName = "Demo Award";
-            awardAlert.awardDescription = "You have received your first award for running the demo.";
+            if(awardAlert!=null) awardAlert.addNewAward("Demo Award", "You have received your first award for running the demo.");
         } else {
-            awardAlert.setAlert(false);
+            if(awardAlert != null) awardAlert.setAlert(false);
         }
         invalidate();
 

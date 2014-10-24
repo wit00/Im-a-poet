@@ -3,17 +3,15 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.theapp.imapoet.DemoFragment">
-
     <TextView
         android:background="@drawable/rounded_corner_background"
         android:padding="10dp"
         android:layout_centerHorizontal="true"
         android:layout_alignParentBottom="true"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp"
-        android:layout_marginBottom="70dp"
+        android:layout_marginLeft="@dimen/extra_margin"
+        android:layout_marginRight="@dimen/extra_margin"
+        android:layout_marginBottom="@dimen/bottom_margin_for_demo_text_view"
         android:id="@+id/demoText1"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/hello_blank_fragment" />
+        android:layout_height="wrap_content"/>
 </RelativeLayout>

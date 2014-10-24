@@ -1,6 +1,8 @@
 package com.theapp.imapoet;
 
+import android.content.AsyncQueryHandler;
 import android.content.Context;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -14,6 +16,7 @@ import java.util.ArrayList;
  * Created by whitney on 8/11/14.
  */
 public class AwardAlert {
+    private Context context;
     public Bitmap awardAlertBitmap;
     protected float awardAlertWidth;
     protected float awardAlertHeight;
@@ -25,9 +28,14 @@ public class AwardAlert {
     private float[] sizes = new float[]{1,5,10,15,20,25,30,35,40,45};
     protected float padding = 15;
     private boolean countdown = false;
-    protected String awardDescription = null;
-    protected String awardName = null;
+    private ArrayList<award> awards = new ArrayList<award>();
+    private AsyncQueryHandler queryHandler;
 
+
+
+    public void addNewAward(String title, String description) {
+        awards.add(new award(title,description,0,0));
+    }
 
     private long timeTaken = 0;
     private long lastTime = System.currentTimeMillis();
@@ -38,6 +46,7 @@ public class AwardAlert {
         awardAlertWidth = awardAlertBitmap.getWidth();
         awardAlertHeight = awardAlertBitmap.getHeight();
         makeRadialGradient();
+        this.context = context;
     }
 
     private void makeRadialGradient() {
@@ -123,6 +132,36 @@ public class AwardAlert {
         awardAlert = award;
     }
 
+
+    private void createAsyncQueryHandler() {
+        queryHandler = new AsyncQueryHandler(context.getContentResolver()) {
+            @Override
+            protected void onQueryComplete(int token, Object cookie, Cursor cursor) {
+                switch (token) {
+                    case 1:
+                        if(cursor.getCount() > 0) {
+                            cursor.moveToFirst();
+
+                        } else {
+                           // setSettings(true,true);
+                        }
+                        break;
+                }
+            }
+        };
+    }
+
+    public void removeLastAward() {
+        awards.remove(awards.size()-1);
+    }
+
+    public int getAwardsSize() {
+        return awards.size();
+    }
+
+    public award getNextAward() {
+        return awards.get(awards.size()-1);
+    }
 
 
 }

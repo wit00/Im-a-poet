@@ -8,6 +8,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import java.util.ArrayList;
+
 /**
 ToDo, breaks on rotate, do i need to fix?
  */
@@ -19,8 +21,11 @@ public class DemoFragment extends Fragment {
     private boolean demoAwardsCompleted = false;
     private boolean demoDeleteCompleted = false;
     private boolean demoCompleted = false;
-    private static final String ARG_INITIAL_DEMO_TEXT = "";
+    private static final String ARG_INITIAL_DEMO_TEXT = "initial demo text";
+    private static final String ARG_INITIAL_PLACEMENT = "intial placement";
     private String demoText;
+    private DemoPart currentDemoPart;
+
 
     // This listener is implemented in the MainActivity
     // This listener tells the MainActivity that it is time to animate the screen in response to a demo event
@@ -38,62 +43,101 @@ public class DemoFragment extends Fragment {
     private void runDemoIntro() {
         demoListener.highlightDrawer(true);
         demoDrawerCompleted = true;
+        currentDemoPart = DemoPart.DRAWER_OPENED;
+    }
+
+    public DemoPart getCurrentDemoPart() {
+        return currentDemoPart;
+    }
+
+    public void runDemo(DemoPart demoPart) {
+        switch (demoPart) {
+            case START:
+                if(currentDemoPart.equals(DemoPart.START)) runDemoIntro();
+                System.out.println("starting moo");
+                break;
+            case DRAWER_OPENED:
+                if(currentDemoPart.equals(DemoPart.DRAWER_OPENED)) drawerOpened();
+                System.out.println("drawer opened moo");
+
+                break;
+            case PACKS_SELECTED:
+                if(currentDemoPart.equals(DemoPart.PACKS_SELECTED)) packsSelected();
+                break;
+            case MAGNET_ADDED:
+                if(currentDemoPart.equals(DemoPart.MAGNET_ADDED)) magnetTilesChanged();
+                break;
+            case AWARD_CLICKED:
+                if(currentDemoPart.equals(DemoPart.AWARD_CLICKED)) awardClicked();
+                break;
+            case MAGNET_DELETED:
+                if(currentDemoPart.equals(DemoPart.MAGNET_DELETED)) magnetDeleted();
+                break;
+            case BUTTONS_CLICKED:
+                if(currentDemoPart.equals(DemoPart.BUTTONS_CLICKED)) buttonsClicked();
+                break;
+        }
     }
 
     // The user has opened the drawer, so remove the highlight on the drawer and add a highlight to the packs. Also, change the text in the demo text bubble.
     public void drawerOpened() {
-        if(demoDrawerCompleted) {
+       // if(demoDrawerCompleted) {
             demoListener.highlightDrawer(false);
             demoListener.highlightPacks(true);
             demoListener.changeTextView(getString(R.string.demo_drawer_opened));
             demoPacksCompleted = true;
-        }
+            currentDemoPart = DemoPart.PACKS_SELECTED;
+        //}
     }
 
     // The user has selected a pack, so remove the highlight from the packs, and change the demo text bubble. There is no highlight for the individual word magnets because I didn't like the way it looked and am not sure it is necessary, could add later.
     public void packsSelected() {
-        if(demoPacksCompleted) {
+       // if(demoPacksCompleted) {
             demoListener.changeTextView(getString(R.string.demo_packs_selected));
             demoWordCompleted = true;
             demoListener.highlightPacks(false);
-        }
+            currentDemoPart = DemoPart.MAGNET_ADDED;
+        //}
     }
 
     // A magnet tile has been dragged onto the canvas space, so highlight the award and change the demo text button.
     public void magnetTilesChanged() {
-         if(demoWordCompleted && !demoAwardsCompleted) {
+         //if(demoWordCompleted && !demoAwardsCompleted) {
             demoListener.changeTextView(getString(R.string.demo_magnet_tiles_changed));
              demoListener.highlightAward(true);
             demoAwardsCompleted = true;
-        }
+             currentDemoPart = DemoPart.AWARD_CLICKED;
+        //}
     }
 
     // The user has clicked the award (after the award has been highlighted and before the delete action), so change the demo text and highlight the trash can. Also remove the award highlight.
     public void awardClicked() {
-        if(demoAwardsCompleted && !demoDeleteCompleted) {
+        //if(demoAwardsCompleted && !demoDeleteCompleted) {
             demoListener.changeTextView(getString(R.string.demo_award_clicked));
             demoListener.highlightTrashCan(true);
             demoListener.highlightAward(false);
             demoDeleteCompleted = true;
-        }
+            currentDemoPart = DemoPart.MAGNET_DELETED;
+       // }
     }
 
     // The user has deleted the magnet (after the trash can has been highlighted), so highlight the buttons and change the demo text.
     public void magnetDeleted() {
-        if(demoDeleteCompleted) {
+       // if(demoDeleteCompleted) {
             demoListener.changeTextView(getString(R.string.demo_magnet_deleted));
             demoListener.highlightButtons(true);
             demoListener.highlightTrashCan(false);
             demoCompleted = true;
-        }
+            currentDemoPart = DemoPart.BUTTONS_CLICKED;
+        //}
     }
 
     // The user has clicked the buttons (after the magnet has been deleted), so end the demo.
     public void buttonsClicked() {
-       if(demoCompleted) {
+      // if(demoCompleted) {
            demoListener.highlightButtons(false);
            demoListener.demoComplete();
-       }
+       //}
     }
 
     /**
@@ -102,10 +146,11 @@ public class DemoFragment extends Fragment {
      * @param demoText Parameter 1.
      * @return A new instance of fragment demoDisplayFragment.
      */
-    public static DemoFragment newInstance(String demoText) {
+    public static DemoFragment newInstance(String demoText,String placement) {
         DemoFragment fragment = new DemoFragment();
         Bundle args = new Bundle();
         args.putString(ARG_INITIAL_DEMO_TEXT, demoText);
+        args.putString(ARG_INITIAL_PLACEMENT,placement);
         fragment.setArguments(args);
         return fragment;
     }
@@ -119,6 +164,7 @@ public class DemoFragment extends Fragment {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             demoText = getArguments().getString(ARG_INITIAL_DEMO_TEXT);
+            currentDemoPart = DemoPart.valueOf(getArguments().getString(ARG_INITIAL_PLACEMENT));
         }
     }
 
@@ -131,6 +177,7 @@ public class DemoFragment extends Fragment {
     // change the demoText member variable
     public void changeText(String text) {
         this.demoText = text;
+        changeTextView();
     }
 
     // Override onCreateView to set fragment_demo_display.xml as the layout for this fragment
@@ -146,7 +193,8 @@ public class DemoFragment extends Fragment {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         changeTextView();
-        runDemoIntro();
+        //runDemoIntro();
+        runDemo(currentDemoPart);
     }
 
     // The fragment is being attached to the activity, so attach the demoListener to the activity
@@ -167,5 +215,8 @@ public class DemoFragment extends Fragment {
         demoListener = null;
     }
 
+    public enum DemoPart {
+        START,DRAWER_OPENED,PACKS_SELECTED,MAGNET_ADDED,AWARD_CLICKED,MAGNET_DELETED,BUTTONS_CLICKED;
+    }
 
 }

@@ -11,33 +11,6 @@
         android:layout_width="fill_parent"
         android:spinnerMode="dropdown"
         android:layout_height="wrap_content" />
-    <!--
-    <RelativeLayout
-        android:layout_marginBottom="10dp"
-        android:layout_marginTop="10dp"
-        android:layout_centerHorizontal="true"
-        android:id="@+id/new_delete_row"
-        android:layout_below="@id/sets_spinner"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
-        <ImageView
-            android:id="@+id/new_magnet"
-            android:onClick="addMagnet"
-            android:src="@drawable/add_magnet"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:contentDescription="@string/add_a_new_magnet_button_description" />
-        <ImageView
-            android:layout_marginLeft="10dp"
-            android:onClick="deleteMagnet"
-            android:id="@+id/delete_magnet"
-            android:layout_toRightOf="@id/new_magnet"
-            android:src="@drawable/delete_magnet"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:contentDescription="@string/delete_a_magnet_button_description" />
-    </RelativeLayout>
-    -->
         <GridView
             android:id="@+id/gridview"
             android:layout_below="@id/sets_spinner"

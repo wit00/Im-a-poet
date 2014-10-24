@@ -3,8 +3,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.theapp.imapoet.SavedPoemsFragment">
-
-
     <RelativeLayout
         android:id="@+id/no_poems"
         android:visibility="gone"
@@ -31,11 +29,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
     </RelativeLayout>
-
     <ListView
         android:id="@+id/saved_poems_listview"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content">
     </ListView>
-
 </RelativeLayout>

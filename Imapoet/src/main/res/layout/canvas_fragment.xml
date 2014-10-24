@@ -31,10 +31,6 @@
             android:layout_height="wrap_content"
             android:onClick="loadOverflow"
             android:id="@+id/overflow_button"
-            android:paddingLeft="20dp"
-            android:paddingStart="20dp"
-            android:paddingRight="@dimen/indent"
-            android:paddingEnd="@dimen/indent"
             android:layout_alignParentRight="true"
             android:contentDescription="@string/overflow_button_image_resource" />
         <ImageView
@@ -56,12 +52,14 @@
             android:onClick="loadSave"
             android:contentDescription="@string/save_button_image_content_description" />
         <ImageView
-           android:layout_toLeftOf="@id/save_button"
+            style="@style/Main_Activity_Menu_Buttons"
+            android:layout_toLeftOf="@id/save_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/menu_button"
             android:src="@drawable/menuxml"
-            android:onClick="loadMenu"/>
+            android:onClick="loadMenu"
+            android:contentDescription="@string/go_to_the_menu_button_image_content_description" />
     </RelativeLayout>
     <fragment
         android:id="@+id/the_canvas"

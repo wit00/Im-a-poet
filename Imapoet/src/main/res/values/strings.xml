@@ -36,6 +36,17 @@
     <string name="demo_opening_string">Welcome to I\'m a poet! Let\'s get started. There is a drawer on the left side of the screen that holds all of your words. You can open it by swiping from the left or by clicking the drawer button. Open the drawer to continue.\"</string>
     <string name="share_extra_text">I made a poem with I\'m a poet!</string>
     <string name="share_extra_sms_body">I made a poem with I\'m a poet!</string>
+    <string name="screenshot_of_your_poem">screenshot of your poem</string>
+    <string name="credits_title">Credits</string>
+    <string name="credits_settings">Music:</string>
+    <string name="music_credit_name">Music Credit</string>
+    <string name="content_description_music_credit_link">link to the website of the music credit</string>
+    <string name="credits_programmer">Programmer:</string>
+    <string name="programmer_credit_name">S. Whitney Powell</string>
+    <string name="link_to_my_website_content_description">link to Whitney Powell\'s website</string>
+    <string name="link_to_my_twitter_content_description">link to Whitney Powell\'s twitter</string>
+    <string name="background_for_settings_content_description">background for the settings page</string>
+    <string name="go_to_the_menu_button_image_content_description">Go to the menu button</string>
     <string-array name="magnets_array">
             <item>Basic</item>
             <item>Love</item>

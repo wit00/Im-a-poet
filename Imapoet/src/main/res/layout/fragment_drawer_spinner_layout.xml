@@ -5,15 +5,15 @@
     android:minHeight="40dp"
     android:padding="@dimen/indent">
     <TextView
-        android:layout_marginTop="5dp"
+        android:layout_marginTop="@dimen/indent"
         android:id="@+id/spinnerTitle"
-        android:textSize="16sp"
+        android:textSize="@dimen/large_text_size"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
     <TextView
         android:id="@+id/spinnerOwned"
         android:text="@string/requires_an_in_app_purchase_spinner_adapter"
-        android:textSize="12sp"
+        android:textSize="@dimen/medium_text_size"
         android:layout_below="@id/spinnerTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />

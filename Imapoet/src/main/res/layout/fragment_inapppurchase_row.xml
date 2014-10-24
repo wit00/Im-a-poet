@@ -4,7 +4,6 @@
     android:layout_width="fill_parent" android:layout_height="fill_parent"
     android:layout_margin="@dimen/extra_margin"
     android:padding="@dimen/extra_margin">
-
     <TextView
         android:id="@+id/inAppPurchaseTitle"
         android:layout_width="wrap_content"
@@ -20,7 +19,7 @@
         android:layout_height="match_parent" />
     <TextView
         android:layout_marginLeft="@dimen/indent"
-        android:layout_marginStart="5dp"
+        android:layout_marginStart="@dimen/indent"
         android:layout_below="@id/inAppPurchaseTitle"
         android:id="@+id/inAppPurchaseDetail"
         android:layout_width="wrap_content"

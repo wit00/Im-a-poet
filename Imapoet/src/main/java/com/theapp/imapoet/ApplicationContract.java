@@ -13,6 +13,7 @@ public class ApplicationContract {
     ApplicationContract(){}
     public static final String PREFERENCES_FILE = "ImAPoetPreferencesFile";
     public static final String FIRST_LAUNCH = "firstLaunch";
+    public static final String DEMO = "demo";
     public static final int[] STANDARD_DECKS = {R.raw.basic,R.raw.science,R.raw.love,R.raw.english_letters};
 
 
