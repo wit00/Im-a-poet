@@ -23,6 +23,8 @@ public class DrawerFragment extends android.support.v4.app.Fragment implements A
     private DrawerMagnetsAdapter drawerMagnetsAdapter;
     private DrawerSpinnerAdapter drawerSpinnerAdapter;
     private int spinnerPosition = 0;
+    private boolean spinnerListenerSetUp = false;
+
 
     // Required empty public constructor
     public DrawerFragment() {}
@@ -108,6 +110,7 @@ public class DrawerFragment extends android.support.v4.app.Fragment implements A
     }
 
 
+
     /** onItemSelected and onNothingSelected are parts of the interface for the magnet deck spinner **/
     public void onItemSelected(AdapterView<?> parent, View view,int position, long id) {
         Cursor cursor = (Cursor) drawerSpinnerAdapter.getItem(position);
@@ -121,7 +124,8 @@ public class DrawerFragment extends android.support.v4.app.Fragment implements A
         spinnerPosition = position;
         bundle.putInt("id",cursor.getInt(cursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry._ID)));
         getLoaderManager().restartLoader(1, bundle, this);
-        drawerFragmentListener.onSpinnerClicked();
+        if(spinnerListenerSetUp) drawerFragmentListener.onSpinnerClicked();
+        spinnerListenerSetUp = true;
     }
 
     public void onNothingSelected(AdapterView<?> parent) {

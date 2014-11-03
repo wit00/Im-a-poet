@@ -35,7 +35,10 @@ public class MagnetDatabaseContract {
         public static final String COLUMN_POEM_ID = "PoemID";
         public static final String COLUMN_X_LOCATION = "xLocation";
         public static final String COLUMN_Y_LOCATION = "yLocation";
-        public static final String COLUMN_COLOR = "color";
+        public static final String COLUMN_TOP = "TopConnectedMagnet";
+        public static final String COLUMN_BOTTOM = "BottomConnectedMagnet";
+        public static final String COLUMN_LEFT = "LeftConnectedMagnet";
+        public static final String COLUMN_RIGHT = "RightConnectedMagnet";
 
         public static final String CONTINUOUS_STATISTICS_TABLE_NAME = "ContinuousStatisticsTable";
         public static final String COLUMN_STATISTIC_NAME = "Name";
@@ -95,6 +98,10 @@ public class MagnetDatabaseContract {
                         COLUMN_MAGNET_COLOR + TEXT_TYPE + COMMA_SEP +
                         COLUMN_MAGNET_TEXT + TEXT_TYPE + COMMA_SEP +
                         COLUMN_MAGNET_PACK_ID + INTEGER_TYPE + COMMA_SEP +
+                        COLUMN_TOP + INTEGER_TYPE + COMMA_SEP +
+                        COLUMN_BOTTOM + INTEGER_TYPE + COMMA_SEP +
+                        COLUMN_LEFT + INTEGER_TYPE + COMMA_SEP +
+                        COLUMN_RIGHT + TEXT_TYPE + COMMA_SEP  +
                         COLUMN_IF_SAVED_ID + TEXT_TYPE + COMMA_SEP +
                         COLUMN_IF_SAVED_TITLE + TEXT_TYPE +
                         ");";
@@ -120,7 +127,10 @@ public class MagnetDatabaseContract {
                         COLUMN_WORD_TEXT + TEXT_TYPE + COMMA_SEP +
                         COLUMN_X_LOCATION + INTEGER_TYPE + COMMA_SEP +
                         COLUMN_Y_LOCATION + INTEGER_TYPE + COMMA_SEP +
-                        COLUMN_COLOR + TEXT_TYPE +
+                        COLUMN_TOP + INTEGER_TYPE + COMMA_SEP +
+                        COLUMN_BOTTOM + INTEGER_TYPE + COMMA_SEP +
+                        COLUMN_LEFT + INTEGER_TYPE + COMMA_SEP +
+                        COLUMN_RIGHT + TEXT_TYPE +
                         ");";
         public static final String CREATE_CONTINUOUS_STATISTICS_TABLE =
                 "CREATE TABLE " + CONTINUOUS_STATISTICS_TABLE_NAME+ " (" +

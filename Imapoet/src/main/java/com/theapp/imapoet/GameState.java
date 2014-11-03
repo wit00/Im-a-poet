@@ -68,7 +68,7 @@ public class GameState {
         int id = extras.getInt("poem_id");
         drawingPanelListener.setSavedPoemState(true,extras.getString("poem_name"));
         drawingPanelListener.setSavedPoemId(Integer.toString(id));
-        String[] projection = {MagnetDatabaseContract.MagnetEntry.COLUMN_WORD_TEXT, MagnetDatabaseContract.MagnetEntry.COLUMN_X_LOCATION, MagnetDatabaseContract.MagnetEntry.COLUMN_Y_LOCATION, MagnetDatabaseContract.MagnetEntry.COLUMN_COLOR, MagnetDatabaseContract.MagnetEntry.COLUMN_POEM_ID,MagnetDatabaseContract.MagnetEntry.COLUMN_MAGNET_PACK_ID};
+        String[] projection = {MagnetDatabaseContract.MagnetEntry.COLUMN_WORD_TEXT, MagnetDatabaseContract.MagnetEntry.COLUMN_X_LOCATION, MagnetDatabaseContract.MagnetEntry.COLUMN_Y_LOCATION, MagnetDatabaseContract.MagnetEntry.COLUMN_TOP, MagnetDatabaseContract.MagnetEntry.COLUMN_BOTTOM, MagnetDatabaseContract.MagnetEntry.COLUMN_LEFT, MagnetDatabaseContract.MagnetEntry.COLUMN_RIGHT, MagnetDatabaseContract.MagnetEntry.COLUMN_POEM_ID,MagnetDatabaseContract.MagnetEntry.COLUMN_MAGNET_PACK_ID};
        queryHandler.startQuery(LoaderCodes.savedMagnets,extras,ApplicationContract.getSavedPoem_URI,projection,MagnetDatabaseContract.MagnetEntry.COLUMN_POEM_ID + " = " + Integer.toString(id),null,null);
     }
 
@@ -155,6 +155,10 @@ public class GameState {
                             updateCurrentPoemValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_MAGNET_COLOR, magnet.magnetColor());
                             updateCurrentPoemValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_MAGNET_TEXT, magnet.word());
                             updateCurrentPoemValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_MAGNET_PACK_ID, magnet.packID());
+                            updateCurrentPoemValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_TOP, magnet.getConnectedMagnetsString(magnet.topSideConnectedMagnet()));
+                            updateCurrentPoemValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_BOTTOM, magnet.getConnectedMagnetsString(magnet.bottomSideConnectedMagnet()));
+                            updateCurrentPoemValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_LEFT, magnet.getConnectedMagnetsString(magnet.leftSideConnectedMagnet()));
+                            updateCurrentPoemValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_RIGHT, magnet.getConnectedMagnetsString(magnet.rightSideConnectedMagnet()));
                             if(drawingPanelListener.getSavedPoemState()) {
                                 updateCurrentPoemValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_IF_SAVED_TITLE,drawingPanelListener.getSavedPoemName());
                                 updateCurrentPoemValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_IF_SAVED_ID,drawingPanelListener.getSavedPoemId());
@@ -172,7 +176,17 @@ public class GameState {
                             poemDetailValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_WORD_TEXT, magnet.word());
                             poemDetailValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_X_LOCATION, magnet.x());
                             poemDetailValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_Y_LOCATION, magnet.y());
-                            poemDetailValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_COLOR, magnet.magnetColor());
+                            poemDetailValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_TOP, magnet.getConnectedMagnetsString(magnet.topSideConnectedMagnet()));
+                            poemDetailValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_BOTTOM, magnet.getConnectedMagnetsString(magnet.bottomSideConnectedMagnet()));
+                            poemDetailValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_LEFT, magnet.getConnectedMagnetsString(magnet.leftSideConnectedMagnet()));
+                            poemDetailValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_RIGHT, magnet.getConnectedMagnetsString(magnet.rightSideConnectedMagnet()));
+
+                            System.out.println("bmagnet: " + magnet.word());
+                            System.out.println("     bmagnet connections top: " + magnet.getConnectedMagnetsString(magnet.topSideConnectedMagnet()));
+                            System.out.println("     bmagnet connections bottom:  " + magnet.getConnectedMagnetsString(magnet.bottomSideConnectedMagnet()));
+                            System.out.println("     bmagnet connections left: " + magnet.getConnectedMagnetsString(magnet.leftSideConnectedMagnet()));
+                            System.out.println("     bmagnet connections right: " + magnet.getConnectedMagnetsString(magnet.rightSideConnectedMagnet()));
+
                             poemDetailValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_MAGNET_PACK_ID, magnet.packID());
                             queryHandler.startInsert(0,null,ApplicationContract.insertPoemDetail_URI,poemDetailValues);
                         }
@@ -197,7 +211,10 @@ public class GameState {
                             poemDetailValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_WORD_TEXT, magnet.word());
                             poemDetailValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_X_LOCATION, magnet.x());
                             poemDetailValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_Y_LOCATION, magnet.y());
-                            poemDetailValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_COLOR, magnet.magnetColor());
+                            poemDetailValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_TOP, magnet.getConnectedMagnetsString(magnet.topSideConnectedMagnet()));
+                            poemDetailValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_BOTTOM, magnet.getConnectedMagnetsString(magnet.bottomSideConnectedMagnet()));
+                            poemDetailValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_LEFT, magnet.getConnectedMagnetsString(magnet.leftSideConnectedMagnet()));
+                            poemDetailValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_RIGHT, magnet.getConnectedMagnetsString(magnet.rightSideConnectedMagnet()));
                             poemDetailValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_MAGNET_PACK_ID, magnet.packID());
                             queryHandler.startInsert(0,null,ApplicationContract.insertPoemDetail_URI,poemDetailValues);
                         }

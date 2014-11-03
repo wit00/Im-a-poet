@@ -1,6 +1,8 @@
 package com.theapp.imapoet;
 
 
+import android.annotation.TargetApi;
+import android.app.ActionBar;
 import android.app.AlertDialog;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
@@ -13,6 +15,7 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -109,17 +112,18 @@ public class MainActivity extends FragmentActivity implements DrawerFragment.OnF
 
 
     public void drawerOpened() {
-        //if(demoFragment != null) demoFragment.drawerOpened();
         if(demoFragment != null) demoFragment.runDemo(DemoFragment.DemoPart.DRAWER_OPENED);
     }
 
     public void demoComplete() {
         FragmentManager fragmentManager = getFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-        fragmentTransaction.setCustomAnimations(R.anim.demo_slide_in, R.anim.demo_slide_in);//, R.anim.abc_fade_in, animPopExit);
         fragmentTransaction.remove(demoFragment);
-        //fragmentTransaction.add(android.R.id.content, demoDisplayFragment.newInstance("testing!!",""));
-        //fragmentTransaction.addToBackStack(null);
+        clearHighlight(R.id.drawer_button);
+        clearHighlight(R.id.sets_spinner);
+        clearHighlight(R.id.share_buttons);
+        highlightTrashCan(false);
+        highlightAward(false);
         fragmentTransaction.commit();
         demoFragment = null;
     }
@@ -174,7 +178,6 @@ public class MainActivity extends FragmentActivity implements DrawerFragment.OnF
         } else {
             gameState = new GameState(this, drawingPanelFragment.drawingPanel(),false);
         }
-
         Bundle extras = getIntent().getExtras();
         if(extras != null) {
             gameState.loadSavedMagnets(extras);
@@ -327,6 +330,10 @@ public class MainActivity extends FragmentActivity implements DrawerFragment.OnF
                                 //demo = new Demo(MainActivity.this,helperContext);
                                 //demo.runDemoIntro();
                                 if(demoFragment == null) addDemoFragment(DemoFragment.DemoPart.START.toString());
+                                else {
+                                    demoComplete();
+                                    addDemoFragment(DemoFragment.DemoPart.START.toString());
+                                }
                                 break;
                             case R.id.action_rate:
                                 String packageName = helperContext.getPackageName();
@@ -351,11 +358,18 @@ public class MainActivity extends FragmentActivity implements DrawerFragment.OnF
 
 
 
+    @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+    private void setSystemVisibility() {
+        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE);
+    }
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getActionBar().hide();
-        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE);
+        ActionBar actionBar = getActionBar();
+        if(actionBar != null) actionBar.hide();
+        setSystemVisibility();
         setContentView(R.layout.activity_main);
         setupOverflowButton();
     }
@@ -411,6 +425,7 @@ public class MainActivity extends FragmentActivity implements DrawerFragment.OnF
             //sharedPreferencesEditor.remove(ApplicationContract.DEMO);
 
             sharedPreferencesEditor.apply();
+            demoComplete();
         } else {
             SharedPreferences sharedPreferences = getPreferences(0);
             SharedPreferences.Editor sharedPreferencesEditor = sharedPreferences.edit();

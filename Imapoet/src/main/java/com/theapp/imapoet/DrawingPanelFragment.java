@@ -98,7 +98,10 @@ public class DrawingPanelFragment extends Fragment implements LoaderManager.Load
         };
     }
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        String[] projection = {MagnetDatabaseContract.MagnetEntry.COLUMN_MAGNET_X, MagnetDatabaseContract.MagnetEntry.COLUMN_MAGNET_Y, MagnetDatabaseContract.MagnetEntry.COLUMN_MAGNET_COLOR,
+        String[] projection = {MagnetDatabaseContract.MagnetEntry.COLUMN_MAGNET_X, MagnetDatabaseContract.MagnetEntry.COLUMN_MAGNET_Y,   MagnetDatabaseContract.MagnetEntry.COLUMN_TOP,
+                MagnetDatabaseContract.MagnetEntry.COLUMN_BOTTOM,
+                MagnetDatabaseContract.MagnetEntry.COLUMN_LEFT,
+                MagnetDatabaseContract.MagnetEntry.COLUMN_RIGHT,
                 MagnetDatabaseContract.MagnetEntry.COLUMN_MAGNET_TEXT, MagnetDatabaseContract.MagnetEntry.COLUMN_IF_SAVED_TITLE, MagnetDatabaseContract.MagnetEntry.COLUMN_IF_SAVED_ID, MagnetDatabaseContract.MagnetEntry.COLUMN_MAGNET_PACK_ID};
         //queryHandler.startQuery(1,null,Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/currentPoem"),projection,null,null,null);
 

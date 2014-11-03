@@ -2,6 +2,8 @@ package com.theapp.imapoet;
 
 import android.graphics.PointF;
 
+import java.util.ArrayList;
+
 /**
  * Created by whitney on 10/15/14.
  */
@@ -34,6 +36,44 @@ public class MagnetSide implements Comparable<MagnetSide>{
                 return MagnetSide.getQuadrant4Side(movingTile,stationaryTile);
             }
         }
+    }
+
+    public static side getOtherMagnetSide(PointF distances) {
+        //ArrayList<side> sides = new ArrayList<side>(2);
+        side theSide;
+        if(distances.x == 0) {
+            if(distances.y > 0) {
+                theSide = (side.TOP);
+            } else {
+                theSide =  (side.BOTTOM);
+            }
+        } else if(distances.y == 0) {
+            if(distances.x > 0) {
+                theSide = (side.LEFT);
+            } else {
+                theSide = (side.RIGHT);
+            }
+        } else {
+            if(distances.y > 0) {
+                theSide = (side.TOP);
+            } else {
+                theSide = (side.BOTTOM);
+
+            }
+            if(distances.x > 0) {
+                theSide = (side.LEFT);
+
+            } else {
+                theSide = (side.RIGHT);
+
+            }
+        }
+      /*  System.out.println(Integer.toString(sides.size())+" sides: " );
+        for(side s : sides) {
+            System.out.println("   side: " +  s.toString());
+        }*/
+        //return sides;
+        return theSide;
     }
 
     /* Returns true if the possible connecting sides are parallel. This case happens when the top two sides are next to each other. If true, getLockingSides will pick the closest one */
