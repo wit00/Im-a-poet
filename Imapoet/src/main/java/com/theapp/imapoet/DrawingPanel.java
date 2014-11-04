@@ -54,10 +54,10 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
 
 
     public void stopMediaPlayer() {
-        if(mediaPlayerForMusic.isPlaying()) {
+        /*if(mediaPlayerForMusic.isPlaying()) {
             mediaPlayerForMusic.stop();
             mediaPlayerForMusic.release();
-        }
+        }*/
     }
 
     /* The CanvasListener interface is implemented by the MainActivity and lets the MainActivity know when something important has happened in the drawing area. The MainActivity then alertsthe GameState or AwardAlert as needed. */
@@ -156,33 +156,14 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
         this.previouslySavedPoemID = savedPoemId;
     }
 
-    /*public String load(Cursor cursor, String packIDColumn, String textColumn, String xColumn, String yColumn, String idColumn) {
-        String id = "";
-        magnets.clear();
-        //canvasListener.reportSavedId(cursor.getInt(cursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry.COLUMN_IF_SAVED_ID)));
-        for(int i = 0; i < cursor.getCount(); i++) {
-            int thisPackID = cursor.getInt(cursor.getColumnIndex(packIDColumn));
-            magnets.add(new Magnet(cursor.getString(cursor.getColumnIndex(textColumn)), magnets.size(),scaleFactor,thisPackID));
-            Magnet currentMagnet = magnets.get(magnets.size()-1);
-            currentMagnet.setX(cursor.getInt(cursor.getColumnIndex(xColumn)));
-            currentMagnet.setY(cursor.getInt(cursor.getColumnIndex(yColumn)));
-            id = cursor.getString(cursor.getColumnIndex(idColumn));
-            if(!packsUsedIds.contains(thisPackID)) packsUsedIds.add(thisPackID);
-            cursor.moveToNext();
-        }
-        System.out.println("loading");
-        System.out.println("loading "+Integer.toString(magnets.size())+","+cursor.getCount());
-        invalidate(); // redraw the canvas
-        return  id;
-    }*/
 
     /* Implements the GameState.drawingPanel Listener. It sets the sound effects and game music settings. */
     public void setSettings(boolean soundEffects, boolean music) {
         this.soundEffects = soundEffects;
         this.music = music;
         if(music) {
-            mediaPlayerForMusic.start();
-            mediaPlayerForMusic.setLooping(true);
+            //mediaPlayerForMusic.start();
+            //mediaPlayerForMusic.setLooping(true);
         } else {
             if(mediaPlayerForMusic.isPlaying()) mediaPlayerForMusic.stop();
         }
@@ -289,33 +270,23 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
         sidesToLockToNext.clear();
     }
 
-
+    // used in MotionEvent.ACTION_MOVE, clear you are moving the magnet, clear it of any connections it has to other magnets and clear those magnets of connections to it
     private void clearConnections() {
-        if(clickedMagnet.topSideConnectedMagnet().size() > 0){
-            for(Magnet magnet : clickedMagnet.topSideConnectedMagnet()) {
-                System.out.println("magnet "+magnet.word() + magnet.bottomSideConnectedMagnet().size() + " hasn't removed " + clickedMagnet.word());
-
-                magnet.bottomSideConnectedMagnet().remove(clickedMagnet);
-                System.out.println("magnet "+magnet.word() + magnet.bottomSideConnectedMagnet().size() + " has removed " + clickedMagnet.word());
-            }
+        for(Magnet magnet : clickedMagnet.topSideConnectedMagnet()) {
+            magnet.bottomSideConnectedMagnet().remove(clickedMagnet);
         }
-        if(clickedMagnet.bottomSideConnectedMagnet().size() > 0){
-            for(Magnet magnet : clickedMagnet.bottomSideConnectedMagnet()) {
-                magnet.topSideConnectedMagnet().remove(clickedMagnet);
-            }
+        for(Magnet magnet : clickedMagnet.bottomSideConnectedMagnet()) {
+            magnet.topSideConnectedMagnet().remove(clickedMagnet);
         }
-        if(clickedMagnet.leftSideConnectedMagnet().size() > 0) {
-            for(Magnet magnet : clickedMagnet.leftSideConnectedMagnet()) {
-                magnet.rightSideConnectedMagnet().remove(clickedMagnet);
-            }
+        for(Magnet magnet : clickedMagnet.leftSideConnectedMagnet()) {
+            magnet.rightSideConnectedMagnet().remove(clickedMagnet);
         }
-        if(clickedMagnet.rightSideConnectedMagnet().size() > 0) {
-            for(Magnet magnet : clickedMagnet.rightSideConnectedMagnet()) {
-                magnet.leftSideConnectedMagnet().remove(clickedMagnet);
-            }
+        for(Magnet magnet : clickedMagnet.rightSideConnectedMagnet()) {
+            magnet.leftSideConnectedMagnet().remove(clickedMagnet);
         }
         clickedMagnet.clearAllConnectedMagnets();
     }
+
     /* Overrides the View method of the same name. onTouchEvent is the center of user interaction for the drawing area. The action, Action_Down occurs when the user touches the drawing area. Action_Move happens when the user moves their finger across the drawing area. Action_Up occurs when the user moves their finger off of the screen. */
     @Override
     public boolean onTouchEvent(MotionEvent motionEvent) {
@@ -329,7 +300,6 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
             case MotionEvent.ACTION_MOVE:
                 // does the user have a magnet? If so, deal with magnet-magnet collisions, etc.
                 if(clickedMagnet != null) {
-                    System.out.println(clickedMagnet.word() + "clicked!");
                     clearConnections();
                     sidesToLockToNext.clear();
                     handleMovingClickedTile(clickedMagnet,motionEvent.getX(),motionEvent.getY());

@@ -91,7 +91,7 @@ public class SettingsFragment extends android.support.v4.app.Fragment implements
         queryHandler = new AsyncQueryHandler(getActivity().getContentResolver()) {
             @Override
             protected void onUpdateComplete(int soundOn, Object sound, int result) {
-                if(soundOn == 1) { // a sound has been turned on
+               /* if(soundOn == 1) { // a sound has been turned on
                     if(sound.equals(MagnetDatabaseContract.MagnetEntry.COLUMN_SOUND_EFFECTS)) {
                         mediaPlayerForSoundEffect.start();
                     } else if(sound.equals(MagnetDatabaseContract.MagnetEntry.COLUMN_MUSIC)) {
@@ -109,7 +109,7 @@ public class SettingsFragment extends android.support.v4.app.Fragment implements
                             //mediaPlayerForMusic.release();
                         }
                     }
-                }
+                }*/
 
             }
             @Override
