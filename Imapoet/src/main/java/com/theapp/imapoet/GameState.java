@@ -185,7 +185,7 @@ public class GameState {
                             System.out.println("     bmagnet connections top: " + magnet.getConnectedMagnetsString(magnet.topSideConnectedMagnet()));
                             System.out.println("     bmagnet connections bottom:  " + magnet.getConnectedMagnetsString(magnet.bottomSideConnectedMagnet()));
                             System.out.println("     bmagnet connections left: " + magnet.getConnectedMagnetsString(magnet.leftSideConnectedMagnet()));
-                            System.out.println("     bmagnet connections right: " + magnet.getConnectedMagnetsString(magnet.rightSideConnectedMagnet()));
+                            System.out.println("     magnet connections right: " + magnet.getConnectedMagnetsString(magnet.rightSideConnectedMagnet()));
 
                             poemDetailValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_MAGNET_PACK_ID, magnet.packID());
                             queryHandler.startInsert(0,null,ApplicationContract.insertPoemDetail_URI,poemDetailValues);

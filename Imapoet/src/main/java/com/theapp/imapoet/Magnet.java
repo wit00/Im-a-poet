@@ -37,7 +37,10 @@ public class Magnet {
     private ArrayList<Magnet>  bottomSideConnectedMagnets = new ArrayList<Magnet>();
     private ArrayList<Magnet>  leftSideConnectedMagnets = new ArrayList<Magnet>();
     private ArrayList<Magnet>  rightSideConnectedMagnets = new ArrayList<Magnet>();
-
+    private ArrayList<Integer> topSideConnectedIds = new ArrayList<Integer>();
+    private ArrayList<Integer> bottomSideConnectedIds = new ArrayList<Integer>();
+    private ArrayList<Integer> leftSideConnectedIds = new ArrayList<Integer>();
+    private ArrayList<Integer> rightSideConnectedIds = new ArrayList<Integer>();
 
     public void setTopSideConnectedMagnet(Magnet magnet) {
         topSideConnectedMagnets.add(magnet);
@@ -46,17 +49,15 @@ public class Magnet {
     public void setLeftSideConnectedMagnet(Magnet magnet) {
         leftSideConnectedMagnets.add(magnet);
     }
-    public void setRightSideConnectedMagnet(Magnet magnet) {
-        rightSideConnectedMagnets.add(magnet);
-    }
+    public void setRightSideConnectedMagnet(Magnet magnet) { rightSideConnectedMagnets.add(magnet); }
 
     // a convenience function used by setUpConnectedSides to get a reference to each poemMagnet in the connected magnets arrays and use that reference to replace the temporary one in the list, used when the user loads the manual save or the program loads the auto-saved poem
-    private void setUpSide(ArrayList<Magnet> poemMagnets, ArrayList<Magnet> connectedMagnets) {
-        for(Magnet magnet : connectedMagnets) {
-            if(magnet != null) {
+    private void setUpSide(ArrayList<Magnet> poemMagnets, ArrayList<Integer> connectedMagnetIntegers, ArrayList<Magnet> connectedMagnets) {
+        for(Integer ID : connectedMagnetIntegers) {
+            if(ID != null) {
                 for(Magnet poemMagnet : poemMagnets) {
-                    if(magnet.id() == poemMagnet.id()) {
-                        magnet = poemMagnet;
+                    if(ID == poemMagnet.id()) {
+                        connectedMagnets.add(poemMagnet);
                     }
                 }
             }
@@ -65,10 +66,10 @@ public class Magnet {
 
     // replace the temporary magnets in the connected magnets list with the real reference to the magnet (used when magnets are loaded from the manual save or the auto save0
     public void setUpConnectedSides(ArrayList<Magnet> poemMagnets) {
-       setUpSide(poemMagnets,topSideConnectedMagnets);
-        setUpSide(poemMagnets,bottomSideConnectedMagnets);
-        setUpSide(poemMagnets,leftSideConnectedMagnets);
-        setUpSide(poemMagnets,rightSideConnectedMagnets);
+        setUpSide(poemMagnets, topSideConnectedIds,topSideConnectedMagnets);
+        setUpSide(poemMagnets,bottomSideConnectedIds,bottomSideConnectedMagnets);
+        setUpSide(poemMagnets,leftSideConnectedIds,leftSideConnectedMagnets);
+        setUpSide(poemMagnets,rightSideConnectedIds,rightSideConnectedMagnets);
     }
 
     // turn a connected magnet array inlist into a string, separated by commas
@@ -103,12 +104,12 @@ public class Magnet {
         return paint;
     }
 
-    public Magnet(int id) {
-        this.id = id + 1;
-    }
+
     private List<String> separateStringIntoStringIds(String connectedMagnets){
         return Arrays.asList(connectedMagnets.split(","));
     }
+
+
     public Magnet(String word, int id, float scaleFactor, int packID,String top,String bottom, String left, String right){
         clearAllConnectedMagnets();
         textPaint.setTextSize(textPaintSize);
@@ -125,26 +126,32 @@ public class Magnet {
         setTemporaryConnectedMagnets(top,bottom,left,right);
     }
 
+
+
     // creates temporary magnets with the ids of the connected magnets loaded from the database, the full magnets will be filled in later with setUpConnectedSides
     private void setTemporaryConnectedMagnets(String top, String bottom, String left, String right) {
+        topSideConnectedIds.clear();
+        bottomSideConnectedIds.clear();
+        leftSideConnectedIds.clear();
+        rightSideConnectedIds.clear();
         if(top != null) {
             for(String connectedMagnetStringID : separateStringIntoStringIds(top)) {
-                if(!connectedMagnetStringID.equals("")) topSideConnectedMagnets.add(new Magnet(Integer.valueOf(connectedMagnetStringID)));
+                if(!connectedMagnetStringID.equals("")) topSideConnectedIds.add(Integer.valueOf(connectedMagnetStringID));
             }
         }
         if(bottom != null) {
             for(String connectedMagnetStringID : separateStringIntoStringIds(bottom)) {
-                if(!connectedMagnetStringID.equals("")) bottomSideConnectedMagnets.add(new Magnet(Integer.valueOf(connectedMagnetStringID)));
+                if(!connectedMagnetStringID.equals("")) bottomSideConnectedIds.add(Integer.valueOf(connectedMagnetStringID));
             }
         }
         if(left != null) {
             for(String connectedMagnetStringID : separateStringIntoStringIds(left)) {
-                if(!connectedMagnetStringID.equals("")) leftSideConnectedMagnets.add(new Magnet(Integer.valueOf(connectedMagnetStringID)));
+                if(!connectedMagnetStringID.equals("")) leftSideConnectedIds.add(Integer.valueOf(connectedMagnetStringID));
             }
         }
         if(right != null) {
             for(String connectedMagnetStringID : separateStringIntoStringIds(right)) {
-                if(!connectedMagnetStringID.equals("")) rightSideConnectedMagnets.add(new Magnet(Integer.valueOf(connectedMagnetStringID)));
+                if(!connectedMagnetStringID.equals("")) rightSideConnectedIds.add(Integer.valueOf(connectedMagnetStringID));
             }
         }
     }

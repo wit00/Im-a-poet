@@ -30,16 +30,13 @@ public class AwardAlert {
     private boolean countdown = false;
     private ArrayList<award> awards = new ArrayList<award>();
     private AsyncQueryHandler queryHandler;
-
+    private long timeTaken = 0;
+    private long lastTime = System.currentTimeMillis();
 
 
     public void addNewAward(String title, String description) {
         awards.add(new award(title,description,0,0));
     }
-
-    private long timeTaken = 0;
-    private long lastTime = System.currentTimeMillis();
-
 
     public AwardAlert(Context context) {
         awardAlertBitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.new_award_alert);
@@ -80,16 +77,13 @@ public class AwardAlert {
     }
 
     private void runAwardAnimation(Canvas canvas, float width) {
-        //gradientChangeTime = gradientChangeTime + System.currentTimeMillis();
         long currentTime = System.currentTimeMillis();
         long elapsed = currentTime - lastTime;
         timeTaken = timeTaken + elapsed;
         canvas.drawBitmap(newAwardGlow.get(newAwardGlowIndex),width-awardAlertWidth/2-sizes[newAwardGlowIndex] - padding,awardAlertHeight/2-sizes[newAwardGlowIndex] + padding,null);
         long gradientChange = 30000;
         if(timeTaken >= gradientChange) {
-           // int steps = (int)timeTaken/(int) gradientChange;
             moveNewAwardGlowIndex();
-            //gradientChangeTime = 0;
             timeTaken = 0;
         }
     }
@@ -131,7 +125,6 @@ public class AwardAlert {
     public void setAlert(boolean award) {
         awardAlert = award;
     }
-
 
     private void createAsyncQueryHandler() {
         queryHandler = new AsyncQueryHandler(context.getContentResolver()) {

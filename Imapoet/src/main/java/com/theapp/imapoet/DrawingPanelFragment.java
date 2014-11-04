@@ -73,6 +73,11 @@ public class DrawingPanelFragment extends Fragment implements LoaderManager.Load
         loadSettings();
     }
 
+    @Override
+    public void onPause() {
+        super.onPause();
+        drawingPanel.stopMediaPlayer();
+    }
 
     private void loadSettings() {
         queryHandler.startQuery(1,null, Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/settings"),

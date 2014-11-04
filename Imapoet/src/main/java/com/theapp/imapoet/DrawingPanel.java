@@ -53,6 +53,13 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
     private String previouslySavedPoemName = null;
 
 
+    public void stopMediaPlayer() {
+        if(mediaPlayerForMusic.isPlaying()) {
+            mediaPlayerForMusic.stop();
+            mediaPlayerForMusic.release();
+        }
+    }
+
     /* The CanvasListener interface is implemented by the MainActivity and lets the MainActivity know when something important has happened in the drawing area. The MainActivity then alertsthe GameState or AwardAlert as needed. */
     public interface CanvasListener {
         public void magnetTilesChanged(int numberMagnetTiles);
@@ -173,13 +180,17 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
     public void setSettings(boolean soundEffects, boolean music) {
         this.soundEffects = soundEffects;
         this.music = music;
+        if(music) {
+            mediaPlayerForMusic.start();
+            mediaPlayerForMusic.setLooping(true);
+        } else {
+            if(mediaPlayerForMusic.isPlaying()) mediaPlayerForMusic.stop();
+        }
     }
 
     /* Implements the AwardManager.AwardManager Listener. Sets a new award to be displayed and makes a call to redraw the canvas. */
     public void loadAward(String name, String description, int id) {
         awardAlert.setAlert(true);
-        //awardAlert.awardName = name;
-        //awardAlert.awardDescription = description;
         awardAlert.addNewAward(name,description);
         invalidate();
     }
@@ -253,44 +264,26 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
                 clickedMagnet.setXAndY(clickedMagnet.x() + magnetSide.xAndyDistances.x, clickedMagnet.y() + magnetSide.xAndyDistances.y);
                 if(soundEffects) mediaPlayerForSoundEffect.start();
                 side otherSide = MagnetSide.getOtherMagnetSide(magnetSide.xAndyDistances);
-                //for(side otherSide : otherSides) {
-                    if (otherSide == side.TOP) {
+                switch (otherSide) {
+                    case TOP:
                         magnetSide.referenceToMagnet.setTopSideConnectedMagnet(clickedMagnet);
                         clickedMagnet.setBottomSideConnectedMagnet(magnetSide.referenceToMagnet);
-                        System.out.println("bah " + magnetSide.referenceToMagnet.word() + " top:");
-                    }
-                    if (otherSide == side.BOTTOM){
+                        break;
+                    case BOTTOM:
                         magnetSide.referenceToMagnet.setBottomSideConnectedMagnet(clickedMagnet);
                         clickedMagnet.setTopSideConnectedMagnet(magnetSide.referenceToMagnet);
-                        System.out.println("bah " + magnetSide.referenceToMagnet.word() + " bottom:");
-
-                    }
-                    if (otherSide == side.RIGHT) {
-                        magnetSide.referenceToMagnet.setRightSideConnectedMagnet(clickedMagnet);
-                        clickedMagnet.setLeftSideConnectedMagnet(magnetSide.referenceToMagnet);
-                        System.out.println("bah " + magnetSide.referenceToMagnet.word() + " right:" );
-
-
-                    }
-                    if (otherSide == side.LEFT){
+                        break;
+                    case LEFT:
                         magnetSide.referenceToMagnet.setLeftSideConnectedMagnet(clickedMagnet);
                         clickedMagnet.setRightSideConnectedMagnet(magnetSide.referenceToMagnet);
-                        System.out.println("bah " + magnetSide.referenceToMagnet.word() + " left:");
-
-
-                    }
-               // }
-               // magnetSide.referenceToMagnet.set
-                //magnetSide.
+                        break;
+                    case RIGHT:
+                        magnetSide.referenceToMagnet.setRightSideConnectedMagnet(clickedMagnet);
+                        clickedMagnet.setLeftSideConnectedMagnet(magnetSide.referenceToMagnet);
+                        break;
+                }
             }
 
-        } else {
-            // reset shadow
-            if(clickedMagnet != null) {
-                //clickedMagnet.shadow = true;
-
-
-            }
         }
         clickedMagnet = null;
         sidesToLockToNext.clear();
@@ -299,43 +292,28 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
 
     private void clearConnections() {
         if(clickedMagnet.topSideConnectedMagnet().size() > 0){
-            //clickedMagnet.topSideConnectedMagnet().setBottomSideConnectedMagnet(null);
             for(Magnet magnet : clickedMagnet.topSideConnectedMagnet()) {
-                System.out.println("clicked magnet: " + clickedMagnet.word() + " connected on top to " + magnet.word() + ", magnet bottom size: " + Integer.toString(magnet.bottomSideConnectedMagnet().size()));
+                System.out.println("magnet "+magnet.word() + magnet.bottomSideConnectedMagnet().size() + " hasn't removed " + clickedMagnet.word());
+
                 magnet.bottomSideConnectedMagnet().remove(clickedMagnet);
-                System.out.println("clicked magnet: " + clickedMagnet.word() + " connected on top to " + magnet.word() + ", magnet bottom size: " + Integer.toString(magnet.bottomSideConnectedMagnet().size()));
+                System.out.println("magnet "+magnet.word() + magnet.bottomSideConnectedMagnet().size() + " has removed " + clickedMagnet.word());
             }
-            //clickedMagnet.topSideConnectedMagnet().setBottomSideConnectedMagnet(null);
         }
         if(clickedMagnet.bottomSideConnectedMagnet().size() > 0){
             for(Magnet magnet : clickedMagnet.bottomSideConnectedMagnet()) {
-                System.out.println("clicked magnet: " + clickedMagnet.word() + " connected on bottom to " + magnet.word() + ", magnet top size: " + Integer.toString(magnet.topSideConnectedMagnet().size()));
                 magnet.topSideConnectedMagnet().remove(clickedMagnet);
-                System.out.println("clicked magnet: " + clickedMagnet.word() + " connected on bottom to " + magnet.word() + ", magnet top size: " + Integer.toString(magnet.topSideConnectedMagnet().size()));
             }
-            // clickedMagnet.bottomSideConnectedMagnet().setTopSideConnectedMagnet(null);
         }
         if(clickedMagnet.leftSideConnectedMagnet().size() > 0) {
-
             for(Magnet magnet : clickedMagnet.leftSideConnectedMagnet()) {
-                System.out.println("clicked magnet: " + clickedMagnet.word() + " connected on left to " + magnet.word() + ", magnet right size: " + Integer.toString(magnet.rightSideConnectedMagnet().size()));
                 magnet.rightSideConnectedMagnet().remove(clickedMagnet);
-                System.out.println("clicked magnet: " + clickedMagnet.word() + " connected on left to " + magnet.word() + ", magnet right size: " + Integer.toString(magnet.rightSideConnectedMagnet().size()));
             }
-            //clickedMagnet.leftSideConnectedMagnet().setRightSideConnectedMagnet(null);
         }
         if(clickedMagnet.rightSideConnectedMagnet().size() > 0) {
-            // clickedMagnet.rightSideConnectedMagnet().setLeftSideConnectedMagnet(null);
             for(Magnet magnet : clickedMagnet.rightSideConnectedMagnet()) {
-                System.out.println("clicked magnet: " + clickedMagnet.word() + " connected on right to " + magnet.word() + ", magnet left size: " + Integer.toString(magnet.leftSideConnectedMagnet().size()));
                 magnet.leftSideConnectedMagnet().remove(clickedMagnet);
-                System.out.println("clicked magnet: " + clickedMagnet.word() + " connected on right to " + magnet.word() + ", magnet left size: " + Integer.toString(magnet.leftSideConnectedMagnet().size()));
             }
         }
-                /*clickedMagnet.setTopSideConnectedMagnet(null);
-                clickedMagnet.setBottomSideConnectedMagnet(null);
-                clickedMagnet.setRightSideConnectedMagnet(null);
-                clickedMagnet.setLeftSideConnectedMagnet(null);*/
         clickedMagnet.clearAllConnectedMagnets();
     }
     /* Overrides the View method of the same name. onTouchEvent is the center of user interaction for the drawing area. The action, Action_Down occurs when the user touches the drawing area. Action_Move happens when the user moves their finger across the drawing area. Action_Up occurs when the user moves their finger off of the screen. */
@@ -351,6 +329,7 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
             case MotionEvent.ACTION_MOVE:
                 // does the user have a magnet? If so, deal with magnet-magnet collisions, etc.
                 if(clickedMagnet != null) {
+                    System.out.println(clickedMagnet.word() + "clicked!");
                     clearConnections();
                     sidesToLockToNext.clear();
                     handleMovingClickedTile(clickedMagnet,motionEvent.getX(),motionEvent.getY());
@@ -731,6 +710,8 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
     public void surfaceCreated(SurfaceHolder surfaceHolder) {
         setWillNotDraw(false); //Allows us to use invalidate() to call onDraw()
         setOnDragListener(this);
+
+
 
     }
 
