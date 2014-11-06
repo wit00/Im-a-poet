@@ -2,9 +2,14 @@ package com.theapp.imapoet;
 
 import android.app.Activity;
 import android.content.AsyncQueryHandler;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
@@ -134,6 +139,8 @@ public class DrawingPanelFragment extends Fragment implements LoaderManager.Load
         //listView.setAdapter(null);
 
     }
+
+
 }
 
 

@@ -2,20 +2,16 @@ package com.theapp.imapoet;
 
 
 
-import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.AsyncQueryHandler;
 import android.content.ContentValues;
 import android.content.Intent;
-import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.CountDownTimer;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ImageView;
 import android.widget.ListView;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
@@ -28,7 +24,6 @@ import android.database.Cursor;
  *
  */
 /**
- * A placeholder fragment containing a simple view.
  */
 public class SettingsFragment extends android.support.v4.app.Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
     private SettingsListViewAdapter settingsListViewAdapter;
@@ -36,51 +31,12 @@ public class SettingsFragment extends android.support.v4.app.Fragment implements
     private AsyncQueryHandler queryHandler;
     private boolean music = true;
     private boolean soundEffect = true;
-    private MediaPlayer mediaPlayerForSoundEffect;
-    private MediaPlayer mediaPlayerForMusic;
-    private CountDownTimer mediaPlayerForMusicCountdownTimer;
 
     public static SettingsFragment newInstance() {
         return new SettingsFragment();
     }
 
     public SettingsFragment() {}
-
-
-
-    @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        mediaPlayerForSoundEffect = MediaPlayer.create(getActivity(),R.raw.finger_snapping);
-        mediaPlayerForMusic = MediaPlayer.create(getActivity(),R.raw.when_the_wind_blows);
-        mediaPlayerForMusicCountdownTimer = new CountDownTimer(30000, 30000) {
-
-            @Override
-            public void onTick(long millisUntilFinished) {
-                // Nothing to do
-                if(mediaPlayerForMusic.isPlaying()) {
-                    //mediaPlayerForMusic.setVolume(millisUntilFinished/30000, millisUntilFinished/30000);
-                }
-            }
-
-            @Override
-            public void onFinish() {
-                if (mediaPlayerForMusic.isPlaying()) {
-                    mediaPlayerForMusic.stop();
-                    //mediaPlayerForMusic.release();
-                }
-            }
-        };
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        if(mediaPlayerForMusic.isPlaying()) {
-            mediaPlayerForMusic.stop();
-            mediaPlayerForMusic.release();
-        }
-    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -89,29 +45,6 @@ public class SettingsFragment extends android.support.v4.app.Fragment implements
         listView = (ListView) rootView.findViewById(R.id.settingsListView);
         getLoaderManager().initLoader(0,null,this);
         queryHandler = new AsyncQueryHandler(getActivity().getContentResolver()) {
-            @Override
-            protected void onUpdateComplete(int soundOn, Object sound, int result) {
-               /* if(soundOn == 1) { // a sound has been turned on
-                    if(sound.equals(MagnetDatabaseContract.MagnetEntry.COLUMN_SOUND_EFFECTS)) {
-                        mediaPlayerForSoundEffect.start();
-                    } else if(sound.equals(MagnetDatabaseContract.MagnetEntry.COLUMN_MUSIC)) {
-                        if(!mediaPlayerForMusic.isPlaying()) {
-                            mediaPlayerForMusic = MediaPlayer.create(getActivity(),R.raw.when_the_wind_blows);
-                            mediaPlayerForMusic.start();
-                            //mediaPlayerForMusic
-                            //mediaPlayerForMusicCountdownTimer.start();
-                        }
-                    }
-                } else {
-                    if(sound.equals(MagnetDatabaseContract.MagnetEntry.COLUMN_MUSIC)) {
-                        if(mediaPlayerForMusic.isPlaying()) {
-                            mediaPlayerForMusic.stop();
-                            //mediaPlayerForMusic.release();
-                        }
-                    }
-                }*/
-
-            }
             @Override
             protected  void onInsertComplete(int token, Object cookie, Uri uri) {
                 settingsListViewAdapter = new SettingsListViewAdapter(getActivity(),true,true);

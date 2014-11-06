@@ -41,13 +41,14 @@ import java.util.ArrayList;
 
 
 public class MainActivity extends FragmentActivity implements DrawerFragment.OnFragmentInteractionListener,
-        NewPoemSaveAlertDialog.NewPoemSaveAlertDialogListener, ExistingPoemSaveAlertDialog.ExistingPoemDialogListener, DrawingPanel.CanvasListener, DemoFragment.DemoListener{
+        NewPoemSaveAlertDialog.NewPoemSaveAlertDialogListener, ExistingPoemSaveAlertDialog.ExistingPoemDialogListener, DrawingPanel.CanvasListener, DemoFragment.DemoListener {
 
     private DemoFragment demoFragment = null;
     private Context helperContext = this;
     private DrawerFragment drawerFragment;
     private DrawingPanelFragment drawingPanelFragment;
     private GameState gameState;
+    private MediaServiceHelper mediaServiceHelper = new MediaServiceHelper(this);
 
 
     private void highlight(int viewID) {
@@ -372,6 +373,8 @@ public class MainActivity extends FragmentActivity implements DrawerFragment.OnF
         setSystemVisibility();
         setContentView(R.layout.activity_main);
         setupOverflowButton();
+
+
     }
 
 
@@ -389,6 +392,7 @@ public class MainActivity extends FragmentActivity implements DrawerFragment.OnF
     public void loadMenu(View view) {
         if(demoFragment != null ) demoFragment.runDemo(DemoFragment.DemoPart.BUTTONS_CLICKED); // the demo is running and a button has been clicked
         Intent mainMenuIntent = new Intent(this, MainMenu.class);
+        //mainMenuIntent.putExtra("playBackgroundMusic",mediaService.isBackgroundMusicOn());
         startActivity(mainMenuIntent);
     }
 
@@ -446,6 +450,7 @@ public class MainActivity extends FragmentActivity implements DrawerFragment.OnF
         super.onDestroy();
         new File(this.getCacheDir(), "tempShareBitmap.jpg").delete();
 
+        //unbindFromMediaMusicService();
     }
 
     private void createExistingPoemSaveAlertDialog() {
@@ -587,6 +592,25 @@ public class MainActivity extends FragmentActivity implements DrawerFragment.OnF
             }
         }
     }
+
+
+
+    /** new media service stuff **/
+    @Override
+    protected void onStart() {
+        super.onStart();
+        mediaServiceHelper.bindToMediaMusicService();
+    }
+
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+       if(!isChangingConfigurations()) {
+           mediaServiceHelper.unbindFromMediaMusicService();
+       }
+    }
+
 }
 
 

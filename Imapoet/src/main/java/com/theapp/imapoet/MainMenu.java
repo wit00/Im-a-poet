@@ -6,7 +6,6 @@ import android.content.AsyncQueryHandler;
 import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.database.Cursor;
 import android.net.Uri;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBar;
@@ -19,14 +18,13 @@ import android.support.v4.view.ViewPager;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ListView;
-import android.widget.RelativeLayout;
 
 
-public class MainMenu extends ActionBarActivity implements ActionBar.TabListener, InAppPurchaseFragment.InAppPurchaseListener{
+public class MainMenu extends ActionBarActivity implements ActionBar.TabListener, InAppPurchaseFragment.InAppPurchaseListener {
     private SectionsPagerAdapter sectionsPagerAdapter; // provides the fragments for the sections
     private ViewPager viewPager; // hosts the section contents
     private AsyncQueryHandler queryHandler;
+    private MediaServiceHelper mediaServiceHelper = new MediaServiceHelper(this);
 
 
     public void inAppPurchaseClicked(String packName) {
@@ -81,6 +79,9 @@ public class MainMenu extends ActionBarActivity implements ActionBar.TabListener
         setContentView(R.layout.activity_main_menu);
         setUpActionBarAndStuff();
         createAsyncQueryHandler();
+
+
+        //bindToMediaMusicService();
     }
 
     public void setUpActionBarAndStuff() {
@@ -115,7 +116,6 @@ public class MainMenu extends ActionBarActivity implements ActionBar.TabListener
     }
 
     
-
     /**
      * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
      * one of the sections/tabs/pages.
@@ -138,7 +138,7 @@ public class MainMenu extends ActionBarActivity implements ActionBar.TabListener
                 case 2:
                     return InAppPurchaseFragment.newInstance();
                 case 3:
-                    return SettingsFragment.newInstance();
+                    return new SettingsFragment().newInstance();
                 case 4:
                     return StatisticsFragment.newInstance();
                 case 5:
@@ -242,5 +242,26 @@ public class MainMenu extends ActionBarActivity implements ActionBar.TabListener
         builder.create();
         builder.show();
     }
+
+
+
+    /** new media service stuff **/
+    @Override
+    protected void onStart() {
+        super.onStart();
+        mediaServiceHelper.bindToMediaMusicService();
+    }
+
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if(!isChangingConfigurations()) {
+            mediaServiceHelper.unbindFromMediaMusicService();
+        }
+    }
+
+
+
 
 }
