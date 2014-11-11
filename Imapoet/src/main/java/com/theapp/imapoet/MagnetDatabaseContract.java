@@ -170,6 +170,36 @@ public class MagnetDatabaseContract {
                         COLUMN_DESCRIPTION + TEXT_TYPE +
                         ");";
 
+        public static final String AWARDS_TABLE_NAME = "AwardsTable";
+        public static final String COLUMN_CURRENT_VALUE = "CurrentValue";
+        public static final String COLUMN_CODE = "Code";
+
+        public static final String AWARDS_DETAIL_TABLE_NAME = "AwardsDetail";
+        public static final String COLUMN_AWARD_ID = "AwardId";
+        public static final String COLUMN_NAME = "Name";
+        //public static final String COLUMN_DESCRIPTION = "Name";
+        public static final String COLUMN_WIN_CONDITION_VALUE = "WinConditionValue";
+        //public static final String COLUMN_COMPLETED = "Completed";
+
+        public static final String CREATE_AWARDS_TABLE =
+                "CREATE TABLE " + AWARDS_TABLE_NAME+ " (" +
+                        _ID + " INTEGER PRIMARY KEY, " +
+                        COLUMN_CURRENT_VALUE + INTEGER_TYPE + COMMA_SEP +
+                        COLUMN_CODE + TEXT_TYPE +
+                        ");";
+
+        public static final String CREATE_AWARDS_DETAIL_TABLE =
+                "CREATE TABLE " + AWARDS_DETAIL_TABLE_NAME+ " (" +
+                        _ID + " INTEGER PRIMARY KEY, " +
+                        COLUMN_AWARD_ID + INTEGER_TYPE + COMMA_SEP +
+                        COLUMN_NAME + TEXT_TYPE + COMMA_SEP +
+                        COLUMN_DESCRIPTION + TEXT_TYPE + COMMA_SEP +
+                        COLUMN_WIN_CONDITION_VALUE + INTEGER_TYPE + COMMA_SEP +
+                        COLUMN_COMPLETED_IMAGE_ID + TEXT_TYPE + COMMA_SEP +
+                        COLUMN_UNCOMPLETED_IMAGE_ID + TEXT_TYPE + COMMA_SEP +
+                        COLUMN_COMPLETED + INTEGER_TYPE +
+                        ");";
+
         public static final String CREATE_SETTINGS_TABLE =
                 "CREATE TABLE " + SETTINGS_TABLE_NAME + " (" +
                         _ID + " INTEGER PRIMARY KEY, " +

@@ -69,7 +69,7 @@ public  class AwardsFragment extends android.support.v4.app.Fragment implements 
         }
 
         public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-            Uri baseUri = Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/award");
+            Uri baseUri = Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/awards/detail");
             return new CursorLoader(getActivity(),baseUri,null,null,null,null);
         }
 

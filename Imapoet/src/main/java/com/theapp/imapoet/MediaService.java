@@ -103,6 +103,8 @@ public class MediaService extends Service implements AudioManager.OnAudioFocusCh
                 playSoundEffects = databaseSoundEffectValue;
                 if(playSoundEffects) playSoundEffect();
             }
+        } else {
+            setBackgroundMusic(true);
         }
     }
 

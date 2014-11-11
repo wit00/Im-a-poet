@@ -1,53 +1,214 @@
 {
-  "STATISTICS_AND_AWARDS": [
+  "AWARDS": [
     {
-    "STATISTIC_NAME":"Number of poems saved",  
-    "STATISTIC_ID":1,  
-    "AWARDS":
+    "AWARD_CODE":"SAVED_POEMS",
+    "AWARD_WIN_CONDITIONS":
       [
         {
           "AWARD_NAME":"1st Saved Poem",
           "DESCRIPTION":"Congrats! You're officially a poet. You get this award when you've saved your first poem to the database",
-          "STATISTIC_VALUE":1,
+          "WIN_CONDITION":1,
           "COMPLETED_IMAGE_ID":"blue_ribbon",
           "UNCOMPLETED_IMAGE_ID":"ribbon_outline"
         },
         {
           "AWARD_NAME":"5 Saved Poems",
           "DESCRIPTION":"You're well on your way to poem mastery and have written and saved five poems",
-          "STATISTIC_VALUE":5,
+          "WIN_CONDITION":5,
           "COMPLETED_IMAGE_ID":"blue_ribbon",
           "UNCOMPLETED_IMAGE_ID":"ribbon_outline"
-        }    
+        },
+        {
+          "AWARD_NAME":"15 Saved Poems",
+          "DESCRIPTION":"You'll receive this award when you have written and saved 15 poems",
+          "WIN_CONDITION":15,
+          "COMPLETED_IMAGE_ID":"blue_ribbon",
+          "UNCOMPLETED_IMAGE_ID":"ribbon_outline"
+        },
+        {
+          "AWARD_NAME":"25 Saved Poems",
+          "DESCRIPTION":"Wow, that's a bunch of poems! You get this award when you've saved 25 poems",
+          "WIN_CONDITION":25,
+          "COMPLETED_IMAGE_ID":"blue_ribbon",
+          "UNCOMPLETED_IMAGE_ID":"ribbon_outline"
+        },
+
       ]
     },
     {
-    "STATISTIC_NAME":"Most magnets used in a session", 
-    "STATISTIC_ID":2,   
-    "AWARDS":
+    "AWARD_CODE":"SAVED_POEMS_NUMBER_MAGNETS",
+    "AWARD_WIN_CONDITIONS":
+         [
+           {
+             "AWARD_NAME":"Not Much to Say",
+             "DESCRIPTION":"Wow. You've mastered the art of simplicity. You'll get this award when you've saved or shared a poem that only has a single word or letter",
+             "WIN_CONDITION":1,
+             "COMPLETED_IMAGE_ID":"green_ribbon",
+             "UNCOMPLETED_IMAGE_ID":"ribbon_outline"
+           },
+           {
+             "AWARD_NAME":"So Much to Say",
+             "DESCRIPTION":"You have too much to express to limit yourself to only a few words. You'll get this award when you've saved or shared a poem with 40 or more words or letters",
+             "WIN_CONDITION":40,
+             "COMPLETED_IMAGE_ID":"blue_ribbon",
+             "UNCOMPLETED_IMAGE_ID":"ribbon_outline"
+           }
+         ]
+       },
+    {
+    "AWARD_CODE":"UPDATED_POEM",
+    "AWARD_WIN_CONDITIONS":
+         [
+           {
+             "AWARD_NAME":"First Update",
+             "DESCRIPTION":"The first update award is given when you have updated your first poem.",
+             "WIN_CONDITION":1,
+             "COMPLETED_IMAGE_ID":"green_ribbon",
+             "UNCOMPLETED_IMAGE_ID":"ribbon_outline"
+           },
+           {
+             "AWARD_NAME":"The Update Master",
+             "DESCRIPTION":"You understand the importance of good editing. You will receive the update master award when you have updated 10 or more poems.",
+             "WIN_CONDITION":10,
+             "COMPLETED_IMAGE_ID":"blue_ribbon",
+             "UNCOMPLETED_IMAGE_ID":"ribbon_outline"
+           }
+         ]
+       },
+    {
+    "AWARD_CODE":"MAGNET_ENTERS_CANVAS",
+    "AWARD_WIN_CONDITIONS":
       [
         {
           "AWARD_NAME":"The Wordsmith",
           "DESCRIPTION":"The wordsmith has worked with 5 or more words at a time.",
-          "STATISTIC_VALUE":5,
+          "WIN_CONDITION":5,
           "COMPLETED_IMAGE_ID":"blue_ribbon",
           "UNCOMPLETED_IMAGE_ID":"ribbon_outline"
         },
         {
           "AWARD_NAME":"The Super Wordsmith",
           "DESCRIPTION":"The super wordsmith has juggled 10 or more words at a time.",
-          "STATISTIC_VALUE":10,
+          "WIN_CONDITION":10,
           "COMPLETED_IMAGE_ID":"blue_ribbon",
           "UNCOMPLETED_IMAGE_ID":"ribbon_outline"
         },
         {
           "AWARD_NAME":"The Super-Duper Wordsmith",
           "DESCRIPTION":"The super-duper wordsmith has handled an impressive 25 or more words at a time.",
-          "STATISTIC_VALUE":25,
+          "WIN_CONDITION":25,
           "COMPLETED_IMAGE_ID":"blue_ribbon",
           "UNCOMPLETED_IMAGE_ID":"ribbon_outline"
-        }      
+        }
       ]
     },
+
+    {
+    "AWARD_CODE":"DEMO_FINISHED",
+    "AWARD_WIN_CONDITIONS":
+         [
+           {
+             "AWARD_NAME":"Demo Finished!",
+             "DESCRIPTION":"Awesome! You've completed the demo and are ready to become a poet.",
+             "WIN_CONDITION":1,
+             "COMPLETED_IMAGE_ID":"green_ribbon",
+             "UNCOMPLETED_IMAGE_ID":"ribbon_outline"
+           }
+         ]
+    },{
+    "AWARD_CODE":"ENGLISH_ALPHABET_PACK_USED",
+    "AWARD_WIN_CONDITIONS":
+         [
+           {
+             "AWARD_NAME":"Alphabet Juggler",
+             "DESCRIPTION":"You're getting the swing of this alphabet thing. You'll receive this award when you've used the English alphabet pack.",
+             "WIN_CONDITION":1,
+             "COMPLETED_IMAGE_ID":"green_ribbon",
+             "UNCOMPLETED_IMAGE_ID":"ribbon_outline"
+           }
+         ]
+    },
+    {
+        "AWARD_CODE":"LOVE_PACK_USED",
+       "AWARD_WIN_CONDITIONS":
+            [
+              {
+                "AWARD_NAME":"Lover",
+                "DESCRIPTION":"A true lover! You'll receive this award when you've used the Love pack.",
+                "WIN_CONDITION":1,
+                "COMPLETED_IMAGE_ID":"green_ribbon",
+                "UNCOMPLETED_IMAGE_ID":"ribbon_outline"
+              }
+            ]
+          },
+        {
+      "AWARD_CODE":"MAGNET_DELETED",
+          "AWARD_WIN_CONDITIONS":
+            [
+              {
+                "AWARD_NAME":"Your First Mistake",
+                "DESCRIPTION":"A true poet sometimes makes mistakes! You'll receive this award when you have deleted your first magnet.",
+                "WIN_CONDITION":1,
+                "COMPLETED_IMAGE_ID":"three_star_trophy",
+                "UNCOMPLETED_IMAGE_ID":"trophy_outline"
+              },
+              {
+                "AWARD_NAME":"The Corrector",
+                "DESCRIPTION":"The corrector award is given when you have deleted fifteen or more magnets.",
+                "WIN_CONDITION":15,
+                "COMPLETED_IMAGE_ID":"three_star_trophy",
+                "UNCOMPLETED_IMAGE_ID":"trophy_outline"
+              },
+              {
+                "AWARD_NAME":"So Many Changes!",
+                "DESCRIPTION":"You have no problem deleting magnets, since you've deleted forty or more of them to receive this award.",
+                "WIN_CONDITION":40,
+                "COMPLETED_IMAGE_ID":"three_star_trophy",
+                "UNCOMPLETED_IMAGE_ID":"trophy_outline"
+              },
+              {
+                "AWARD_NAME":"The Equivocator",
+                "DESCRIPTION":"Wow, in the pursuit of perfection you have changed your mind a bunch! The equivocator is awarded when you have deleted 100 or more magnets.",
+                "WIN_CONDITION":100,
+                "COMPLETED_IMAGE_ID":"three_star_trophy",
+                "UNCOMPLETED_IMAGE_ID":"trophy_outline"
+              }
+            ]
+          },
+    {
+    "AWARD_CODE":"PACK_USED",
+    "AWARD_WIN_CONDITIONS":
+      [
+        {
+          "AWARD_NAME":"Two at Once!",
+          "DESCRIPTION":"You receive this award when you've used at least two word packs in a single poem.",
+          "WIN_CONDITION":2,
+          "COMPLETED_IMAGE_ID":"blue_ribbon",
+          "UNCOMPLETED_IMAGE_ID":"ribbon_outline"
+        },
+        {
+          "AWARD_NAME":"The Triple Pack",
+          "DESCRIPTION":"You'll get the triple pack award when you've used at least three packs in a single poem.",
+          "WIN_CONDITION":3,
+          "COMPLETED_IMAGE_ID":"blue_ribbon",
+          "UNCOMPLETED_IMAGE_ID":"ribbon_outline"
+        },
+        {
+          "AWARD_NAME":"Lotsa Packs",
+          "DESCRIPTION":"The lotsa packs award is for poets that have used at least five packs in a single poem.",
+          "WIN_CONDITION":5,
+          "COMPLETED_IMAGE_ID":"blue_ribbon",
+          "UNCOMPLETED_IMAGE_ID":"ribbon_outline"
+        },
+        {
+          "AWARD_NAME":"Word Pack Master",
+          "DESCRIPTION":"You receive the word pack master award when you've used 10 or more packs for a single poem.",
+          "WIN_CONDITION":10,
+          "COMPLETED_IMAGE_ID":"blue_ribbon",
+          "UNCOMPLETED_IMAGE_ID":"ribbon_outline"
+        }
+      ]
+    }
+
   ]
 }

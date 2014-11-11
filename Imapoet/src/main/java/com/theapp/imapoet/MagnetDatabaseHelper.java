@@ -29,6 +29,8 @@ public class MagnetDatabaseHelper extends SQLiteOpenHelper {
         db.execSQL(MagnetDatabaseContract.MagnetEntry.CREATE_PACKS_TABLE);
         db.execSQL(MagnetDatabaseContract.MagnetEntry.CREATE_MAGNETS_TABLE);
         db.execSQL(MagnetDatabaseContract.MagnetEntry.CREATE_LAST_SAVED_TABLE);
+        db.execSQL(MagnetDatabaseContract.MagnetEntry.CREATE_AWARDS_TABLE);
+        db.execSQL(MagnetDatabaseContract.MagnetEntry.CREATE_AWARDS_DETAIL_TABLE);
     }
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         // discard the data and start over
@@ -42,6 +44,7 @@ public class MagnetDatabaseHelper extends SQLiteOpenHelper {
         db.execSQL(MagnetDatabaseContract.MagnetEntry.SQL_DELETE_ON_SAVE_AWARDS);
         db.execSQL(MagnetDatabaseContract.MagnetEntry.SQL_DELETE_SETTINGS);
         db.execSQL(MagnetDatabaseContract.MagnetEntry.SQL_DELETE_LAST_POEM);
+        //todo add awards and awards detail
         onCreate(db);
     }
 

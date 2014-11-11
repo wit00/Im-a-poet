@@ -55,6 +55,12 @@ public class MagnetContentProvider extends ContentProvider {
     private static final int UPDATE_ONSAVE_AWARD = 34;
     private static final int ALL_STATISTICS = 35;
     private static final int UPDATE_PACK = 36;
+    private static final int INSERT_AWARDS = 37;
+    private static final int INSERT_AWARD_DETAILS = 38;
+    private static final int AWARDS = 39;
+    private static final int AWARDS_DETAIL = 40;
+    private static final int UPDATE_AWARD = 41;
+    private static final int UPDATE_AWARD_DETAIL = 42;
 
 
 
@@ -98,6 +104,12 @@ public class MagnetContentProvider extends ContentProvider {
         uriMatcher.addURI(AUTHORITY,"update/onSave/award",UPDATE_ONSAVE_AWARD);
         uriMatcher.addURI(AUTHORITY,"statistics/all",ALL_STATISTICS);
         uriMatcher.addURI(AUTHORITY,"update/pack",UPDATE_PACK);
+        uriMatcher.addURI(AUTHORITY,"insert/award",INSERT_AWARDS);
+        uriMatcher.addURI(AUTHORITY,"insert/award/detail",INSERT_AWARD_DETAILS);
+        uriMatcher.addURI(AUTHORITY,"awards",AWARDS);
+        uriMatcher.addURI(AUTHORITY,"awards/detail",AWARDS_DETAIL);
+        uriMatcher.addURI(AUTHORITY,"update/award",UPDATE_AWARD);
+        uriMatcher.addURI(AUTHORITY,"update/award/detail",UPDATE_AWARD_DETAIL);
 
     }
 
@@ -175,6 +187,12 @@ public class MagnetContentProvider extends ContentProvider {
             case INSERT_ON_SAVE_STATISTIC:
                 thisInsert = database.insert(MagnetDatabaseContract.MagnetEntry.ON_SAVE_STATISTICS_TABLE_NAME,null,values);
                 break;
+            case INSERT_AWARDS:
+                thisInsert = database.insert(MagnetDatabaseContract.MagnetEntry.AWARDS_TABLE_NAME,null,values);
+                break;
+            case INSERT_AWARD_DETAILS:
+                thisInsert = database.insert(MagnetDatabaseContract.MagnetEntry.AWARDS_DETAIL_TABLE_NAME,null,values);
+                break;
             default:
                 throw new IllegalArgumentException("Unknown URI " + uri);
         }
@@ -246,6 +264,12 @@ public class MagnetContentProvider extends ContentProvider {
                 //magnetCursor =
                 magnetCursor = new MergeCursor(new Cursor[]{continuousStatisticsCursor,onSaveStatisticsCursor});
                 break;
+            case AWARDS:
+                magnetCursor = database.query(MagnetDatabaseContract.MagnetEntry.AWARDS_TABLE_NAME,projection,selection,selectionArgs,null,null,sortOrder);
+                break;
+            case AWARDS_DETAIL:
+                magnetCursor = database.query(MagnetDatabaseContract.MagnetEntry.AWARDS_DETAIL_TABLE_NAME,projection,selection,selectionArgs,null,null,sortOrder);
+                break;
             default:
                 // If the URI doesn't match any of the known patterns, throw an exception.
                 throw new IllegalArgumentException("Unknown URI " + uri);
@@ -291,6 +315,12 @@ public class MagnetContentProvider extends ContentProvider {
                 break;
             case UPDATE_PACK:
                 database.update(MagnetDatabaseContract.MagnetEntry.PACKS_TABLE_NAME,values,selection,selectionArgs);
+                break;
+            case UPDATE_AWARD:
+                database.update(MagnetDatabaseContract.MagnetEntry.AWARDS_TABLE_NAME,values,selection,selectionArgs);
+                break;
+            case UPDATE_AWARD_DETAIL:
+                database.update(MagnetDatabaseContract.MagnetEntry.AWARDS_DETAIL_TABLE_NAME,values,selection,selectionArgs);
                 break;
             default:
                 throw new IllegalArgumentException("Unknown URI " + uri);

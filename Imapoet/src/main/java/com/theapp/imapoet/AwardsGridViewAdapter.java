@@ -41,7 +41,7 @@ public class AwardsGridViewAdapter extends SimpleCursorAdapter {
             ((ImageView) view.findViewById(R.id.gridImage)).setImageResource(view.getResources().getIdentifier("com.theapp.imapoet:drawable/"+imageName,null,null));
 
         }
-        ((TextView) view.findViewById(R.id.gridText)).setText(cursor.getString(cursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry.COLUMN_AWARD_NAME)));
+        ((TextView) view.findViewById(R.id.gridText)).setText(cursor.getString(cursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry.COLUMN_NAME)));
         ((TextView) view.findViewById(R.id.description)).setText(cursor.getString(cursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry.COLUMN_DESCRIPTION)));
     }
 

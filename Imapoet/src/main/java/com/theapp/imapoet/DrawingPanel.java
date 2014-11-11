@@ -24,7 +24,7 @@ import java.util.Collections;
  * Drawing canvas
  * Created by whitney on 6/5/14.
  */
-public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback, View.OnDragListener, GameState.DrawingPanelListener, AwardManager.AwardManagerListener {
+public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback, View.OnDragListener, GameState.DrawingPanelListener, AwardHandler.AwardManagerListener {
     private CanvasListener canvasListener;
     private ScaleGestureDetector scaleGestureDetector;
     private GestureDetector gestureDetector;

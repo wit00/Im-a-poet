@@ -243,8 +243,8 @@ public class MainActivity extends FragmentActivity implements DrawerFragment.OnF
 
     private void loadValuesIntoDatabase() {
         new loadTextFilesIntoPacksAsyncTask().execute();
-        (new SetupOnSaveAwardsBackgroundTask()).execute();
-        (new SetupContinuousAwardsBackgroundTask()).execute();
+       // (new SetupOnSaveAwardsBackgroundTask()).execute();
+       // (new SetupContinuousAwardsBackgroundTask()).execute();
     }
 
     private void saveBitmapToSDCard(File poemDirectory) {
@@ -567,7 +567,7 @@ public class MainActivity extends FragmentActivity implements DrawerFragment.OnF
         }
         @Override
         protected void onPostExecute(JSONArray statisticsAndAwards) {
-            gameState.insertStatisticsAndAwardsData(statisticsAndAwards, Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/insert/statistic/on_save"),true);
+            //gameState.insertStatisticsAndAwardsData(statisticsAndAwards, Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/insert/statistic/on_save"),true);
         }
     }
 
@@ -578,7 +578,7 @@ public class MainActivity extends FragmentActivity implements DrawerFragment.OnF
         }
         @Override
         protected void onPostExecute(JSONArray statisticsAndAwards) {
-            gameState.insertStatisticsAndAwardsData(statisticsAndAwards, Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/insert/statistic/continuous"),false);
+         //   gameState.insertStatisticsAndAwardsData(statisticsAndAwards, Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/insert/statistic/continuous"),false);
         }
     }
 
