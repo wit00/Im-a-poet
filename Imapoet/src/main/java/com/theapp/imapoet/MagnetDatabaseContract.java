@@ -40,23 +40,11 @@ public class MagnetDatabaseContract {
         public static final String COLUMN_LEFT = "LeftConnectedMagnet";
         public static final String COLUMN_RIGHT = "RightConnectedMagnet";
 
-        public static final String CONTINUOUS_STATISTICS_TABLE_NAME = "ContinuousStatisticsTable";
-        public static final String COLUMN_STATISTIC_NAME = "Name";
-        public static final String COLUMN_VALUE = "Value";
-
-        public static final String ON_SAVE_STATISTICS_TABLE_NAME = "OnSaveStatisticsTable";
-
-        public static final String CONTINUOUS_AWARDS_TABLE_NAME = "ContinuousAwardsTable";
         public static final String COLUMN_AWARD_NAME = "awardName";
         public static final String COLUMN_COMPLETED = "completed";
         public static final String COLUMN_COMPLETED_IMAGE_ID = "completedImageID";
         public static final String COLUMN_UNCOMPLETED_IMAGE_ID = "uncompletedImageID";
         public static final String COLUMN_DESCRIPTION = "description";
-        public static final String COLUMN_STATISTIC_ID = "StatisticID";
-        public static final String COLUMN_STATISTIC_VALUE = "StatisticValue";
-
-        public static final String ON_SAVE_AWARDS_TABLE_NAME = "OnSaveAwardsTable";
-
 
         public static final String SETTINGS_TABLE_NAME = "SettingsTable";
         public static final String COLUMN_MUSIC = "music";
@@ -70,6 +58,15 @@ public class MagnetDatabaseContract {
         public static final String COLUMN_MAGNET_TEXT = "MagnetText";
         public static final String COLUMN_IF_SAVED_ID = "ifSavedPoemID";
         public static final String COLUMN_IF_SAVED_TITLE = "ifSavedPoemTitle";
+
+        public static final String AWARDS_TABLE_NAME = "AwardsTable";
+        public static final String COLUMN_CURRENT_VALUE = "CurrentValue";
+        public static final String COLUMN_CODE = "Code";
+
+        public static final String AWARDS_DETAIL_TABLE_NAME = "AwardsDetail";
+        public static final String COLUMN_AWARD_ID = "AwardId";
+        public static final String COLUMN_NAME = "Name";
+        public static final String COLUMN_WIN_CONDITION_VALUE = "WinConditionValue";
 
 
         private static final String TEXT_TYPE = " TEXT";
@@ -132,54 +129,6 @@ public class MagnetDatabaseContract {
                         COLUMN_LEFT + INTEGER_TYPE + COMMA_SEP +
                         COLUMN_RIGHT + TEXT_TYPE +
                         ");";
-        public static final String CREATE_CONTINUOUS_STATISTICS_TABLE =
-                "CREATE TABLE " + CONTINUOUS_STATISTICS_TABLE_NAME+ " (" +
-                        _ID + " INTEGER PRIMARY KEY, " +
-                        COLUMN_STATISTIC_NAME + TEXT_TYPE + COMMA_SEP +
-                        COLUMN_VALUE + INTEGER_TYPE +
-                        ");";
-
-        public static final String CREATE_ON_SAVE_STATISTICS_TABLE =
-                "CREATE TABLE " + ON_SAVE_STATISTICS_TABLE_NAME + " (" +
-                        _ID + " INTEGER PRIMARY KEY, " +
-                        COLUMN_STATISTIC_NAME + TEXT_TYPE + COMMA_SEP +
-                        COLUMN_VALUE + INTEGER_TYPE +
-                        ");";
-
-        public static final String CREATE_CONTINUOUS_AWARDS_TABLE =
-                "CREATE TABLE " + CONTINUOUS_AWARDS_TABLE_NAME+ " (" +
-                        _ID + " INTEGER PRIMARY KEY, " +
-                        COLUMN_AWARD_NAME + TEXT_TYPE + COMMA_SEP +
-                        COLUMN_COMPLETED + TEXT_TYPE + COMMA_SEP +
-                        COLUMN_COMPLETED_IMAGE_ID + TEXT_TYPE + COMMA_SEP +
-                        COLUMN_UNCOMPLETED_IMAGE_ID + TEXT_TYPE + COMMA_SEP +
-                        COLUMN_STATISTIC_ID + INTEGER_TYPE + COMMA_SEP +
-                        COLUMN_STATISTIC_VALUE + INTEGER_TYPE + COMMA_SEP +
-                        COLUMN_DESCRIPTION + TEXT_TYPE +
-                        ");";
-
-        public static final String CREATE_ON_SAVE_AWARDS_TABLE =
-                "CREATE TABLE " + ON_SAVE_AWARDS_TABLE_NAME+ " (" +
-                        _ID + " INTEGER PRIMARY KEY, " +
-                        COLUMN_AWARD_NAME + TEXT_TYPE + COMMA_SEP +
-                        COLUMN_COMPLETED + TEXT_TYPE + COMMA_SEP +
-                        COLUMN_COMPLETED_IMAGE_ID + TEXT_TYPE + COMMA_SEP +
-                        COLUMN_UNCOMPLETED_IMAGE_ID + TEXT_TYPE + COMMA_SEP +
-                        COLUMN_STATISTIC_ID + INTEGER_TYPE + COMMA_SEP +
-                        COLUMN_STATISTIC_VALUE + INTEGER_TYPE + COMMA_SEP +
-                        COLUMN_DESCRIPTION + TEXT_TYPE +
-                        ");";
-
-        public static final String AWARDS_TABLE_NAME = "AwardsTable";
-        public static final String COLUMN_CURRENT_VALUE = "CurrentValue";
-        public static final String COLUMN_CODE = "Code";
-
-        public static final String AWARDS_DETAIL_TABLE_NAME = "AwardsDetail";
-        public static final String COLUMN_AWARD_ID = "AwardId";
-        public static final String COLUMN_NAME = "Name";
-        //public static final String COLUMN_DESCRIPTION = "Name";
-        public static final String COLUMN_WIN_CONDITION_VALUE = "WinConditionValue";
-        //public static final String COLUMN_COMPLETED = "Completed";
 
         public static final String CREATE_AWARDS_TABLE =
                 "CREATE TABLE " + AWARDS_TABLE_NAME+ " (" +
@@ -212,12 +161,10 @@ public class MagnetDatabaseContract {
         public static final String SQL_DELETE_MAGNETS = "DROP TABLE IF EXISTS " + MAGNETS_TABLE_NAME;
         public static final String SQL_DELETE_SAVED_POEMS = "DROP TABLE IF EXISTS " + SAVED_POEMS_TABLE_NAME;
         public static final String SQL_DELETE_SAVED_POEMS_DETAIL = "DROP TABLE IF EXISTS " + SAVED_POEMS_MAGNET_DETAIL_TABLE_NAME;
-        public static final String SQL_DELETE_CONTINUOUS_STATISTICS = "DROP TABLE IF EXISTS " + CONTINUOUS_STATISTICS_TABLE_NAME;
-        public static final String SQL_DELETE_ON_SAVE_STATISTICS = "DROP TABLE IF EXISTS " + ON_SAVE_STATISTICS_TABLE_NAME;
-        public static final String SQL_DELETE_CONTINUOUS_AWARDS = "DROP TABLE IF EXISTS " + CONTINUOUS_AWARDS_TABLE_NAME;
-        public static final String SQL_DELETE_ON_SAVE_AWARDS = "DROP TABLE IF EXISTS " + ON_SAVE_AWARDS_TABLE_NAME;
         public static final String SQL_DELETE_SETTINGS = "DROP TABLE IF EXISTS " + SETTINGS_TABLE_NAME;
         public static final String SQL_DELETE_LAST_POEM = "DROP TABLE IF EXISTS " + LAST_POEM_TABLE_NAME;
+        public static final String SQL_DELETE_AWARDS = "DROP TABLE IF EXISTS " + AWARDS_TABLE_NAME;
+        public static final String SQL_DELETE_AWARDS_DETAIL = "DROP TABLE IF EXISTS " + AWARDS_DETAIL_TABLE_NAME;
 
 
 

@@ -98,6 +98,13 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
         previouslySavedPoemName = title;
     }
 
+    public void loadMagnets(ArrayList<Magnet> magnets, boolean saved, String id, String title) {
+        this.magnets.clear();
+        this.magnets = magnets;
+        setPreviouslySavedPoem(saved,id,title);
+        invalidate();
+    }
+
 
     /* Implements GameState.drawingPanelListener. The listener calls this function during onResume when the magnets need to be loaded back onto the canvas. This call covers magnets restored from the auto-save. */
     public void loadMagnets(Cursor cursor, String packIDColumn, String textColumn, String xColumn, String yColumn, String idColumn) {
@@ -583,12 +590,12 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
         if(numberOfAwards == 0) {
             builder.setTitle("You don't have any current awards to view")
                     .setMessage("Check out the awards page to check out which awards you've received and all of the awards you can get!")
-                    .setPositiveButton("No thanks", new DialogInterface.OnClickListener() {
+                    .setNegativeButton("No thanks", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
                             canvasListener.awardClicked();
                         }
                     })
-                    .setNegativeButton("See my awards", new DialogInterface.OnClickListener() {
+                    .setPositiveButton("See my awards", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             getContext().startActivity(new Intent(getContext(), MainMenu.class));

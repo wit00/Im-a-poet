@@ -58,7 +58,7 @@ public class SettingsFragment extends android.support.v4.app.Fragment implements
         ContentValues initialSettingsValues = new ContentValues();
         initialSettingsValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_SOUND_EFFECTS,1);
         initialSettingsValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_MUSIC,1);
-        queryHandler.startInsert(0,null,Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/insert/settings"),initialSettingsValues);
+        queryHandler.startInsert(0,null,ApplicationContract.insertSettings_URI,initialSettingsValues);
     }
 
     private void restartLoader() {
@@ -70,9 +70,7 @@ public class SettingsFragment extends android.support.v4.app.Fragment implements
                 MagnetDatabaseContract.MagnetEntry.COLUMN_MUSIC,
                 MagnetDatabaseContract.MagnetEntry.COLUMN_SOUND_EFFECTS
         };
-
-        return new CursorLoader(getActivity(),Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/settings"),
-                projection,null,null, MagnetDatabaseContract.MagnetEntry.COLUMN_MUSIC + MagnetDatabaseContract.MagnetEntry.ASC);
+        return new CursorLoader(getActivity(),ApplicationContract.getSettings_URI, projection,null,null, MagnetDatabaseContract.MagnetEntry.COLUMN_MUSIC + MagnetDatabaseContract.MagnetEntry.ASC);
     }
 
 
@@ -116,7 +114,7 @@ public class SettingsFragment extends android.support.v4.app.Fragment implements
                     case 7:
                         Intent intent = new Intent(Intent.ACTION_SEND);
                         intent.setType("text/plain");
-                        intent.putExtra(Intent.EXTRA_EMAIL, "emailaddress@emailaddress.com");
+                        intent.putExtra(Intent.EXTRA_EMAIL, ApplicationContract.supportEmailAddress);
                         startActivity(Intent.createChooser(intent, "Send Us an Email"));
                         break;
                     default:
@@ -137,7 +135,7 @@ public class SettingsFragment extends android.support.v4.app.Fragment implements
     private void updateSound(Boolean sound, String column) {
         ContentValues settingsValues = new ContentValues();
         settingsValues.put(column, (sound) ? 1 : 0);
-        queryHandler.startUpdate((sound) ? 1 : 0, column, Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/update/settings"), settingsValues, "", new String[]{});
+        queryHandler.startUpdate((sound) ? 1 : 0, column, ApplicationContract.updateSettings_URI, settingsValues, "", new String[]{});
     }
 
 

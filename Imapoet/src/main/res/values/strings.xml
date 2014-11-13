@@ -47,6 +47,10 @@
     <string name="link_to_my_twitter_content_description">link to Whitney Powell\'s twitter</string>
     <string name="background_for_settings_content_description">background for the settings page</string>
     <string name="go_to_the_menu_button_image_content_description">Go to the menu button</string>
+    <string name="statistics_shared_poems">Poems Shared:</string>
+    <string name="credits_music">Music:</string>
+    <string name="credits_music_detail">\'When the Wind Blows\' Licensed under Creative Commons: By Attribution 3.0 http://creativecommons.org/licenses/by/3.0/</string>
+    <string name="credits_music_credit">Kevin MacLeod (incompetech.com)</string>
     <string-array name="magnets_array">
             <item>Basic</item>
             <item>Love</item>

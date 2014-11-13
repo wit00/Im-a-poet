@@ -36,34 +36,36 @@ public class StatisticsFragment extends android.support.v4.app.Fragment implemen
 
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         String [] projection = {
-                MagnetDatabaseContract.MagnetEntry.COLUMN_STATISTIC_NAME,
-                MagnetDatabaseContract.MagnetEntry.COLUMN_VALUE
+                MagnetDatabaseContract.MagnetEntry._ID,
+                MagnetDatabaseContract.MagnetEntry.COLUMN_CODE,
+                MagnetDatabaseContract.MagnetEntry.COLUMN_CURRENT_VALUE
         };
-        return new CursorLoader(getActivity(), ApplicationContract.getStatistics_URI, projection,null,null, MagnetDatabaseContract.MagnetEntry.COLUMN_STATISTIC_NAME + MagnetDatabaseContract.MagnetEntry.ASC);
+        return new CursorLoader(getActivity(), ApplicationContract.getStatistics_URI, projection,null,null,null);
     }
 
-    private boolean isTheSameStatistic(String cursorStatisticName, ApplicationContract.StatisticNames statisticName) {
+    private boolean isTheSameStatistic(String cursorStatisticName, String statisticName) {
         return cursorStatisticName.equals((statisticName.toString()));
     }
 
     public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
         while (cursor.moveToNext()) {
-            String statisticName = cursor.getString(cursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry.COLUMN_STATISTIC_NAME));
-            String statisticValue = Integer.toString(cursor.getInt(cursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry.COLUMN_VALUE)));
-            if (isTheSameStatistic(statisticName, ApplicationContract.StatisticNames.numberPoemsSaved)) {
+            String statisticName = cursor.getString(cursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry.COLUMN_CODE));
+            String statisticValue = Integer.toString(cursor.getInt(cursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry.COLUMN_CURRENT_VALUE)));
+            if (isTheSameStatistic(statisticName,"SAVED_POEMS")) {
                 ((TextView) getView().findViewById(R.id.poems_saved_value)).setText(statisticValue);
-            } else if (isTheSameStatistic(statisticName, ApplicationContract.StatisticNames.numberMagnetsFinishedPoem)) {
+            } else if (isTheSameStatistic(statisticName, "SAVED_POEMS_NUMBER_MAGNETS")) {
                 ((TextView) getView().findViewById(R.id.number_magnets_finished_poem_value)).setText(statisticValue);
-            } else if (isTheSameStatistic(statisticName, ApplicationContract.StatisticNames.updateStatistics)) {
+            } else if (isTheSameStatistic(statisticName, "UPDATED_POEM")) {
                 ((TextView) getView().findViewById(R.id.poems_update_value)).setText(statisticValue);
-            } else if(isTheSameStatistic(statisticName, ApplicationContract.StatisticNames.magnetsUsedSession)) {
+            } else if(isTheSameStatistic(statisticName, "MAGNET_ENTERS_CANVAS")) {
                 ((TextView) getView().findViewById(R.id.magnets_used_session_value)).setText(statisticValue);
-            } else if(isTheSameStatistic(statisticName, ApplicationContract.StatisticNames.numberPacksUsedSession)) {
+            } else if(isTheSameStatistic(statisticName, "PACK_USED")) {
                 ((TextView) getView().findViewById(R.id.number_packs_used_session_value)).setText(statisticValue);
-            } else if(isTheSameStatistic(statisticName, ApplicationContract.StatisticNames.deleteStatistic)) {
+            } else if(isTheSameStatistic(statisticName, "MAGNET_DELETED")) {
                 ((TextView) getView().findViewById(R.id.delete_statistic_value)).setText(statisticValue);
+            } else if(isTheSameStatistic(statisticName, "SHARED_POEM")) {
+                ((TextView) getView().findViewById(R.id.shared_poem_value)).setText(statisticValue);
             }
-
         }
     }
 

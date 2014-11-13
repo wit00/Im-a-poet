@@ -4,6 +4,7 @@
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent">
     <TextView
+        android:layout_marginBottom="@dimen/indent"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="20dp"
         android:textSize="18sp"
@@ -18,53 +19,24 @@
         android:layout_height="wrap_content" />
     <TableLayout
         android:layout_below="@id/credits_header"
-        android:layout_centerHorizontal="true"
+        android:layout_margin="@dimen/extra_margin"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content">
-        <TableRow
-            android:layout_marginTop="15dp"
-            android:paddingBottom="@dimen/indent">
+        <TableRow>
             <TextView
+                android:layout_marginStart="@dimen/indent"
+                android:layout_marginLeft="@dimen/indent"
                 android:paddingTop="@dimen/extra_margin"
-                android:id="@+id/music_credits_label"
-                android:text="@string/credits_settings"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
-            <TextView
-                android:paddingLeft="@dimen/extra_margin"
-                android:paddingRight="@dimen/extra_margin"
-                android:paddingEnd="@dimen/extra_margin"
-                android:paddingStart="@dimen/extra_margin"
-                android:id="@+id/music_credits_value"
-                android:text="@string/music_credit_name"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
-            <ImageView
-                android:paddingLeft="@dimen/extra_margin"
-                android:paddingRight="@dimen/extra_margin"
-                android:paddingStart="@dimen/extra_margin"
-                android:paddingEnd="@dimen/extra_margin"
-                android:onClick="loadWebsite"
-                android:src="@drawable/to_website"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/music_website_link"
-                android:contentDescription="@string/content_description_music_credit_link" />
-        </TableRow>
-        <TableRow
-            android:layout_marginTop="@dimen/extra_margin">
-            <TextView
-                android:paddingTop="@dimen/extra_margin"
-                android:id="@+id/other_credits_label"
                 android:text="@string/credits_programmer"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
             <TextView
+                android:layout_weight="1"
+                android:paddingTop="@dimen/extra_margin"
                 android:paddingLeft="@dimen/extra_margin"
                 android:paddingRight="@dimen/extra_margin"
                 android:paddingEnd="@dimen/extra_margin"
                 android:paddingStart="@dimen/extra_margin"
-                android:id="@+id/other_credits_value"
                 android:text="@string/programmer_credit_name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
@@ -73,23 +45,56 @@
                 android:paddingRight="@dimen/extra_margin"
                 android:paddingEnd="@dimen/extra_margin"
                 android:paddingStart="@dimen/extra_margin"
-                android:onClick="loadMyWebsite"
                 android:src="@drawable/to_website"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:id="@+id/my_website_link"
+                android:onClick="loadMyWebsite"
                 android:contentDescription="@string/link_to_my_website_content_description" />
             <ImageView
-                android:paddingLeft="@dimen/indent"
-                android:paddingRight="@dimen/extra_margin"
-                android:paddingEnd="@dimen/extra_margin"
-                android:paddingStart="@dimen/extra_margin"
                 android:onClick="loadMyTwitter"
                 android:src="@drawable/to_twitter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:id="@+id/my_twitter_link"
                 android:contentDescription="@string/link_to_my_twitter_content_description" />
         </TableRow>
+        <TableRow
+            android:layout_marginTop="20dp">
+            <TextView
+                android:paddingTop="@dimen/extra_margin"
+                android:layout_marginLeft="@dimen/indent"
+                android:layout_marginStart="@dimen/indent"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/credits_music"/>
+            <TextView
+                android:layout_weight="1"
+                android:paddingTop="@dimen/extra_margin"
+                android:layout_marginRight="@dimen/indent"
+                android:layout_marginLeft="@dimen/indent"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="'When The Wind Blows'
+Kevin MacLeod (incompetech.com) Licensed under Creative Commons: By Attribution 3.0
+http://creativecommons.org/licenses/by/3.0/"/>
+            <ImageView
+                android:paddingLeft="@dimen/extra_margin"
+                android:paddingRight="@dimen/extra_margin"
+                android:paddingEnd="@dimen/extra_margin"
+                android:paddingStart="@dimen/extra_margin"
+                android:onClick="loadMusicWebsite"
+                android:src="@drawable/to_website"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription="@string/link_to_my_website_content_description" />
+            <ImageView
+                android:onClick="loadMusicTwitter"
+                android:src="@drawable/to_twitter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription="@string/link_to_my_website_content_description" />
+        </TableRow>
+
     </TableLayout>
+
+
 </RelativeLayout>

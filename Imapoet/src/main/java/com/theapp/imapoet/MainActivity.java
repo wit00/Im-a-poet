@@ -27,11 +27,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AnimationUtils;
-import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.PopupMenu;
 import android.widget.TextView;
-import org.json.JSONArray;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -49,7 +47,7 @@ public class MainActivity extends FragmentActivity implements DrawerFragment.OnF
     private DrawingPanelFragment drawingPanelFragment;
     private GameState gameState;
     private MediaServiceHelper mediaServiceHelper = new MediaServiceHelper(this);
-
+    private DrawingPanelRetainDataFragment drawingPanelRetainDataFragment;
 
     private void highlight(int viewID) {
         View view = findViewById(viewID);
@@ -162,33 +160,55 @@ public class MainActivity extends FragmentActivity implements DrawerFragment.OnF
     }
 
 
-    @Override
-    public void onResume(){
-        super.onResume();
-        drawerFragment = (DrawerFragment)getSupportFragmentManager().findFragmentById(R.id.drawer_layout);
+    private void handleFirstLaunch(SharedPreferences sharedPreferences) {
+        addDemoFragment(DemoFragment.DemoPart.START.toString());
+        loadValuesIntoDatabase();
+        setFirstLaunchToFalse(sharedPreferences);
+        gameState = new GameState(this, drawingPanelFragment.drawingPanel(),true);
+    }
 
+    private void setReferencesToFragments(FragmentManager fragmentManager) {
+        drawingPanelRetainDataFragment = (DrawingPanelRetainDataFragment)fragmentManager.findFragmentByTag("drawingPanelData");
+        drawerFragment = (DrawerFragment)getSupportFragmentManager().findFragmentById(R.id.drawer_layout);
         drawingPanelFragment = (DrawingPanelFragment) getSupportFragmentManager().findFragmentById(R.id.the_canvas);
         ((DrawerLayout)findViewById(R.id.pager)).setDrawerListener(new MagnetDrawerListener(this));
+    }
 
-        SharedPreferences sharedPreferences = getPreferences(0);
-        if(sharedPreferences.getBoolean(ApplicationContract.FIRST_LAUNCH,true)) {
-            addDemoFragment(DemoFragment.DemoPart.START.toString());
-            loadValuesIntoDatabase();
-            setFirstLaunchToFalse(sharedPreferences);
-            gameState = new GameState(this, drawingPanelFragment.drawingPanel(),true);
-        } else {
-            gameState = new GameState(this, drawingPanelFragment.drawingPanel(),false);
-        }
+    private void loadMagnetsOntoCanvas(FragmentManager fragmentManager) {
         Bundle extras = getIntent().getExtras();
-        if(extras != null) {
+        if(extras != null) { // we are loading from save
             gameState.loadSavedMagnets(extras);
-        } else {
-            drawingPanelFragment.loadMagnets();
+        } else { // we are not loading from save
+            if(drawingPanelRetainDataFragment == null) { // this is not an orientation change because drawingPanelRetainFragment is null
+                drawingPanelFragment.loadMagnets();
+                drawingPanelRetainDataFragment = drawingPanelRetainDataFragment.newInstance();
+                fragmentManager.beginTransaction().add(drawingPanelRetainDataFragment,"drawingPanelData").commit();
+            } else { // it's an orientation change, so just load the magnets from data retaining fragment
+                drawingPanelFragment.loadMagnets(drawingPanelRetainDataFragment.getMagnets(),drawingPanelRetainDataFragment.getPreviouslySavedPoem(),drawingPanelRetainDataFragment.getPreviouslySavedPoemID(),drawingPanelRetainDataFragment.getPreviouslySavedPoemName());
+            }
         }
+    }
+
+    private void loadDemoIfItIsRunning(SharedPreferences sharedPreferences) {
         String demoRunning = sharedPreferences.getString(ApplicationContract.DEMO,"");
         if(!demoRunning.equals("")) {
             addDemoFragment(demoRunning);
         }
+    }
+
+    @Override
+    public void onResume(){
+        super.onResume();
+        FragmentManager fragmentManager = getFragmentManager();
+        SharedPreferences sharedPreferences = getPreferences(0);
+        setReferencesToFragments(fragmentManager);
+        if(sharedPreferences.getBoolean(ApplicationContract.FIRST_LAUNCH,true)) {
+            handleFirstLaunch(sharedPreferences);
+        } else {
+            gameState = new GameState(this, drawingPanelFragment.drawingPanel(),false);
+        }
+        loadMagnetsOntoCanvas(fragmentManager);
+        loadDemoIfItIsRunning(sharedPreferences);
     }
 
 
@@ -201,50 +221,14 @@ public class MainActivity extends FragmentActivity implements DrawerFragment.OnF
         if(demoFragment != null) demoFragment.runDemo(DemoFragment.DemoPart.PACKS_SELECTED);
     }
 
-    /*private void insertNewMagnetIntoDatabase(String newMagnetText) {
-        gameState.insertANewMagnet(newMagnetText,drawerFragment.getCurrentPack());
-        DrawerFragment drawerFragment = (DrawerFragment)getSupportFragmentManager().findFragmentById(R.id.drawer_layout);
-        drawerFragment.restartMainLoader();
-    }*/
-
-    /*public void addMagnet(View view) {
-        final EditText magnetInput = new EditText(this);
-        magnetInput.setHint("new word");
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setMessage("Add a new word.");
-        builder.setView(magnetInput);
-        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int id) {
-                String magnetInputValue = (magnetInput.getText()).toString();
-                if (magnetInputValue.trim().length() != 0) {
-                    insertNewMagnetIntoDatabase(magnetInputValue);
-                }
-            }
-        });
-        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialogInterface, int id) {
-                // do nothing
-            }
-        });
-        (builder.create()).show();
-    }*/
-
-   /* public void deleteMagnet(View view) {
-        gameState.deleteMagnet(Integer.toString(drawerFragment.getCurrentPack()));
-    }*/
-
     private void setFirstLaunchToFalse(SharedPreferences sharedPreferences) {
         SharedPreferences.Editor sharedPreferencesEditor = sharedPreferences.edit();
         sharedPreferencesEditor.putBoolean(ApplicationContract.FIRST_LAUNCH, false);
         sharedPreferencesEditor.apply();
     }
 
-
-
     private void loadValuesIntoDatabase() {
         new loadTextFilesIntoPacksAsyncTask().execute();
-       // (new SetupOnSaveAwardsBackgroundTask()).execute();
-       // (new SetupContinuousAwardsBackgroundTask()).execute();
     }
 
     private void saveBitmapToSDCard(File poemDirectory) {
@@ -358,7 +342,6 @@ public class MainActivity extends FragmentActivity implements DrawerFragment.OnF
 
 
 
-
     @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
     private void setSystemVisibility() {
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE);
@@ -373,34 +356,17 @@ public class MainActivity extends FragmentActivity implements DrawerFragment.OnF
         setSystemVisibility();
         setContentView(R.layout.activity_main);
         setupOverflowButton();
-
-
-    }
-
-
-    public void onItemSelected(AdapterView<?> parent, View view,
-                               int pos, long id) {
-        // An item was selected. You can retrieve the selected item using
-        // parent.getItemAtPosition(pos)
-    }
-
-
-    public void onNothingSelected(AdapterView<?> parent) {
-        // Another interface callback
     }
 
     public void loadMenu(View view) {
         if(demoFragment != null ) demoFragment.runDemo(DemoFragment.DemoPart.BUTTONS_CLICKED); // the demo is running and a button has been clicked
         Intent mainMenuIntent = new Intent(this, MainMenu.class);
-        //mainMenuIntent.putExtra("playBackgroundMusic",mediaService.isBackgroundMusicOn());
         startActivity(mainMenuIntent);
     }
 
     public void loadOverflow(View view) {
         //load overflow dropdown list
     }
-
-
 
     private String getDate() {
         return (new SimpleDateFormat("MM-dd-yyyy")).format(new Date());
@@ -449,7 +415,7 @@ public class MainActivity extends FragmentActivity implements DrawerFragment.OnF
     protected void onDestroy() {
         super.onDestroy();
         new File(this.getCacheDir(), "tempShareBitmap.jpg").delete();
-
+        drawingPanelRetainDataFragment.setMagnetData(drawingPanelFragment.getPoem(),drawingPanelFragment.drawingPanel().getSavedPoemState(),drawingPanelFragment.drawingPanel().getSavedPoemId(),drawingPanelFragment.drawingPanel().getSavedPoemName());
         //unbindFromMediaMusicService();
     }
 
@@ -482,6 +448,7 @@ public class MainActivity extends FragmentActivity implements DrawerFragment.OnF
         sendIntent.putExtra(Intent.EXTRA_TEXT, getString(R.string.share_extra_text));
         sendIntent.putExtra("sms_body", getString(R.string.share_extra_sms_body));
         startActivity(Intent.createChooser(sendIntent, getResources().getText(R.string.share_intent_title)));
+        gameState.shareOptionLoaded();
     }
 
     private class ShareTask extends AsyncTask<Void, Void, File> {
@@ -511,8 +478,6 @@ public class MainActivity extends FragmentActivity implements DrawerFragment.OnF
 
     public void loadShareDialog(View view) {
         if(demoFragment != null ) demoFragment.runDemo(DemoFragment.DemoPart.BUTTONS_CLICKED); // the demo is running and a button has been clicked
-        //new ShareDialog().show(getFragmentManager(), null);
-        // make bitmap
         (new ShareTask()).execute();
 
 
@@ -520,10 +485,8 @@ public class MainActivity extends FragmentActivity implements DrawerFragment.OnF
 
     public void openDrawer(View view) {
         ((DrawerLayout) findViewById(R.id.pager)).openDrawer(GravityCompat.START);
-        //demoDisplayFragment displayFragment = demoDisplayFragment.newInstance("testing!!","");
 
     }
-
 
 
     @Override
@@ -554,32 +517,6 @@ public class MainActivity extends FragmentActivity implements DrawerFragment.OnF
         public void onActivityCreated(Bundle savedInstanceState) {
             super.onActivityCreated(savedInstanceState);
         }
-
-    }
-
-
-
-
-    private class SetupOnSaveAwardsBackgroundTask extends AsyncTask<Void, Void, JSONArray> {
-        @Override
-        protected JSONArray doInBackground(Void... params) {
-            return DataLoaderHelper.loadAwardData(helperContext,R.raw.on_save_awards);
-        }
-        @Override
-        protected void onPostExecute(JSONArray statisticsAndAwards) {
-            //gameState.insertStatisticsAndAwardsData(statisticsAndAwards, Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/insert/statistic/on_save"),true);
-        }
-    }
-
-    private class SetupContinuousAwardsBackgroundTask extends AsyncTask<Void, Void, JSONArray> {
-        @Override
-        protected JSONArray doInBackground(Void... params) {
-            return DataLoaderHelper.loadAwardData(helperContext,R.raw.continuous_awards);
-        }
-        @Override
-        protected void onPostExecute(JSONArray statisticsAndAwards) {
-         //   gameState.insertStatisticsAndAwardsData(statisticsAndAwards, Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/insert/statistic/continuous"),false);
-        }
     }
 
     private class loadTextFilesIntoPacksAsyncTask extends AsyncTask<Void, Void, ArrayList<Pack>> {
@@ -592,8 +529,6 @@ public class MainActivity extends FragmentActivity implements DrawerFragment.OnF
             }
         }
     }
-
-
 
     /** new media service stuff **/
     @Override

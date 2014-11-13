@@ -19,10 +19,6 @@ public class MagnetDatabaseHelper extends SQLiteOpenHelper {
     }
 
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL(MagnetDatabaseContract.MagnetEntry.CREATE_CONTINUOUS_AWARDS_TABLE);
-        db.execSQL(MagnetDatabaseContract.MagnetEntry.CREATE_ON_SAVE_AWARDS_TABLE);
-        db.execSQL(MagnetDatabaseContract.MagnetEntry.CREATE_CONTINUOUS_STATISTICS_TABLE);
-        db.execSQL(MagnetDatabaseContract.MagnetEntry.CREATE_ON_SAVE_STATISTICS_TABLE);
         db.execSQL(MagnetDatabaseContract.MagnetEntry.CREATE_SETTINGS_TABLE);
         db.execSQL(MagnetDatabaseContract.MagnetEntry.CREATE_SAVED_POEMS_TABLE);
         db.execSQL(MagnetDatabaseContract.MagnetEntry.CREATE_SAVED_POEMS_MAGNET_DETAIL_TABLE);
@@ -38,13 +34,10 @@ public class MagnetDatabaseHelper extends SQLiteOpenHelper {
         db.execSQL(MagnetDatabaseContract.MagnetEntry.SQL_DELETE_MAGNETS);
         db.execSQL(MagnetDatabaseContract.MagnetEntry.SQL_DELETE_SAVED_POEMS);
         db.execSQL(MagnetDatabaseContract.MagnetEntry.SQL_DELETE_SAVED_POEMS_DETAIL);
-        db.execSQL(MagnetDatabaseContract.MagnetEntry.SQL_DELETE_CONTINUOUS_STATISTICS);
-        db.execSQL(MagnetDatabaseContract.MagnetEntry.SQL_DELETE_ON_SAVE_STATISTICS);
-        db.execSQL(MagnetDatabaseContract.MagnetEntry.SQL_DELETE_CONTINUOUS_AWARDS);
-        db.execSQL(MagnetDatabaseContract.MagnetEntry.SQL_DELETE_ON_SAVE_AWARDS);
         db.execSQL(MagnetDatabaseContract.MagnetEntry.SQL_DELETE_SETTINGS);
         db.execSQL(MagnetDatabaseContract.MagnetEntry.SQL_DELETE_LAST_POEM);
-        //todo add awards and awards detail
+        db.execSQL(MagnetDatabaseContract.MagnetEntry.SQL_DELETE_AWARDS);
+        db.execSQL(MagnetDatabaseContract.MagnetEntry.SQL_DELETE_AWARDS_DETAIL);
         onCreate(db);
     }
 

@@ -74,6 +74,10 @@ public class GameState {
         queryHandler.startDelete(LoaderCodes.deleteOldAutoSavedPoem,theCurrentPoem,ApplicationContract.deleteCurrentPoem_URI,null,null);
     }
 
+    public void shareOptionLoaded() {
+        awardHandler.newIncrementAction("SHARED_POEM");
+    }
+
     public void insertANewPoem(String title, String date, ArrayList<Magnet> magnets) {
         drawingPanelListener.setSavedPoemState(true,title);
         ContentValues poemValues = new ContentValues();

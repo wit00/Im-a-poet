@@ -1,6 +1,0 @@
-science
-math
-rocket
-spaceship
-astronaut
-beaker

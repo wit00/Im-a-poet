@@ -157,11 +157,11 @@ public class InAppPurchaseFragment extends android.support.v4.app.Fragment  impl
         });*/
         ArrayList<InAppPurchase> inAppPurchaseList = new ArrayList<InAppPurchase>(5);
         inAppPurchaseList.add(new InAppPurchase(skuList.get(0), "pack 1 description",null, "$1.00","Japanese"));
-        inAppPurchaseList.add(new InAppPurchase(skuList.get(1), "pack 2 description",null, "$1.00","Shakespeare"));
+       // inAppPurchaseList.add(new InAppPurchase(skuList.get(1), "pack 2 description",null, "$1.00","Shakespeare"));
         inAppPurchaseList.add(new InAppPurchase("Pack 3", "pack 3 description",null, "$1.00","Hats"));
         inAppPurchaseList.add(new InAppPurchase("pack 4", "pack 4 description",null, "$1.00","Robots"));
         inAppPurchaseList.add(new InAppPurchase("pack 5", "pack 5 description",null, "$3.00","Japanese, Shakespeare, Hats, and Robots"));
-        inAppPurchaseList.get(4).setPurchased(true);
+        inAppPurchaseList.get(3).setPurchased(true);
         inAppPurchaseAdapter = new InAppPurchaseListViewAdapter(getActivity(),inAppPurchaseList);
     }
 

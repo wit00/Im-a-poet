@@ -2,14 +2,9 @@ package com.theapp.imapoet;
 
 import android.app.Activity;
 import android.content.AsyncQueryHandler;
-import android.content.ComponentName;
-import android.content.Context;
-import android.content.Intent;
-import android.content.ServiceConnection;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
@@ -39,6 +34,9 @@ public class DrawingPanelFragment extends Fragment implements LoaderManager.Load
 
     public void loadMagnets(){
         getLoaderManager().initLoader(0,null,this);
+    }
+    public void loadMagnets(ArrayList<Magnet> magnets, boolean previouslySavedPoem, String previouslySavedPoemId, String previouslySavedPoemName) {
+        drawingPanel.loadMagnets(magnets,previouslySavedPoem,previouslySavedPoemId,previouslySavedPoemName);
     }
 
     public DrawingPanel drawingPanel() { return drawingPanel; }
@@ -71,6 +69,8 @@ public class DrawingPanelFragment extends Fragment implements LoaderManager.Load
     @Override
     public void onCreate(Bundle bundle) {
         super.onCreate(bundle);
+        //System.out.println("creating");
+        //setRetainInstance(true); // don't delete me on rotations and other simple changes
     }
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {

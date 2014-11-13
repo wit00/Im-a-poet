@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:orientation="vertical"
     android:layout_height="match_parent">
     <TableLayout
+        android:layout_gravity="center_horizontal"
         android:layout_marginTop="15dp"
-        android:layout_centerHorizontal="true"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content">
         <TableRow
@@ -92,5 +93,19 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
         </TableRow>
+        <TableRow
+            style="@style/Statistics_Row"
+            android:id="@+id/shared_poem_row">
+            <TextView
+                android:id="@+id/shared_poem_label"
+                android:text="@string/statistics_shared_poems"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+            <TextView
+                style="@style/Statistics_Value"
+                android:id="@+id/shared_poem_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </TableRow>
     </TableLayout>
-</RelativeLayout>
+</ScrollView>

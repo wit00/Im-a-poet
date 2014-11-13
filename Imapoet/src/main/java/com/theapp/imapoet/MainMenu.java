@@ -69,8 +69,16 @@ public class MainMenu extends ActionBarActivity implements ActionBar.TabListener
         startActivity(intent);
     }
 
-    public void loadWebsite(View view) {
+    public void loadMusicWebsite(View view) {
+        Uri uri = Uri.parse("http://www.incompetech.com");
+        Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+        startActivity(intent);
+    }
 
+    public void loadMusicTwitter(View view) {
+        Uri uri = Uri.parse("https://twitter.com/kmacleod");
+        Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+        startActivity(intent);
     }
 
     @Override
@@ -79,9 +87,6 @@ public class MainMenu extends ActionBarActivity implements ActionBar.TabListener
         setContentView(R.layout.activity_main_menu);
         setUpActionBarAndStuff();
         createAsyncQueryHandler();
-
-
-        //bindToMediaMusicService();
     }
 
     public void setUpActionBarAndStuff() {
