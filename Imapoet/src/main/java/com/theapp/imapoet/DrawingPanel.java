@@ -327,6 +327,7 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
         if(magnetIsAboveTrashCan) { // the clicked magnet tile is being held over the trash can
             magnetIsAboveTrashCan = false;
             magnets.remove(clickedMagnet);
+            packsUsedIds.remove(clickedMagnet.packID());
             canvasListener.magnetDeleted();
             canvasListener.magnetTilesChanged(magnets.size());
         }

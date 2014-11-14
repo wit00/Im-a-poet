@@ -73,11 +73,9 @@ public class MagnetContentProvider extends ContentProvider {
         uriMatcher.addURI(AUTHORITY,"awards/detail",AWARDS_DETAIL);
         uriMatcher.addURI(AUTHORITY,"update/award",UPDATE_AWARD);
         uriMatcher.addURI(AUTHORITY,"update/award/detail",UPDATE_AWARD_DETAIL);
-
     }
 
-    public MagnetContentProvider() {
-    }
+    public MagnetContentProvider() {}
 
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
@@ -163,9 +161,7 @@ public class MagnetContentProvider extends ContentProvider {
             String[] selectionArgs, String sortOrder) {
         Cursor magnetCursor;
         SQLiteDatabase database = magnetDatabaseHelper.getReadableDatabase();
-        if (database == null) throw new AssertionError("the database is null in magnet content provider");
         Context context = getContext();
-        if (context == null) throw new AssertionError(" the context is magnet in fish content provider");
         switch (uriMatcher.match(uri)) {
             case SETTINGS:
                 magnetCursor = database.query(MagnetDatabaseContract.MagnetEntry.SETTINGS_TABLE_NAME,projection,null,null,null,null,sortOrder);

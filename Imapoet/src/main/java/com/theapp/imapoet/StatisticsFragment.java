@@ -7,6 +7,7 @@ import android.support.v4.content.Loader;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ListView;
 import android.widget.TextView;
 
 
@@ -14,6 +15,9 @@ import android.widget.TextView;
  * A simple fragment that shows the game statistics, uses a cursor loader
  */
 public class StatisticsFragment extends android.support.v4.app.Fragment implements android.support.v4.app.LoaderManager.LoaderCallbacks<Cursor>  {
+    private ListView statisticsListView;
+    private StatisticsFragmentListAdapter statisticsFragmentListAdapter;
+
 
     public static StatisticsFragment newInstance() {
         return new StatisticsFragment();
@@ -29,10 +33,13 @@ public class StatisticsFragment extends android.support.v4.app.Fragment implemen
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_main_menu_statistics, container, false);
+        statisticsListView = (ListView) rootView.findViewById(R.id.statistics_list);
+        statisticsFragmentListAdapter = new StatisticsFragmentListAdapter(getActivity(),R.layout.fragment_main_menu_statistics_row,null,
+                new String[] {MagnetDatabaseContract.MagnetEntry._ID, MagnetDatabaseContract.MagnetEntry.COLUMN_CODE, MagnetDatabaseContract.MagnetEntry.COLUMN_CURRENT_VALUE},new int[]{android.R.id.text1});
+        statisticsListView.setAdapter(statisticsFragmentListAdapter);
         getLoaderManager().initLoader(0, null, this);
         return rootView;
     }
-
 
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         String [] projection = {
@@ -40,35 +47,17 @@ public class StatisticsFragment extends android.support.v4.app.Fragment implemen
                 MagnetDatabaseContract.MagnetEntry.COLUMN_CODE,
                 MagnetDatabaseContract.MagnetEntry.COLUMN_CURRENT_VALUE
         };
-        return new CursorLoader(getActivity(), ApplicationContract.getStatistics_URI, projection,null,null,null);
-    }
-
-    private boolean isTheSameStatistic(String cursorStatisticName, String statisticName) {
-        return cursorStatisticName.equals((statisticName.toString()));
+        String selection = MagnetDatabaseContract.MagnetEntry.COLUMN_CODE + " = '" + "SAVED_POEMS' OR " + MagnetDatabaseContract.MagnetEntry.COLUMN_CODE + " = '" + "SAVED_POEMS_NUMBER_MAGNETS' OR " + MagnetDatabaseContract.MagnetEntry.COLUMN_CODE + " = '" + "UPDATED_POEM' OR " + MagnetDatabaseContract.MagnetEntry.COLUMN_CODE + " = '" + "MAGNET_ENTERS_CANVAS' OR " + MagnetDatabaseContract.MagnetEntry.COLUMN_CODE + " = '" + "PACK_USED' OR " + MagnetDatabaseContract.MagnetEntry.COLUMN_CODE + " = '" + "MAGNET_DELETED' OR " + MagnetDatabaseContract.MagnetEntry.COLUMN_CODE + " = '" + "SHARED_POEM'";
+        return new CursorLoader(getActivity(), ApplicationContract.getStatistics_URI, projection, selection ,null,null);
     }
 
     public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
-        while (cursor.moveToNext()) {
-            String statisticName = cursor.getString(cursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry.COLUMN_CODE));
-            String statisticValue = Integer.toString(cursor.getInt(cursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry.COLUMN_CURRENT_VALUE)));
-            if (isTheSameStatistic(statisticName,"SAVED_POEMS")) {
-                ((TextView) getView().findViewById(R.id.poems_saved_value)).setText(statisticValue);
-            } else if (isTheSameStatistic(statisticName, "SAVED_POEMS_NUMBER_MAGNETS")) {
-                ((TextView) getView().findViewById(R.id.number_magnets_finished_poem_value)).setText(statisticValue);
-            } else if (isTheSameStatistic(statisticName, "UPDATED_POEM")) {
-                ((TextView) getView().findViewById(R.id.poems_update_value)).setText(statisticValue);
-            } else if(isTheSameStatistic(statisticName, "MAGNET_ENTERS_CANVAS")) {
-                ((TextView) getView().findViewById(R.id.magnets_used_session_value)).setText(statisticValue);
-            } else if(isTheSameStatistic(statisticName, "PACK_USED")) {
-                ((TextView) getView().findViewById(R.id.number_packs_used_session_value)).setText(statisticValue);
-            } else if(isTheSameStatistic(statisticName, "MAGNET_DELETED")) {
-                ((TextView) getView().findViewById(R.id.delete_statistic_value)).setText(statisticValue);
-            } else if(isTheSameStatistic(statisticName, "SHARED_POEM")) {
-                ((TextView) getView().findViewById(R.id.shared_poem_value)).setText(statisticValue);
-            }
-        }
+        statisticsFragmentListAdapter.swapCursor(cursor);
     }
 
-    public void onLoaderReset(Loader<Cursor> loader) {}
-
+    // This is called when the last Cursor provided to onLoadFinished()
+    // above is about to be closed.
+    public void onLoaderReset(Loader<Cursor> loader) {
+        statisticsFragmentListAdapter.swapCursor(null);
+    }
 }

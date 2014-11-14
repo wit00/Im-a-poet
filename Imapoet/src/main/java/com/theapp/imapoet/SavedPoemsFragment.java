@@ -28,7 +28,6 @@ import android.widget.TextView;
  *
  */
 public class SavedPoemsFragment extends android.support.v4.app.Fragment implements LoaderManager.LoaderCallbacks<Cursor>  {
-
     private ListView listView;
     private SimpleCursorAdapter simpleCursorAdapter;
     private SavedPoemsListAdapter savedPoemsListAdapter;
