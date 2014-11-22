@@ -4,20 +4,18 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.Paint;
-import android.os.SystemClock;
 
 /**
  * Created by whitney on 8/6/14.
  */
 public class TrashCan {
     public Bitmap trashCan;
+    public Bitmap trashCanLeft;
+    public Bitmap trashCanRight;
     public float trashCanWidth;
     public float trashCanHeight;
     private float trashCanPadding = 5;
-    private int nextDirection = 1;
-    private long lastTime = System.currentTimeMillis();
-    private long totalTime = 500;
+    private long lastTime = 0;
     private long timeTaken = 0;
 
 
@@ -25,28 +23,41 @@ public class TrashCan {
         trashCan = BitmapFactory.decodeResource(context.getResources(), R.drawable.trash);
         trashCanWidth = trashCan.getWidth();
         trashCanHeight = trashCan.getHeight();
+        trashCanLeft = BitmapFactory.decodeResource(context.getResources(),R.drawable.trash_left);
+        trashCanRight = BitmapFactory.decodeResource(context.getResources(),R.drawable.trash_right);
     }
 
-    private void runAnimation(Canvas canvas, float width, float height) {
-        long currentTime = System.currentTimeMillis();
-        long elapsed = currentTime - lastTime;
-        timeTaken = timeTaken + elapsed;
-        if(timeTaken/totalTime > 1) {
-            nextDirection = nextDirection*-1;
-            timeTaken = 0;
-        }
-        canvas.save();
-        float xPointOfRotation = width - trashCanPadding- (trashCanWidth/2);
-        float yPointOfRotation = height - trashCanPadding - (trashCanHeight/2);
-        canvas.rotate(45*nextDirection,xPointOfRotation,yPointOfRotation);
-        drawTrashCan(canvas,width,height);
-        canvas.restore();
+    private int getNextIndex(long elapsedTime, int numberOfImages, int millisecondsBetweenImages) {
+        return (int) (((elapsedTime % (millisecondsBetweenImages * 10)) % (numberOfImages * millisecondsBetweenImages)) / millisecondsBetweenImages);
+    }
+
+    private void runNewAnimation(Canvas canvas, float width, float height) {
+        int currentTime = (int) (System.currentTimeMillis() % Integer.MAX_VALUE);
+        timeTaken = (timeTaken + (currentTime - (int) lastTime));
         lastTime = currentTime;
+        switch (getNextIndex(timeTaken,5,100)) {
+            case 0:
+                canvas.drawBitmap(trashCan, width - trashCanWidth - trashCanPadding, height - trashCanHeight - trashCanPadding, null);
+                break;
+            case 1:
+                canvas.drawBitmap(trashCanLeft, width - trashCanWidth - trashCanPadding, height - trashCanHeight - trashCanPadding, null);
+                break;
+            case 2:
+                canvas.drawBitmap(trashCan, width - trashCanWidth - trashCanPadding, height - trashCanHeight - trashCanPadding, null);
+                break;
+            case 3:
+                canvas.drawBitmap(trashCanRight, width - trashCanWidth - trashCanPadding, height - trashCanHeight - trashCanPadding, null);
+                break;
+            case 4:
+                canvas.drawBitmap(trashCan, width - trashCanWidth - trashCanPadding, height - trashCanHeight - trashCanPadding, null);
+                timeTaken = 0;
+                break;
+        }
     }
 
     public void drawTrashCan(Canvas canvas, Boolean toDelete, float width, float height) {
         if(toDelete) {
-            runAnimation(canvas,width,height);
+            runNewAnimation(canvas,width,height);
         } else {
             drawTrashCan(canvas,width,height);
         }

@@ -1,37 +1,28 @@
 package com.theapp.imapoet;
 
-import android.content.AsyncQueryHandler;
 import android.content.Context;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RadialGradient;
-import android.os.SystemClock;
 import java.util.ArrayList;
 
 /**
  * Created by whitney on 8/11/14.
  */
 public class AwardAlert {
-    private Context context;
     public Bitmap awardAlertBitmap;
     protected float awardAlertWidth;
     protected float awardAlertHeight;
     private boolean awardAlert = false;
-    private long elapsedTime = 0;
     private ArrayList<Bitmap> newAwardGlow = new ArrayList<Bitmap>(10);
-    private int newAwardGlowIndex = 0;
-    private boolean moveUp = true;
-    private float[] sizes = new float[]{1,5,10,15,20,25,30,35,40,45};
+    private float[] sizes = new float[]{1,5,10,15,20,25,30,35,40,45,40,35,30,25,20,15,10,5,1,5,10,15,20,25,30,35,40,45,40,35,30,25,20,15,10,5};
     protected float padding = 15;
-    private boolean countdown = false;
     private ArrayList<award> awards = new ArrayList<award>();
-    private AsyncQueryHandler queryHandler;
     private long timeTaken = 0;
-    private long lastTime = System.currentTimeMillis();
+    private long lastTime = 0;
 
 
     public void addNewAward(String title, String description) {
@@ -43,7 +34,6 @@ public class AwardAlert {
         awardAlertWidth = awardAlertBitmap.getWidth();
         awardAlertHeight = awardAlertBitmap.getHeight();
         makeRadialGradient();
-        this.context = context;
     }
 
     private void makeRadialGradient() {
@@ -60,63 +50,32 @@ public class AwardAlert {
         }
     }
 
-    private void moveNewAwardGlowIndex() {
-        if(moveUp) {
-            if(newAwardGlowIndex != newAwardGlow.size() - 1) {
-                newAwardGlowIndex ++;
-            } else {
-                moveUp = false;
-            }
-        } else {
-            if(newAwardGlowIndex != 0) {
-                newAwardGlowIndex --;
-            } else {
-                moveUp = true;
-            }
-        }
-    }
-
-    private void runAwardAnimation(Canvas canvas, float width) {
-        long currentTime = System.currentTimeMillis();
-        long elapsed = currentTime - lastTime;
-        timeTaken = timeTaken + elapsed;
-        canvas.drawBitmap(newAwardGlow.get(newAwardGlowIndex),width-awardAlertWidth/2-sizes[newAwardGlowIndex] - padding,awardAlertHeight/2-sizes[newAwardGlowIndex] + padding,null);
-        long gradientChange = 30000;
-        if(timeTaken >= gradientChange) {
-            moveNewAwardGlowIndex();
-            timeTaken = 0;
-        }
-    }
-
-    private boolean runCountdownAnimation(Canvas canvas, float width) {
-        if(newAwardGlowIndex == 0) {
-            awardAlert = false;
-            countdown = false;
-            return false;
-        } else {
-            runAwardAnimation(canvas, width);
-            return  true;
-        }
+    private int getNextIndex(long elapsedTime, int numberOfImages, int millisecondsBetweenImages) {
+        return (int) (((elapsedTime % (millisecondsBetweenImages * 100)) % (numberOfImages * millisecondsBetweenImages * 10)) / millisecondsBetweenImages);
     }
 
     public boolean drawAwardAlert(Canvas canvas, float width) {
         boolean invalidate = false;
         if(awardAlert) {
-            if (countdown) {
-                invalidate = runCountdownAnimation(canvas,width);
-            } else {
-                long awardTime = 2000000;
-                if (elapsedTime < awardTime) {
-                    runAwardAnimation(canvas, width);
-                    elapsedTime = elapsedTime + SystemClock.currentThreadTimeMillis();
-                    invalidate = true;
-                } else {
-                    elapsedTime = 0;
-                    countdown = true;
-                    moveUp = false;
-                    invalidate = runCountdownAnimation(canvas,width);
+            int currentTime = (int) (System.currentTimeMillis() % Integer.MAX_VALUE);
+            int elapsed = (int) currentTime - (int) lastTime;
+            boolean firstRun;
+            if (timeTaken == 0) firstRun = true; else firstRun = false;
+            timeTaken = (timeTaken + elapsed);
+            lastTime = currentTime;
+            //int index = (int)timeTaken/300;
+            int index = getNextIndex(timeTaken,newAwardGlow.size(),300);
+            System.out.println("index: " + Integer.toString(index));
+            invalidate = true;
+            if(index >= newAwardGlow.size() - 1) {
+                index = 0;
+                timeTaken = 0;
+                if(!firstRun) {
+                    awardAlert = false;
+                    invalidate = false;
                 }
             }
+            canvas.drawBitmap(newAwardGlow.get(index), width - awardAlertWidth / 2 - sizes[index] - padding, awardAlertHeight / 2 - sizes[index] + padding, null);
         }
         canvas.drawBitmap(awardAlertBitmap, width - awardAlertWidth - padding, 0 + padding, null);
         return invalidate;
@@ -124,24 +83,6 @@ public class AwardAlert {
 
     public void setAlert(boolean award) {
         awardAlert = award;
-    }
-
-    private void createAsyncQueryHandler() {
-        queryHandler = new AsyncQueryHandler(context.getContentResolver()) {
-            @Override
-            protected void onQueryComplete(int token, Object cookie, Cursor cursor) {
-                switch (token) {
-                    case 1:
-                        if(cursor.getCount() > 0) {
-                            cursor.moveToFirst();
-
-                        } else {
-                           // setSettings(true,true);
-                        }
-                        break;
-                }
-            }
-        };
     }
 
     public void removeLastAward() {

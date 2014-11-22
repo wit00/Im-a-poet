@@ -19,6 +19,7 @@ import android.view.SurfaceView;
 import android.view.View;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 
 /**
  * Drawing canvas
@@ -36,13 +37,11 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
     public Magnet clickedMagnet = null;
     public float collisionZonePadding = 10;
     private boolean soundEffects = false;
-    private boolean music = false;
     private TrashCan trashCan;
     private AwardAlert awardAlert;
     private boolean magnetIsAboveTrashCan = false; // a boolean that tells if a magnet is to be deleted
     private ArrayList<Magnet> toHighlightMagnets = new ArrayList<Magnet>();
     private MediaPlayer mediaPlayerForSoundEffect = MediaPlayer.create(getContext(),R.raw.finger_snapping);
-    private MediaPlayer mediaPlayerForMusic = MediaPlayer.create(getContext(),R.raw.when_the_wind_blows);
     private ArrayList<Integer> packsUsedIds = new ArrayList<Integer>(5);
     private int packID;
     private ArrayList<MagnetSide> sidesToLockToNext = new ArrayList<MagnetSide>(2); // will never be more than 2
@@ -53,12 +52,6 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
     private String previouslySavedPoemName = null;
 
 
-    public void stopMediaPlayer() {
-        /*if(mediaPlayerForMusic.isPlaying()) {
-            mediaPlayerForMusic.stop();
-            mediaPlayerForMusic.release();
-        }*/
-    }
 
     /* The CanvasListener interface is implemented by the MainActivity and lets the MainActivity know when something important has happened in the drawing area. The MainActivity then alertsthe GameState or AwardAlert as needed. */
     public interface CanvasListener {
@@ -98,9 +91,10 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
         previouslySavedPoemName = title;
     }
 
-    public void loadMagnets(ArrayList<Magnet> magnets, boolean saved, String id, String title) {
+    // I think everything but the invalidate call is not needed because the references should not be deleted during garbage collection, but just in case I'm wrong...
+    public void loadMagnets(ArrayList<Magnet> newMagnets, boolean saved, String id, String title) {
         this.magnets.clear();
-        this.magnets = magnets;
+        this.magnets = newMagnets;
         setPreviouslySavedPoem(saved,id,title);
         invalidate();
     }
@@ -167,13 +161,6 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
     /* Implements the GameState.drawingPanel Listener. It sets the sound effects and game music settings. */
     public void setSettings(boolean soundEffects, boolean music) {
         this.soundEffects = soundEffects;
-        this.music = music;
-        if(music) {
-            //mediaPlayerForMusic.start();
-            //mediaPlayerForMusic.setLooping(true);
-        } else {
-            if(mediaPlayerForMusic.isPlaying()) mediaPlayerForMusic.stop();
-        }
     }
 
     /* Implements the AwardManager.AwardManager Listener. Sets a new award to be displayed and makes a call to redraw the canvas. */
@@ -307,6 +294,7 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
             case MotionEvent.ACTION_MOVE:
                 // does the user have a magnet? If so, deal with magnet-magnet collisions, etc.
                 if(clickedMagnet != null) {
+                    //System.out.println("this magnet has been clicked: " + clickedMagnet.word());
                     clearConnections();
                     sidesToLockToNext.clear();
                     handleMovingClickedTile(clickedMagnet,motionEvent.getX(),motionEvent.getY());
@@ -327,7 +315,7 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
         if(magnetIsAboveTrashCan) { // the clicked magnet tile is being held over the trash can
             magnetIsAboveTrashCan = false;
             magnets.remove(clickedMagnet);
-            packsUsedIds.remove(clickedMagnet.packID());
+            packsUsedIds.remove((Integer) clickedMagnet.packID());
             canvasListener.magnetDeleted();
             canvasListener.magnetTilesChanged(magnets.size());
         }
@@ -336,6 +324,7 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
     /* onTouchEvent calls this method when the user presses down on the drawable area to check if the user has touched a magnet tile or the award image. If so, clickedMagnetTile is set or the award dialog is set. */
     private void checkForTouchCollisions(MotionEvent motionEvent) {
         for(Magnet magnet : magnets) {
+            System.out.println("this magnet: " + magnet.word() + " has width and height: " + Float.toString(magnet.width())+","+Float.toString(magnet.height()));
             if(theUserHasTouchedAMagnet(magnet, motionEvent.getX(), motionEvent.getY())) {
                 performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
                 clickedMagnet = magnet;
@@ -658,10 +647,10 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
 
         if(continuouslyAnimateAward) {
             awardAlert.setAlert(true);
-            awardAlert.drawAwardAlert(canvas,getWidth());
+            awardAlert.drawAwardAlert(canvas, getWidth());
             animateAward = true;
         } else {
-            animateAward = awardAlert.drawAwardAlert(canvas,getWidth());
+            animateAward = awardAlert.drawAwardAlert(canvas, getWidth());
         }
 
         for(Magnet toHighlightMagnet : toHighlightMagnets) {
@@ -669,7 +658,7 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
         }
         for(Magnet magnet : magnets) {
             resetIfPastCanvasBoundary(magnet,getWidth(),getHeight());
-            magnet.draw(canvas, getWidth(),  getHeight());
+            magnet.draw(canvas, getWidth(),  getHeight(),getRootView());
             magnet.setHighlight(false);
         }
         toHighlightMagnets.clear();

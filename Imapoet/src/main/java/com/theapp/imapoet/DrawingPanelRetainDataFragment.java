@@ -4,6 +4,7 @@ package com.theapp.imapoet;
 import android.os.Bundle;
 import android.app.Fragment;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 
 /**
@@ -26,14 +27,23 @@ public class DrawingPanelRetainDataFragment extends Fragment {
         setRetainInstance(true); // don't destroy on orientation change
     }
 
-    public void setMagnetData(ArrayList<Magnet> magnets, boolean previouslySavedPoem, String previouslySavedPoemID, String previouslySavedPoemName) {
-        this.magnets = magnets;
+    public void setMagnetData(ArrayList<Magnet> newMagnets, boolean previouslySavedPoem, String previouslySavedPoemID, String previouslySavedPoemName) {
+
+       // for(Magnet newMagnet : newMagnets) {
+        /*for(Iterator<Magnet> it = newMagnets.iterator(); it.hasNext();) {
+            this.magnets.add(it.next());
+        }*/
+        this.magnets = newMagnets; //toDo deep copy here
+
         this.previouslySavedPoem = previouslySavedPoem;
         this.previouslySavedPoemID = previouslySavedPoemID;
         this.previouslySavedPoemName = previouslySavedPoemName;
     }
 
     public ArrayList<Magnet> getMagnets() {
+        for(Magnet magnet : this.magnets) {
+            System.out.println("getting magnet: "+magnet.word());
+        }
         return magnets;
     }
 
@@ -48,4 +58,27 @@ public class DrawingPanelRetainDataFragment extends Fragment {
     public String getPreviouslySavedPoemID() {
         return previouslySavedPoemID;
     }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        System.out.println("detach fragment magnet:");
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        System.out.println("destroyview fragment magnet:");
+    }
+
+    @Override
+    public void onStop() {
+        System.out.println("stop fragment magnet:"+Integer.toString(magnets.size()));
+        super.onStop();
+        System.out.println("stop fragment magnet:"+Integer.toString(magnets.size()));
+    }
+
+
+
+
 }

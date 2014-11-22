@@ -1,9 +1,12 @@
 package com.theapp.imapoet;
 
+import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PointF;
+import android.view.View;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -50,6 +53,11 @@ public class Magnet {
         leftSideConnectedMagnets.add(magnet);
     }
     public void setRightSideConnectedMagnet(Magnet magnet) { rightSideConnectedMagnets.add(magnet); }
+
+
+    public Magnet clone() {
+        return new Magnet(this.word,this.id,this.scaleFactor,this.packID,this.topSideConnectedMagnets,this.bottomSideConnectedMagnets,this.rightSideConnectedMagnets,this.leftSideConnectedMagnets,this.x,this.y);
+    }
 
     // a convenience function used by setUpConnectedSides to get a reference to each poemMagnet in the connected magnets arrays and use that reference to replace the temporary one in the list, used when the user loads the manual save or the program loads the auto-saved poem
     private void setUpSide(ArrayList<Magnet> poemMagnets, ArrayList<Integer> connectedMagnetIntegers, ArrayList<Magnet> connectedMagnets) {
@@ -125,6 +133,43 @@ public class Magnet {
         setNewTextSize();
         setTemporaryConnectedMagnets(top,bottom,left,right);
     }
+    /*public Magnet(String word, int id, float scaleFactor, int packID,String top,String bottom, String left, String right, String nothing){
+        clearAllConnectedMagnets();
+        textPaint.setTextSize(textPaintSize);
+        this.word = word;
+        this.scaleFactor = scaleFactor;
+        float padding = 5;
+        this.unscaledWidth = textPaint.measureText(word) + padding + borderWidth;
+        width = unscaledWidth * scaleFactor;
+        height = unscaledHeight * scaleFactor;
+        this.id = id + 1;
+        this.packID = packID;
+        textPaint.setTextAlign(Paint.Align.CENTER);
+        setNewTextSize();
+        setTemporaryConnectedMagnets(top,bottom,left,right);
+    }*/
+
+    public Magnet(String word, int id, float scaleFactor, int packID,ArrayList<Magnet> topSideConnectedMagnets,ArrayList<Magnet> bottomSideConnectedMagnets, ArrayList<Magnet> leftSideConnectedMagnets, ArrayList<Magnet> rightSideConnectedMagnets, float x, float y){
+        clearAllConnectedMagnets();
+        textPaint.setTextSize(textPaintSize);
+        this.word = word;
+        this.scaleFactor = scaleFactor;
+        float padding = 5;
+        this.unscaledWidth = textPaint.measureText(word) + padding + borderWidth;
+        width = unscaledWidth * scaleFactor;
+        height = unscaledHeight * scaleFactor;
+        this.id = id;
+        this.packID = packID;
+        textPaint.setTextAlign(Paint.Align.CENTER);
+        setNewTextSize();
+        //setTemporaryConnectedMagnets(top,bottom,left,right);
+        this.topSideConnectedMagnets = topSideConnectedMagnets;
+        this.bottomSideConnectedMagnets = bottomSideConnectedMagnets;
+        this.leftSideConnectedMagnets = leftSideConnectedMagnets;
+        this.rightSideConnectedMagnets = rightSideConnectedMagnets;
+        setX(x);
+        setY(y);
+    }
 
 
 
@@ -175,21 +220,22 @@ public class Magnet {
         canvas.drawRect(convertCenterToCorner(x,width-borderWidth), convertCenterToCorner(y,height-borderWidth),x + ((width-borderWidth)/2),y + ((height-borderWidth)/2),currentPaint);
     }
 
-    private void drawShadowedMagnet(Canvas canvas, Paint currentPaint) {
+    private void drawShadowedMagnet(Canvas canvas, Paint currentPaint,View view) {
         currentPaint.setShadowLayer(10.0f, 0.0f, 2.0f, 0xFF000000);
+        view.setLayerType(View.LAYER_TYPE_SOFTWARE,currentPaint);
         canvas.drawRect(convertCenterToCorner(x,width), convertCenterToCorner(y,height),x + ((width)/2),y + ((height)/2),borderPaint);
         canvas.drawRect(convertCenterToCorner(x,width-borderWidth), convertCenterToCorner(y,height-borderWidth),x + ((width-borderWidth)/2),y + ((height-borderWidth)/2),currentPaint);
         //}
     }
 
 
-    public void draw(Canvas canvas, float canvasWidth, float canvasHeight) {
+    public void draw(Canvas canvas, float canvasWidth, float canvasHeight, View view) {
         Paint currentPaint = magnetPaint;
         if(highlight) currentPaint = highlightPaint;
         if(topSideConnectedMagnets.size() > 0 || bottomSideConnectedMagnets.size() > 0 || leftSideConnectedMagnets.size() > 0 || rightSideConnectedMagnets.size() > 0) {
             drawMagnet(canvas, currentPaint);
         } else {
-            drawShadowedMagnet(canvas, currentPaint);
+            drawShadowedMagnet(canvas, currentPaint,view);
         }
         if(scaled) {
             setNewTextSize();

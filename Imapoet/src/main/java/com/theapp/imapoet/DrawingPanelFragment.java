@@ -14,6 +14,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  * The drawing panel fragment is an android fragment element that holds the surface view (canvas) where the magnet drawing takes place.
@@ -23,6 +24,7 @@ public class DrawingPanelFragment extends Fragment implements LoaderManager.Load
     private AsyncQueryHandler queryHandler;
     private DrawingPanel.CanvasListener canvasListener;
     private DrawingPanel drawingPanel;
+    private boolean loaderExists = false;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -33,9 +35,14 @@ public class DrawingPanelFragment extends Fragment implements LoaderManager.Load
     }
 
     public void loadMagnets(){
-        getLoaderManager().initLoader(0,null,this);
+        System.out.println("loading magnets from database");
+
+        if(!loaderExists) getLoaderManager().initLoader(0,null,this);
+        else getLoaderManager().restartLoader(0,null,this);
+        loaderExists = true;
     }
     public void loadMagnets(ArrayList<Magnet> magnets, boolean previouslySavedPoem, String previouslySavedPoemId, String previouslySavedPoemName) {
+        System.out.println("loading magnets from retained fragment" + Integer.toString(magnets.size()));
         drawingPanel.loadMagnets(magnets,previouslySavedPoem,previouslySavedPoemId,previouslySavedPoemName);
     }
 
@@ -60,7 +67,11 @@ public class DrawingPanelFragment extends Fragment implements LoaderManager.Load
 
 
     public ArrayList<Magnet> getPoem() {
-        return drawingPanel.getPoem();
+        ArrayList<Magnet> poem = new ArrayList<Magnet>();
+        for(Iterator<Magnet> poemIterator = drawingPanel.getPoem().iterator(); poemIterator.hasNext();) {
+            poem.add(poemIterator.next().clone());
+        }
+        return poem;
     }
 
     public void clearMagnets() {
@@ -81,7 +92,7 @@ public class DrawingPanelFragment extends Fragment implements LoaderManager.Load
     @Override
     public void onPause() {
         super.onPause();
-        drawingPanel.stopMediaPlayer();
+        //drawingPanel.stopMediaPlayer();
     }
 
     private void loadSettings() {
@@ -122,6 +133,7 @@ public class DrawingPanelFragment extends Fragment implements LoaderManager.Load
 
 
     public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
+        System.out.println("destroy loading magnets " + Integer.toString(cursor.getCount()));
        if(cursor.getCount() > 0) {
            cursor.moveToFirst();
            drawingPanel.loadMagnets(cursor,
