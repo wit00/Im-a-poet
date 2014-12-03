@@ -59,24 +59,7 @@ public class DrawingPanelRetainDataFragment extends Fragment {
         return previouslySavedPoemID;
     }
 
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        System.out.println("detach fragment magnet:");
-    }
 
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        System.out.println("destroyview fragment magnet:");
-    }
-
-    @Override
-    public void onStop() {
-        System.out.println("stop fragment magnet:"+Integer.toString(magnets.size()));
-        super.onStop();
-        System.out.println("stop fragment magnet:"+Integer.toString(magnets.size()));
-    }
 
 
 

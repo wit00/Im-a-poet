@@ -21,6 +21,10 @@ public class MagnetSide implements Comparable<MagnetSide>{
         this.referenceToMagnet = referenceToMagnet;
         this.xAndyDistances.set(xDistance,yDistance);
     }
+
+    public MagnetSide(int id, Magnet referenceToMagnet, side side) {
+
+    }
     /* This function returns the closest side as a magnetSide object depending on which of four quadrants the moving tile is in.*/
     protected static MagnetSide closestSide(Magnet movingTile, Magnet stationaryTile) {
         if(movingTile.x() <= stationaryTile.x()) {

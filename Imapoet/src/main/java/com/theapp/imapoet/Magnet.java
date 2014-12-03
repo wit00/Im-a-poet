@@ -1,12 +1,10 @@
 package com.theapp.imapoet;
 
-import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PointF;
 import android.view.View;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -125,29 +123,17 @@ public class Magnet {
         this.scaleFactor = scaleFactor;
         float padding = 5;
         this.unscaledWidth = textPaint.measureText(word) + padding + borderWidth;
-        width = unscaledWidth * scaleFactor;
+        //width = unscaledWidth * scaleFactor;
+        width = unscaledWidth;
         height = unscaledHeight * scaleFactor;
+        //height = unscaledHeight;
         this.id = id + 1;
         this.packID = packID;
         textPaint.setTextAlign(Paint.Align.CENTER);
         setNewTextSize();
         setTemporaryConnectedMagnets(top,bottom,left,right);
     }
-    /*public Magnet(String word, int id, float scaleFactor, int packID,String top,String bottom, String left, String right, String nothing){
-        clearAllConnectedMagnets();
-        textPaint.setTextSize(textPaintSize);
-        this.word = word;
-        this.scaleFactor = scaleFactor;
-        float padding = 5;
-        this.unscaledWidth = textPaint.measureText(word) + padding + borderWidth;
-        width = unscaledWidth * scaleFactor;
-        height = unscaledHeight * scaleFactor;
-        this.id = id + 1;
-        this.packID = packID;
-        textPaint.setTextAlign(Paint.Align.CENTER);
-        setNewTextSize();
-        setTemporaryConnectedMagnets(top,bottom,left,right);
-    }*/
+
 
     public Magnet(String word, int id, float scaleFactor, int packID,ArrayList<Magnet> topSideConnectedMagnets,ArrayList<Magnet> bottomSideConnectedMagnets, ArrayList<Magnet> leftSideConnectedMagnets, ArrayList<Magnet> rightSideConnectedMagnets, float x, float y){
         clearAllConnectedMagnets();
@@ -156,8 +142,10 @@ public class Magnet {
         this.scaleFactor = scaleFactor;
         float padding = 5;
         this.unscaledWidth = textPaint.measureText(word) + padding + borderWidth;
-        width = unscaledWidth * scaleFactor;
+        //width = unscaledWidth * scaleFactor;
+        width = unscaledWidth;
         height = unscaledHeight * scaleFactor;
+        //height = unscaledHeight;
         this.id = id;
         this.packID = packID;
         textPaint.setTextAlign(Paint.Align.CENTER);
@@ -225,7 +213,6 @@ public class Magnet {
         view.setLayerType(View.LAYER_TYPE_SOFTWARE,currentPaint);
         canvas.drawRect(convertCenterToCorner(x,width), convertCenterToCorner(y,height),x + ((width)/2),y + ((height)/2),borderPaint);
         canvas.drawRect(convertCenterToCorner(x,width-borderWidth), convertCenterToCorner(y,height-borderWidth),x + ((width-borderWidth)/2),y + ((height-borderWidth)/2),currentPaint);
-        //}
     }
 
 
@@ -242,7 +229,6 @@ public class Magnet {
             scaled = false;
         }
         canvas.drawText(word,x,y + textYShift, textPaint);
-        //if(topSideConnectedMagnet.size()>0)System.out.println("mooing " + word + ":  "+topSideConnectedMagnet.get(0).word);
     }
 
     public String word() { return word; }
@@ -250,6 +236,20 @@ public class Magnet {
     public float y() { return y; }
     public float width() { return width; }
     public float height() { return height; }
+    public float leftTopCornerX() { return leftTopCorner.x; }
+    public float leftTopCornerY() { return leftTopCorner.y; }
+    public float leftBottomCornerX() { return leftBottomCorner.x; }
+    public float leftBottomCornerY() { return leftBottomCorner.y; }
+    public float rightTopCornerX() { return rightTopCorner.x; }
+    public float rightTopCornerY() { return rightTopCorner.y; }
+    public float rightBottomCornerX() { return rightBottomCorner.x; }
+    public float rightBottomCornerY() { return rightBottomCorner.y; }
+    public PointF leftTopCorner() { return new PointF(leftTopCornerX(),leftTopCornerY()); }
+    public PointF leftBottomCorner() { return new PointF(leftBottomCornerX(),leftBottomCornerY()); }
+    public PointF rightTopCorner() { return new PointF(rightTopCornerX(),rightTopCornerY()); }
+    public PointF rightBottomCorner() { return new PointF(rightBottomCornerX(),rightBottomCornerY()); }
+    public int id() { return id; }
+    public int packID() { return packID; }
     public void setX(float x) {
         this.x = x;
         float halfWidth = width/2;
@@ -257,7 +257,6 @@ public class Magnet {
         leftBottomCorner.set(x-halfWidth,leftBottomCornerY());
         rightTopCorner.set(x+halfWidth,rightTopCornerY());
         rightBottomCorner.set(x+halfWidth,rightBottomCornerY());
-
     }
     public void setY(float y) {
         this.y = y;
@@ -268,18 +267,6 @@ public class Magnet {
         rightTopCorner.set(x+halfWidth,y-halfHeight);
         rightBottomCorner.set(x+halfWidth,y+halfHeight);
     }
-    public float leftTopCornerX() { return leftTopCorner.x; }
-    public float leftTopCornerY() { return leftTopCorner.y; }
-    public float leftBottomCornerX() { return leftBottomCorner.x; }
-    public float leftBottomCornerY() { return leftBottomCorner.y; }
-    public float rightTopCornerX() { return rightTopCorner.x; }
-    public float rightTopCornerY() { return rightTopCorner.y; }
-    public float rightBottomCornerX() { return rightBottomCorner.x; }
-    public float rightBottomCornerY() { return rightBottomCorner.y; }
-
-
-
-
     public void setXAndY(float x, float y) {
         this.x = x;
         this.y = y;
@@ -290,14 +277,15 @@ public class Magnet {
         rightTopCorner.set(x+halfWidth,y-halfHeight);
         rightBottomCorner.set(x+halfWidth,y+halfHeight);
     }
-    public int id() { return id; }
-    public int packID() { return packID; }
+
+
+
+
     public void updateScaleFactor(float scaleFactor, ArrayList<Magnet> magnets) {
         this.scaleFactor = scaleFactor;
-        //borderWidth = borderWidth * scaleFactor;
         width = unscaledWidth * scaleFactor;
         height = unscaledHeight * scaleFactor;
         scaled = true;
-        //isTouchingOtherMagnetTile(magnetTiles);
+        setXAndY(x,y);
     }
 }

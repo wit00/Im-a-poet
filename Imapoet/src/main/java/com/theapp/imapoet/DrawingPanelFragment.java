@@ -58,8 +58,8 @@ public class DrawingPanelFragment extends Fragment implements LoaderManager.Load
         }
     }
 
-    public void setSettings(boolean soundEffects, boolean music) {
-        drawingPanel.setSettings(soundEffects, music);
+    public void setSettings(boolean soundEffects) {
+        drawingPanel.setSettings(soundEffects);
     }
     public int setWord(String word, int packID){
         return drawingPanel.setWord(word,packID);
@@ -108,10 +108,9 @@ public class DrawingPanelFragment extends Fragment implements LoaderManager.Load
                     case 1:
                         if(cursor.getCount() > 0) {
                             cursor.moveToFirst();
-                            setSettings((cursor.getInt(cursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry.COLUMN_SOUND_EFFECTS)) != 0),
-                                    (cursor.getInt(cursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry.COLUMN_MUSIC)) != 0));
+                            setSettings((cursor.getInt(cursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry.COLUMN_SOUND_EFFECTS)) != 0));
                         } else {
-                            setSettings(true,true);
+                            setSettings(true);
                         }
                         break;
                 }
