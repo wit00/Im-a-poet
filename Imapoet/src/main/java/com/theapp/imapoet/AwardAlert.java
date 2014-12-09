@@ -55,6 +55,7 @@ public class AwardAlert {
     }
 
     public boolean drawAwardAlert(Canvas canvas, float width) {
+
         boolean invalidate = false;
         if(awardAlert) {
             int currentTime = (int) (System.currentTimeMillis() % Integer.MAX_VALUE);
@@ -65,7 +66,6 @@ public class AwardAlert {
             lastTime = currentTime;
             //int index = (int)timeTaken/300;
             int index = getNextIndex(timeTaken,newAwardGlow.size(),300);
-            System.out.println("index: " + Integer.toString(index));
             invalidate = true;
             if(index >= newAwardGlow.size() - 1) {
                 index = 0;
@@ -78,6 +78,7 @@ public class AwardAlert {
             canvas.drawBitmap(newAwardGlow.get(index), width - awardAlertWidth / 2 - sizes[index] - padding, awardAlertHeight / 2 - sizes[index] + padding, null);
         }
         canvas.drawBitmap(awardAlertBitmap, width - awardAlertWidth - padding, 0 + padding, null);
+        //canvas.drawBitmap(awardAlertBitmap, width - awardAlertWidth - padding, 0 + padding, null);
         return invalidate;
     }
 

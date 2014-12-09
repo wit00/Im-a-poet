@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Point;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.media.MediaPlayer;
@@ -24,6 +25,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 
+
+
+//toDo, can't delete with scaled, boundary with scale
 /**
  * Drawing canvas
  * Created by whitney on 6/5/14.
@@ -54,6 +58,11 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
     private ArrayList<ArrayList<Magnet>> connectedMagnets = new ArrayList<ArrayList<Magnet>>(1);
 
 
+    public float scaleFactor() { return scaleFactor; }
+    public float scalePivotX() { return scalePivotX; }
+    public float scalePivotY() { return scalePivotY; }
+
+
     /* The CanvasListener interface is implemented by the MainActivity and lets the MainActivity know when something important has happened in the drawing area. The MainActivity then alertsthe GameState or AwardAlert as needed. */
     public interface CanvasListener {
         public void magnetTilesChanged(int numberMagnetTiles);
@@ -76,7 +85,7 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
         String bottom = cursor.getString(cursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry.COLUMN_BOTTOM));
         String left = cursor.getString(cursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry.COLUMN_LEFT));
         String right = cursor.getString(cursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry.COLUMN_RIGHT));
-        magnets.add(new Magnet(cursor.getString(cursor.getColumnIndex(textColumn)), magnets.size(),scaleFactor,thisPackID,top,bottom,left,right));
+        magnets.add(new Magnet(cursor.getString(cursor.getColumnIndex(textColumn)), magnets.size(),scaleFactor,thisPackID,top,bottom,left,right,getDensity()));
         Magnet currentMagnet = magnets.get(magnets.size()-1);
         currentMagnet.setX(cursor.getInt(cursor.getColumnIndex(xColumn)));
         currentMagnet.setY(cursor.getInt(cursor.getColumnIndex(yColumn)));
@@ -93,9 +102,12 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
     }
 
     // I think everything but the invalidate call is not needed because the references should not be deleted during garbage collection, but just in case I'm wrong...
-    public void loadMagnets(ArrayList<Magnet> newMagnets, boolean saved, String id, String title) {
+    public void loadMagnets(ArrayList<Magnet> newMagnets, boolean saved, String id, String title,float scaleFactor, float scalePivotX, float scalePivotY) {
         this.magnets.clear();
         this.magnets = newMagnets;
+        this.scaleFactor = scaleFactor;
+        this.scalePivotX = scalePivotX;
+        this.scalePivotY = scalePivotY;
         setPreviouslySavedPoem(saved,id,title);
         invalidate();
     }
@@ -222,9 +234,14 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
         return false;
     }
 
+
+    private float getDensity() {
+        return getResources().getDisplayMetrics().density;
+    }
+
     /* addTileToCanvas is used only by the onDrag event listener to add a new magnet tile */
     private int addTileToCanvas() {
-        magnets.add(new Magnet(word, magnets.size(),scaleFactor,packID,null,null,null,null));
+        magnets.add(new Magnet(word, magnets.size(),1.0f,packID,null,null,null,null,getDensity()));
         notAddedTile = false;
         canvasListener.magnetTilesChanged(magnets.size());
         return magnets.size()-1;
@@ -284,17 +301,28 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
     float lastWidth = getWidth();
     float lastHeight = getHeight();
 
+    float lastScaleFactor = 1.0f;
+    private float scalePivotX= 0;
+    private float scalePivotY = 0;
+
+    private float getScaledCoordinate(float coordinate) {
+        return (-1*scalePivotX/scaleFactor) + (coordinate / scaleFactor) + (scalePivotX) ;
+    }
 
     /* Overrides the View method of the same name. onTouchEvent is the center of user interaction for the drawing area. The action, Action_Down occurs when the user touches the drawing area. Action_Move happens when the user moves their finger across the drawing area. Action_Up occurs when the user moves their finger off of the screen. */
     @Override
     public boolean onTouchEvent(MotionEvent motionEvent) {
         boolean retVal = scaleGestureDetector.onTouchEvent(motionEvent);
         retVal = gestureDetector.onTouchEvent(motionEvent) || retVal;
-
+        float oldXTouch, oldYTouch, xTouch,yTouch;
+        oldXTouch = motionEvent.getX();
+        oldYTouch = motionEvent.getY();
+        xTouch = (-1*scalePivotX/scaleFactor) + (oldXTouch / scaleFactor) + (scalePivotX) ;
+        yTouch = (-1*scalePivotY/scaleFactor) + (oldYTouch / scaleFactor) + (scalePivotY) ;
         switch (motionEvent.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 // has the user clicked a magnet, if so, set clickedMagnetTile to this magnet
-                checkForTouchCollisions(motionEvent);
+                checkForTouchCollisions(xTouch,yTouch,oldXTouch,oldYTouch);
                 if(clickedMagnet == null) {
                     startX = motionEvent.getX() - previousXOffset;
                     startY = motionEvent.getY() - previousYOffset;
@@ -305,7 +333,7 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
                 if(clickedMagnet != null) {
                     clearConnections();
                     sidesToLockToNext.clear();
-                    handleMovingClickedTile(clickedMagnet,motionEvent.getX(),motionEvent.getY());
+                    handleMovingClickedTile(clickedMagnet,xTouch,yTouch);
                 } else {
                     xOffset = motionEvent.getX() - startX;
                     yOffset = motionEvent.getY() - startY;
@@ -333,14 +361,14 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
     }
 
     /* onTouchEvent calls this method when the user presses down on the drawable area to check if the user has touched a magnet tile or the award image. If so, clickedMagnetTile is set or the award dialog is set. */
-    private void checkForTouchCollisions(MotionEvent motionEvent) {
+    private void checkForTouchCollisions(float transformedXTouch, float transformedYTouch, float oldXTouch, float oldYTouch) {
         for(Magnet magnet : magnets) {
-            if(theUserHasTouchedAMagnet(magnet, motionEvent.getX(), motionEvent.getY())) {
+            if(theUserHasTouchedAMagnet(magnet, transformedXTouch, transformedYTouch)) {
                 performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
                 clickedMagnet = magnet;
             }
         }
-        if(clickedMagnet == null && theUserHasTouchedTheAward(motionEvent.getX(),motionEvent.getY())) {
+        if(clickedMagnet == null && theUserHasTouchedTheAward(oldXTouch,oldYTouch)) {
             performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
             loadAwardDialog();
         }
@@ -348,19 +376,22 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
 
     /* This function checks if a user has touched the award image. It is called by checkForTouchCollisions */
     private boolean theUserHasTouchedTheAward(float x, float y) {
+        float touchPadding = 5;
         return isTouchInBox(x,y,awardAlert.padding, awardAlert.awardAlertHeight + awardAlert.padding,
                 getWidth() - awardAlert.awardAlertWidth - awardAlert.padding,
-                getWidth() - awardAlert.padding,0);
+                getWidth() - awardAlert.padding,touchPadding);
     }
 
     /* This function checks if a user has touched a particular magnet tile. It is called by checkForTouchCollisions and collidesWith */
     private boolean theUserHasTouchedAMagnet(Magnet magnet, float touchedX, float touchedY) {
-        //touchedX = touchedX * myMatrix[0] + touchedY * myMatrix[2] + myMatrix[4];
-        //touchedY =  touchedX * myMatrix[1] + touchedY * myMatrix[3] + myMatrix[5];
-        float smallestY = magnet.leftTopCornerY() * scaleFactor ;
-        float biggestY = magnet.leftBottomCornerY() * scaleFactor ;
-        float smallestX = magnet.leftBottomCornerX() * scaleFactor ;
-        float biggestX = magnet.rightBottomCornerX() * scaleFactor ;
+        float smallestY = magnet.leftTopCornerY() ;//* scaleFactor ;
+        //float smallestY = (-1*scalePivotY*scaleFactor) + (magnet.leftTopCornerY() * scaleFactor) + (scalePivotY) ;//* scaleFactor ;
+        //float biggestY = (-1*scalePivotY*scaleFactor) + (magnet.leftBottomCornerY() * scaleFactor) + scalePivotY ;//* scaleFactor ;
+        float biggestY = magnet.leftBottomCornerY() ;//* scaleFactor ;
+        //float smallestX = (-1*scaleCenterX*scaleFactor) + (magnet.leftBottomCornerX()*scaleFactor) + scaleCenterX ;//* scaleFactor ;
+        float smallestX = magnet.leftBottomCornerX() ;//* scaleFactor ;
+        float biggestX = magnet.rightBottomCornerX() ;//* scaleFactor ;
+        //float biggestX = (-1*scaleCenterX*scaleFactor) + (magnet.rightBottomCornerX()*scaleFactor) + scaleCenterX ;//* scaleFactor ;
         return isTouchInBox(touchedX,touchedY, smallestY, biggestY,
                 smallestX, biggestX,0);
     }
@@ -377,7 +408,7 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
 
     private void handleCollision(MagnetSide closestMagnet) {
         if(soundEffects) mediaPlayerForSoundEffect.start();
-        clickedMagnet.setXAndY(clickedMagnet.x() + closestMagnet.xAndyDistances.x, clickedMagnet.y() + closestMagnet.xAndyDistances.y); // should be closest if > 1 sides bc of sort in get locking sides
+        clickedMagnet.setXAndY(clickedMagnet.x() + closestMagnet.xAndyDistances.x, clickedMagnet.y() + closestMagnet.xAndyDistances.y);
         setSides(closestMagnet);
     }
 
@@ -391,100 +422,74 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
 
     private MagnetSide checkForCollisionsInQuadrants(Magnet movingMagnet, Magnet magnet, side connectedSide, MagnetSide cc, float xTouchPosition, float yTouchPosition, float shiftX
     , float shiftY) {
-        int currentQuadrant = getQuadrant(magnet);
         MagnetSide closestMagnet = null;
-        switch (currentQuadrant) {
-            case 1:
-                if(magnet.id() != movingMagnet.id() && !magnetsAreAttached(movingMagnet,magnet)) {
-                    PointF movingMagnetTopLeftNewPoint = new PointF(movingMagnet.leftTopCornerX() + shiftX, movingMagnet.leftTopCornerY() + shiftY);
-                    PointF movingMagnetBottomLeftNewPoint = new PointF(movingMagnet.leftBottomCornerX() + shiftX,movingMagnet.leftBottomCornerY() + shiftY);
-                    PointF movingMagnetTopRightNewPoint = new PointF(movingMagnet.rightTopCornerX() + shiftX,movingMagnet.rightTopCornerY() + shiftY);
-                    if((thereIsACollision(movingMagnet.leftTopCorner(),movingMagnetTopLeftNewPoint,magnet.leftBottomCorner(),magnet.rightBottomCorner())) ||
-                            (thereIsACollision(movingMagnet.leftBottomCorner(),movingMagnetBottomLeftNewPoint,magnet.leftBottomCorner(),magnet.rightBottomCorner())) ||
-                            (thereIsACollision(movingMagnet.rightTopCorner(),movingMagnetTopRightNewPoint,magnet.leftBottomCorner(),magnet.rightBottomCorner()))) {
-                        if(movingMagnetTopLeftNewPoint.y <= magnet.leftBottomCornerY()) {
-                            closestMagnet = new MagnetSide(movingMagnet.id(),magnet,0,magnet.leftBottomCorner().y-movingMagnet.leftTopCorner().y);
-                            handleCollision(closestMagnet);
-                        }
-                    } else if((thereIsACollision(movingMagnet.leftTopCorner(),movingMagnetTopLeftNewPoint,magnet.rightBottomCorner(),magnet.rightTopCorner())) ||
-                            (thereIsACollision(movingMagnet.leftBottomCorner(),movingMagnetBottomLeftNewPoint,magnet.rightBottomCorner(),magnet.rightTopCorner())) ||
-                            (thereIsACollision(movingMagnet.rightTopCorner(),movingMagnetTopRightNewPoint,magnet.rightBottomCorner(),magnet.rightTopCorner()))) {
-                        if(movingMagnetTopRightNewPoint.x <= magnet.rightBottomCornerX()) {
-                            closestMagnet = new MagnetSide(movingMagnet.id(),magnet, magnet.rightTopCorner().x-movingMagnet.leftTopCorner().x,0);
-                            handleCollision(closestMagnet);
-                        }
-                    }
-                }
-                break;
-            case 2:
-                if(magnet.id() != movingMagnet.id() && !magnetsAreAttached(movingMagnet,magnet)) {
-                    PointF movingMagnetTopLeftNewPoint = new PointF(movingMagnet.leftTopCornerX() + shiftX, movingMagnet.leftTopCornerY() + shiftY);
-                    PointF movingMagnetBottomRightNewPoint = new PointF(movingMagnet.rightBottomCornerX() + shiftX,movingMagnet.rightBottomCornerY() + shiftY);
-                    PointF movingMagnetTopRightNewPoint = new PointF(movingMagnet.rightTopCornerX() + shiftX,movingMagnet.rightTopCornerY() + shiftY);
-                    if((thereIsACollision(movingMagnet.leftTopCorner(),movingMagnetTopLeftNewPoint,magnet.leftBottomCorner(),magnet.rightBottomCorner()) )
-                            || (thereIsACollision(movingMagnet.rightBottomCorner(),movingMagnetBottomRightNewPoint,magnet.leftBottomCorner(),magnet.rightBottomCorner()))
-                            || (thereIsACollision(movingMagnet.rightTopCorner(),movingMagnetTopRightNewPoint,magnet.leftBottomCorner(),magnet.rightBottomCorner()))) {
-                        if(movingMagnetTopRightNewPoint.y <= magnet.leftBottomCornerY()) {
-                            closestMagnet = new MagnetSide(movingMagnet.id(),magnet,0,magnet.leftBottomCorner().y-movingMagnet.leftTopCorner().y);
-                            handleCollision(closestMagnet);
-                        }
-                    } else if((thereIsACollision(movingMagnet.leftTopCorner(),movingMagnetTopLeftNewPoint,magnet.leftBottomCorner(),magnet.leftTopCorner()))
-                            || (thereIsACollision(movingMagnet.rightBottomCorner(),movingMagnetBottomRightNewPoint,magnet.leftBottomCorner(),magnet.leftTopCorner()))
-                            || (thereIsACollision(movingMagnet.rightTopCorner(),movingMagnetTopRightNewPoint,magnet.leftBottomCorner(),magnet.leftTopCorner()))) {
-                        if(movingMagnetTopRightNewPoint.x >= magnet.leftBottomCornerX()) {
-                            closestMagnet = new MagnetSide(movingMagnet.id(), magnet, magnet.leftTopCorner().x - movingMagnet.rightTopCorner().x, 0);
-                            handleCollision(closestMagnet);
-                        }
-                    }
-                }
-                break;
-            case 3:
-                if(magnet.id() != movingMagnet.id() && !magnetsAreAttached(movingMagnet,magnet)) {
-                    PointF movingMagnetTopLeftNewPoint = new PointF(movingMagnet.leftTopCornerX() + shiftX, movingMagnet.leftTopCornerY() + shiftY);
-                    PointF movingMagnetBottomLeftNewPoint = new PointF(movingMagnet.leftBottomCornerX() + shiftX,movingMagnet.leftBottomCornerY() + shiftY);
-                    PointF movingMagnetBottomRightNewPoint = new PointF(movingMagnet.rightBottomCornerX() + shiftX,movingMagnet.rightBottomCornerY() + shiftY);
-                    //connectedSide = findPossibleCollisionsForThirdQuadrant(magnet, movingMagnet, xTouchPosition, yTouchPosition, movingMagnetTopLeftNewPoint, movingMagnetBottomLeftNewPoint, movingMagnetBottomRightNewPoint);
-                    if((thereIsACollision(movingMagnet.leftTopCorner(),movingMagnetTopLeftNewPoint,magnet.leftTopCorner(),magnet.rightTopCorner()))
-                            || (thereIsACollision(movingMagnet.rightBottomCorner(),movingMagnetBottomRightNewPoint,magnet.leftTopCorner(),magnet.rightTopCorner()))
-                            || (thereIsACollision(movingMagnet.leftBottomCorner(),movingMagnetBottomLeftNewPoint,magnet.leftTopCorner(),magnet.rightTopCorner()))) {
-                        if(movingMagnetBottomLeftNewPoint.y >= magnet.leftTopCornerY()) {
-                            closestMagnet = new MagnetSide(movingMagnet.id(),magnet,0,magnet.leftTopCorner().y-movingMagnet.leftBottomCorner().y);
-                            handleCollision(closestMagnet);
-                        }
 
-                    } else if((thereIsACollision(movingMagnet.leftTopCorner(),movingMagnetTopLeftNewPoint,magnet.rightBottomCorner(),magnet.rightTopCorner()))
-                            || (thereIsACollision(movingMagnet.rightBottomCorner(),movingMagnetBottomRightNewPoint,magnet.rightBottomCorner(),magnet.rightTopCorner()))
-                            || (thereIsACollision(movingMagnet.leftBottomCorner(),movingMagnetBottomLeftNewPoint,magnet.rightBottomCorner(),magnet.rightTopCorner()))) {
-                        if(movingMagnetBottomLeftNewPoint.x <= magnet.rightBottomCornerX()) {
-                            closestMagnet = new MagnetSide(movingMagnet.id(),magnet, magnet.rightTopCorner().x-movingMagnet.leftTopCorner().x,0);
-                            handleCollision(closestMagnet);
-                        }
-                    }
-                }
-                break;
-            case 4:
-                if(magnet.id() != movingMagnet.id() && !magnetsAreAttached(movingMagnet,magnet)) {
-                    PointF movingMagnetBottomLeftNewPoint = new PointF(movingMagnet.leftBottomCornerX() + shiftX,movingMagnet.leftBottomCornerY() + shiftY);
-                    PointF movingMagnetBottomRightNewPoint = new PointF(movingMagnet.rightBottomCornerX() + shiftX,movingMagnet.rightBottomCornerY() + shiftY);
-                    PointF movingMagnetTopRightNewPoint = new PointF(movingMagnet.rightTopCornerX() + shiftX,movingMagnet.rightTopCornerY() + shiftY);
-                    //connectedSide = findPossibleCollisionsForFourthQuadrant(magnet, movingMagnet, xTouchPosition, yTouchPosition, movingMagnetBottomLeftNewPoint, movingMagnetBottomRightNewPoint, movingMagnetTopRightNewPoint);
-                    if((thereIsACollision(movingMagnet.leftBottomCorner(),movingMagnetBottomLeftNewPoint,magnet.leftTopCorner(),magnet.rightTopCorner())) ||
-                            (thereIsACollision(movingMagnet.rightBottomCorner(),movingMagnetBottomRightNewPoint,magnet.leftTopCorner(),magnet.rightTopCorner())) ||
-                            (thereIsACollision(movingMagnet.rightTopCorner(),movingMagnetTopRightNewPoint,magnet.leftTopCorner(),magnet.rightTopCorner()))) {
-                        if(movingMagnetTopRightNewPoint.y >= magnet.leftTopCornerY()) {
-                            closestMagnet = new MagnetSide(movingMagnet.id(),magnet,0,magnet.leftTopCorner().y-movingMagnet.leftBottomCorner().y);
-                            handleCollision(closestMagnet);
-                        }
-                    } else if((thereIsACollision(movingMagnet.leftBottomCorner(),movingMagnetBottomLeftNewPoint,magnet.leftTopCorner(),magnet.leftBottomCorner())) ||
-                            (thereIsACollision(movingMagnet.rightBottomCorner(),movingMagnetBottomRightNewPoint,magnet.leftTopCorner(),magnet.leftBottomCorner())) ||
-                            (thereIsACollision(movingMagnet.rightTopCorner(),movingMagnetTopRightNewPoint,magnet.leftTopCorner(),magnet.leftBottomCorner()))) {
-                        if(movingMagnetTopRightNewPoint.x >= magnet.leftTopCornerX()){
-                            closestMagnet = new MagnetSide(movingMagnet.id(),magnet,magnet.leftTopCorner().x-movingMagnet.rightTopCorner().x,0);
-                            handleCollision(closestMagnet);
-                        }
-                    }
-                }
-                break;
+        return closestMagnet;
+    }
+
+    private MagnetSide getSideForQuadrant1(side connectedSide, PointF movingMagnetTopRightNewPoint,PointF movingMagnetTopLeftNewPoint, Magnet movingMagnet, Magnet magnet) {
+        MagnetSide closestMagnet = null;
+        if(connectedSide == side.BOTTOM) {
+            if(movingMagnetTopRightNewPoint.y <= magnet.leftBottomCornerY() && movingMagnet.leftBottomCorner().x <= magnet.rightBottomCorner().x) {
+                closestMagnet = new MagnetSide(movingMagnet.id(),magnet,0,magnet.leftBottomCorner().y-movingMagnet.leftTopCorner().y);
+                handleCollision(closestMagnet);
+            }
+        } else if(connectedSide == side.RIGHT) {
+            if(movingMagnetTopLeftNewPoint.x <= magnet.rightBottomCornerX() && movingMagnet.leftTopCorner().y <= magnet.rightBottomCorner().y) {
+                closestMagnet = new MagnetSide(movingMagnet.id(),magnet, magnet.rightTopCorner().x-movingMagnet.leftTopCorner().x,0);
+                handleCollision(closestMagnet);
+            }
+        }
+        return closestMagnet;
+    }
+
+    private MagnetSide getSideForQuadrant3(side connectedSide, PointF movingMagnetBottomLeftNewPoint, PointF movingMagnetTopLeftNewPoint, Magnet movingMagnet, Magnet magnet) {
+        MagnetSide closestMagnet = null;
+        if(connectedSide == side.TOP) {
+            if(movingMagnetBottomLeftNewPoint.y >= magnet.leftTopCornerY() && movingMagnet.leftBottomCorner().x <= magnet.rightBottomCorner().x) {
+                closestMagnet = new MagnetSide(movingMagnet.id(),magnet,0,magnet.leftTopCorner().y-movingMagnet.leftBottomCorner().y);
+                handleCollision(closestMagnet);
+            }
+        } else if(connectedSide == side.RIGHT) {
+            if(movingMagnetTopLeftNewPoint.x <= magnet.rightBottomCorner().x && movingMagnet.leftBottomCorner().y >= magnet.leftTopCorner().y) {
+                closestMagnet = new MagnetSide(movingMagnet.id(),magnet, magnet.rightTopCorner().x-movingMagnet.leftTopCorner().x,0);
+                handleCollision(closestMagnet);
+            }
+        }
+        return closestMagnet;
+    }
+
+    private MagnetSide getSideForQuadrant2(side connectedSide, PointF movingMagnetTopRightNewPoint, Magnet movingMagnet, Magnet magnet) {
+        MagnetSide closestMagnet = null;
+        if(connectedSide == side.BOTTOM) {
+            if(movingMagnetTopRightNewPoint.y <= magnet.leftBottomCornerY() && movingMagnet.rightBottomCorner().x >= magnet.leftBottomCorner().x) {
+                closestMagnet = new MagnetSide(movingMagnet.id(),magnet,0,magnet.leftBottomCorner().y-movingMagnet.leftTopCorner().y);
+                handleCollision(closestMagnet);
+            }
+        } else if(connectedSide == side.LEFT) {
+            if(movingMagnetTopRightNewPoint.x >= magnet.leftBottomCornerX() && movingMagnet.rightTopCorner().y <= magnet.leftBottomCorner().y) {
+                closestMagnet = new MagnetSide(movingMagnet.id(),magnet,magnet.leftTopCorner().x-movingMagnet.rightTopCorner().x,0);
+                handleCollision(closestMagnet);
+            }
+        }
+        return closestMagnet;
+    }
+
+
+
+    private MagnetSide getSideForQuadrant4(side connectedSide, PointF movingMagnetBottomLeftNewPoint,PointF movingMagnetBottomRightNewPoint, Magnet movingMagnet, Magnet magnet) {
+        MagnetSide closestMagnet = null;
+
+        if(connectedSide == side.TOP) {
+            if(movingMagnetBottomLeftNewPoint.y >= magnet.leftTopCornerY() && movingMagnet.rightBottomCorner().x >= magnet.leftBottomCorner().x) {
+                closestMagnet = new MagnetSide(movingMagnet.id(),magnet,0,magnet.leftTopCorner().y-movingMagnet.leftBottomCorner().y);
+                handleCollision(closestMagnet);
+            }
+        } else if(connectedSide == side.LEFT) {
+            if(movingMagnetBottomRightNewPoint.x >= magnet.leftTopCornerX() && movingMagnet.rightBottomCorner().y >= magnet.rightTopCorner().y) {
+                closestMagnet = new MagnetSide(movingMagnet.id(),magnet,magnet.leftTopCorner().x-movingMagnet.rightTopCorner().x,0);
+                handleCollision(closestMagnet);
+            }
         }
         return closestMagnet;
     }
@@ -501,116 +506,122 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
     private void handleMovingClickedTile(Magnet movingMagnet, float xTouchPosition, float yTouchPosition) {
         checkIfTheMagnetIsAboveTheTrashCan(movingMagnet);
         MagnetSide closestMagnet = null;
-        int closePadding = (int)(40 * scaleFactor);
-        side connectedSide;
+        boolean atLeastOneCollision = false;
+        int closePadding = (int)(45 * scaleFactor);
         float shiftX = xTouchPosition - movingMagnet.x();
         float shiftY = yTouchPosition - movingMagnet.y();
         for(Magnet magnet : magnets) {
-            int currentQuadrant = getQuadrant(magnet);
-            switch (currentQuadrant) {
-            case 1:
-                if(magnet.id() != movingMagnet.id() && !magnetsAreAttached(movingMagnet,magnet)) {
-                    PointF movingMagnetTopLeftNewPoint = new PointF(movingMagnet.leftTopCornerX() + shiftX, movingMagnet.leftTopCornerY() + shiftY);
-                    PointF movingMagnetBottomLeftNewPoint = new PointF(movingMagnet.leftBottomCornerX() + shiftX,movingMagnet.leftBottomCornerY() + shiftY);
-                    PointF movingMagnetTopRightNewPoint = new PointF(movingMagnet.rightTopCornerX() + shiftX,movingMagnet.rightTopCornerY() + shiftY);
-                    connectedSide = findPossibleCollisionsForFirstQuadrant(magnet,movingMagnet,xTouchPosition,yTouchPosition,movingMagnetTopLeftNewPoint,movingMagnetBottomLeftNewPoint,movingMagnetTopRightNewPoint);
-                    if(connectedSide != null) {
-                        if(connectedSide == side.BOTTOM) {
-                            if(movingMagnetTopLeftNewPoint.y <= magnet.leftBottomCornerY()) {
-                                closestMagnet = new MagnetSide(movingMagnet.id(),magnet,0,magnet.leftBottomCorner().y-movingMagnet.leftTopCorner().y);
+            side connectedSide = null;
 
+            if(magnet.id() != movingMagnet.id()) {
+                int currentQuadrant = getQuadrant(magnet);
+                PointF movingMagnetTopLeftNewPoint = new PointF(movingMagnet.leftTopCornerX() + shiftX, movingMagnet.leftTopCornerY() + shiftY);
+                PointF movingMagnetBottomLeftNewPoint = new PointF(movingMagnet.leftBottomCornerX() + shiftX,movingMagnet.leftBottomCornerY() + shiftY);
+                PointF movingMagnetTopRightNewPoint = new PointF(movingMagnet.rightTopCornerX() + shiftX,movingMagnet.rightTopCornerY() + shiftY);
+                PointF movingMagnetBottomRightNewPoint = new PointF(movingMagnet.rightBottomCornerX() + shiftX,movingMagnet.rightBottomCornerY() + shiftY);
+
+                PointF staticMagnetTopLeftNewPoint = new PointF(magnet.leftTopCornerX() + shiftX, magnet.leftTopCornerY() + shiftY);
+                PointF staticMagnetBottomLeftNewPoint = new PointF(magnet.leftBottomCornerX() + shiftX,magnet.leftBottomCornerY() + shiftY);
+                PointF staticMagnetTopRightNewPoint = new PointF(magnet.rightTopCornerX() + shiftX,magnet.rightTopCornerY() + shiftY);
+                PointF staticMagnetBottomRightNewPoint = new PointF(magnet.rightBottomCornerX() + shiftX,magnet.rightBottomCornerY() + shiftY);
+                switch (currentQuadrant) {
+                    case 1:
+                        //connectedSide = findPossibleCollisionsForFirstQuadrant(magnet,movingMagnet,movingMagnetTopLeftNewPoint,movingMagnetBottomLeftNewPoint,movingMagnetTopRightNewPoint);
+                        /*if(connectedSide == side.BOTTOM) {
+                            if(movingMagnetTopRightNewPoint.y <= magnet.leftBottomCornerY() && movingMagnet.leftBottomCorner().x <= magnet.rightBottomCorner().x) {
+                                closestMagnet = new MagnetSide(movingMagnet.id(),magnet,0,magnet.leftBottomCorner().y-movingMagnet.leftTopCorner().y);
                                 handleCollision(closestMagnet);
                             }
                         } else if(connectedSide == side.RIGHT) {
-                            if(movingMagnetTopRightNewPoint.x <= magnet.rightBottomCornerX()) {
+                            if(movingMagnetTopLeftNewPoint.x <= magnet.rightBottomCornerX() && movingMagnet.leftTopCorner().y <= magnet.rightBottomCorner().y) {
                                 closestMagnet = new MagnetSide(movingMagnet.id(),magnet, magnet.rightTopCorner().x-movingMagnet.leftTopCorner().x,0);
-
                                 handleCollision(closestMagnet);
                             }
-                        }
-                    }
-                }
-                break;
-            case 2:
+                        }*/
+                        //closestMagnet = getSideForQuadrant1(connectedSide,movingMagnetTopRightNewPoint,movingMagnetTopLeftNewPoint,movingMagnet,magnet);
 
-                if(magnet.id() != movingMagnet.id() && !magnetsAreAttached(movingMagnet,magnet)) {
+                       // if(movingMagnet.width() <= magnet.width()) {
+                        connectedSide = findPossibleCollisionsForFirstQuadrant(magnet,movingMagnet,movingMagnetTopLeftNewPoint,movingMagnetBottomLeftNewPoint,movingMagnetTopRightNewPoint, movingMagnetBottomRightNewPoint, staticMagnetBottomLeftNewPoint,  staticMagnetBottomRightNewPoint,  staticMagnetTopRightNewPoint);
+                        closestMagnet = getSideForQuadrant1(connectedSide,movingMagnetTopRightNewPoint,movingMagnetTopLeftNewPoint,movingMagnet,magnet);
 
-                    PointF movingMagnetTopLeftNewPoint = new PointF(movingMagnet.leftTopCornerX() + shiftX, movingMagnet.leftTopCornerY() + shiftY);
-                    PointF movingMagnetBottomRightNewPoint = new PointF(movingMagnet.rightBottomCornerX() + shiftX,movingMagnet.rightBottomCornerY() + shiftY);
-                    PointF movingMagnetTopRightNewPoint = new PointF(movingMagnet.rightTopCornerX() + shiftX,movingMagnet.rightTopCornerY() + shiftY);
-                    connectedSide = findPossibleCollisionsForSecondQuadrant(magnet,movingMagnet,xTouchPosition,yTouchPosition,movingMagnetTopLeftNewPoint,movingMagnetBottomRightNewPoint,movingMagnetTopRightNewPoint);
-                    if(connectedSide != null) {
+                        if(closestMagnet != null) atLeastOneCollision = true;
+                        break;
+                    case 2:
+                        /*connectedSide = findPossibleCollisionsForSecondQuadrant(magnet,movingMagnet,movingMagnetTopLeftNewPoint,movingMagnetBottomRightNewPoint,movingMagnetTopRightNewPoint);
                         if(connectedSide == side.BOTTOM) {
-                            if(movingMagnetTopRightNewPoint.y <= magnet.leftBottomCornerY()) {
+                            if(movingMagnetTopRightNewPoint.y <= magnet.leftBottomCornerY() && movingMagnet.rightBottomCorner().x >= magnet.leftBottomCorner().x) {
                                 closestMagnet = new MagnetSide(movingMagnet.id(),magnet,0,magnet.leftBottomCorner().y-movingMagnet.leftTopCorner().y);
-
                                 handleCollision(closestMagnet);
                             }
                         } else if(connectedSide == side.LEFT) {
-                            if(movingMagnetTopRightNewPoint.x >= magnet.leftBottomCornerX()) {
+                            if(movingMagnetTopRightNewPoint.x >= magnet.leftBottomCornerX() && movingMagnet.rightTopCorner().y <= magnet.leftBottomCorner().y) {
                                 closestMagnet = new MagnetSide(movingMagnet.id(),magnet,magnet.leftTopCorner().x-movingMagnet.rightTopCorner().x,0);
-
                                 handleCollision(closestMagnet);
                             }
-                        }
+                        }*/
+                        //if(movingMagnet.width() <= magnet.width()) {
+                            connectedSide = findPossibleCollisionsForSecondQuadrant(magnet,movingMagnet,movingMagnetTopLeftNewPoint,movingMagnetBottomRightNewPoint,movingMagnetTopRightNewPoint,staticMagnetBottomLeftNewPoint,staticMagnetBottomRightNewPoint,staticMagnetTopLeftNewPoint);
+                            closestMagnet = getSideForQuadrant2(connectedSide,movingMagnetTopRightNewPoint,movingMagnet,magnet);
+                       // } else {
+                         //   connectedSide = findPossibleCollisionsForThirdQuadrant(movingMagnet, magnet, movingMagnetTopLeftNewPoint, movingMagnetBottomLeftNewPoint, movingMagnetBottomRightNewPoint,staticMagnetTopRightNewPoint,staticMagnetBottomRightNewPoint,staticMagnetTopLeftNewPoint);
+                         //  / if(connectedSide == side.TOP) closestMagnet = getSideForQuadrant2(side.BOTTOM,movingMagnetTopRightNewPoint,movingMagnet,magnet);//
+                          //  else if(connectedSide == side.RIGHT) closestMagnet = getSideForQuadrant2(side.LEFT,movingMagnetTopRightNewPoint,movingMagnet,magnet);
 
-                    }
-                }
-                break;
-            case 3:
+                        //}
+                        if(closestMagnet != null) atLeastOneCollision = true;
 
-                if(magnet.id() != movingMagnet.id() && !magnetsAreAttached(movingMagnet,magnet)) {
 
-                    PointF movingMagnetTopLeftNewPoint = new PointF(movingMagnet.leftTopCornerX() + shiftX, movingMagnet.leftTopCornerY() + shiftY);
-                    PointF movingMagnetBottomLeftNewPoint = new PointF(movingMagnet.leftBottomCornerX() + shiftX,movingMagnet.leftBottomCornerY() + shiftY);
-                    PointF movingMagnetBottomRightNewPoint = new PointF(movingMagnet.rightBottomCornerX() + shiftX,movingMagnet.rightBottomCornerY() + shiftY);
-                    connectedSide = findPossibleCollisionsForThirdQuadrant(magnet, movingMagnet, xTouchPosition, yTouchPosition, movingMagnetTopLeftNewPoint, movingMagnetBottomLeftNewPoint, movingMagnetBottomRightNewPoint);
-                    if(connectedSide != null) {
+                        break;
+                    case 3:
+                        /*connectedSide = findPossibleCollisionsForThirdQuadrant(magnet, movingMagnet, movingMagnetTopLeftNewPoint, movingMagnetBottomLeftNewPoint, movingMagnetBottomRightNewPoint);
                         if(connectedSide == side.TOP) {
-                            if(movingMagnetTopLeftNewPoint.y >= magnet.leftTopCornerY()) {
+                            if(movingMagnetBottomLeftNewPoint.y >= magnet.leftTopCornerY() && movingMagnet.leftBottomCorner().x <= magnet.rightBottomCorner().x) {
                                 closestMagnet = new MagnetSide(movingMagnet.id(),magnet,0,magnet.leftTopCorner().y-movingMagnet.leftBottomCorner().y);
-
                                 handleCollision(closestMagnet);
                             }
                         } else if(connectedSide == side.RIGHT) {
-                            if(movingMagnetTopLeftNewPoint.x <= magnet.rightBottomCornerX()) {
+                            if(movingMagnetTopLeftNewPoint.x <= magnet.rightBottomCorner().x && movingMagnet.leftBottomCorner().y >= magnet.leftTopCorner().y) {
                                 closestMagnet = new MagnetSide(movingMagnet.id(),magnet, magnet.rightTopCorner().x-movingMagnet.leftTopCorner().x,0);
-
                                 handleCollision(closestMagnet);
                             }
-                        }
-                    }
-                }
-                break;
-            case 4:
-                if(magnet.id() != movingMagnet.id() && !magnetsAreAttached(movingMagnet,magnet)) {
+                        }*/
+                       // if(movingMagnet.width() <= magnet.width()) {
+                            connectedSide = findPossibleCollisionsForThirdQuadrant(magnet, movingMagnet, movingMagnetTopLeftNewPoint, movingMagnetBottomLeftNewPoint, movingMagnetBottomRightNewPoint,staticMagnetTopRightNewPoint,staticMagnetBottomRightNewPoint,staticMagnetTopLeftNewPoint);
+                            closestMagnet = getSideForQuadrant3(connectedSide,movingMagnetBottomLeftNewPoint,movingMagnetTopLeftNewPoint,movingMagnet,magnet);
+                        //} else {
+                         //   connectedSide = findPossibleCollisionsForSecondQuadrant(movingMagnet,magnet,movingMagnetTopLeftNewPoint,movingMagnetBottomRightNewPoint,movingMagnetTopRightNewPoint);
+                          //  if(connectedSide == side.BOTTOM) closestMagnet = getSideForQuadrant3(side.TOP,movingMagnetBottomLeftNewPoint,movingMagnetTopLeftNewPoint,movingMagnet,magnet);
+                          //  else if(connectedSide == side.LEFT) closestMagnet = getSideForQuadrant3(side.RIGHT,movingMagnetBottomLeftNewPoint,movingMagnetTopLeftNewPoint,movingMagnet,magnet);
 
-                    PointF movingMagnetBottomLeftNewPoint = new PointF(movingMagnet.leftBottomCornerX() + shiftX,movingMagnet.leftBottomCornerY() + shiftY);
-                    PointF movingMagnetBottomRightNewPoint = new PointF(movingMagnet.rightBottomCornerX() + shiftX,movingMagnet.rightBottomCornerY() + shiftY);
-                    PointF movingMagnetTopRightNewPoint = new PointF(movingMagnet.rightTopCornerX() + shiftX,movingMagnet.rightTopCornerY() + shiftY);
-                    connectedSide = findPossibleCollisionsForFourthQuadrant(magnet,movingMagnet,xTouchPosition,yTouchPosition,movingMagnetBottomLeftNewPoint,movingMagnetBottomRightNewPoint,movingMagnetTopRightNewPoint);
-                    if(connectedSide != null) {
+                       // }
+                       if(closestMagnet != null) atLeastOneCollision = true;//
+
+                        break;
+                    case 4:
+                        /*connectedSide = findPossibleCollisionsForFourthQuadrant(magnet,movingMagnet,movingMagnetBottomLeftNewPoint,movingMagnetBottomRightNewPoint,movingMagnetTopRightNewPoint);
                         if(connectedSide == side.TOP) {
-                            if(movingMagnetBottomLeftNewPoint.y >= magnet.leftTopCornerY()) {
+                            if(movingMagnetBottomLeftNewPoint.y >= magnet.leftTopCornerY() && movingMagnet.rightBottomCorner().x >= magnet.leftBottomCorner().x) {
                                 closestMagnet = new MagnetSide(movingMagnet.id(),magnet,0,magnet.leftTopCorner().y-movingMagnet.leftBottomCorner().y);
-
                                 handleCollision(closestMagnet);
                             }
-
                         } else if(connectedSide == side.LEFT) {
-                            if(movingMagnetBottomLeftNewPoint.x >= magnet.leftTopCornerX()) {
+                            if(movingMagnetBottomRightNewPoint.x >= magnet.leftTopCornerX() && movingMagnet.rightBottomCorner().y >= magnet.rightTopCorner().y) {
                                 closestMagnet = new MagnetSide(movingMagnet.id(),magnet,magnet.leftTopCorner().x-movingMagnet.rightTopCorner().x,0);
-
                                 handleCollision(closestMagnet);
                             }
-                        }
-                    }
+                        }*/
+                        //connectedSide = findPossibleCollisionsForFourthQuadrant(magnet,movingMagnet,movingMagnetBottomLeftNewPoint,movingMagnetBottomRightNewPoint,movingMagnetTopRightNewPoint);
+                        //closestMagnet = getSideForQuadrant4(connectedSide,movingMagnetBottomLeftNewPoint,movingMagnetBottomRightNewPoint,movingMagnet,magnet);
+                        //if(movingMagnet.width() <= magnet.width()) {
+                            connectedSide = findPossibleCollisionsForFourthQuadrant(magnet,movingMagnet,movingMagnetBottomLeftNewPoint,movingMagnetBottomRightNewPoint,movingMagnetTopRightNewPoint,movingMagnetTopLeftNewPoint,staticMagnetBottomLeftNewPoint,staticMagnetBottomRightNewPoint,staticMagnetTopRightNewPoint);
+                            closestMagnet = getSideForQuadrant4(connectedSide,movingMagnetBottomLeftNewPoint,movingMagnetBottomRightNewPoint,movingMagnet,magnet);
+                        if(closestMagnet != null) atLeastOneCollision = true;
+                        break;
                 }
-                break;
+            }
 
-        }
     }
-        if(closestMagnet == null) {
+        if(!atLeastOneCollision) {
             toHighlightMagnets.clear();
             ArrayList<Magnet> closeMagnets = getCloseMagnets(movingMagnet,xTouchPosition, yTouchPosition,closePadding);
             if (!closeMagnets.isEmpty()) { // if there are close magnets
@@ -628,59 +639,273 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
     }
 
 
+    private boolean thereIsABottomCollisionInQuadrant1(Magnet movingMagnet, Magnet magnet, PointF movingMagnetTopLeftNewPoint, PointF movingMagnetBottomLeftNewPoint, PointF movingMagnetTopRightNewPoint, PointF staticMagnetBottomLeftNewPoint, PointF staticMagnetBottomRightNewPoint, PointF staticMagnetTopRightNewPoint){
+        if(movingMagnet.width() > magnet.width()) {
+            if((thereIsACollision(magnet.leftBottomCorner(),staticMagnetBottomLeftNewPoint,movingMagnet.leftTopCorner(),movingMagnet.rightTopCorner())) ||
+                    (thereIsACollision(magnet.rightBottomCorner(),staticMagnetBottomRightNewPoint,movingMagnet.leftTopCorner(),movingMagnet.rightTopCorner())) ||
+                    (thereIsACollision(magnet.rightTopCorner(),staticMagnetTopRightNewPoint,movingMagnet.leftTopCorner(),movingMagnet.rightTopCorner())))     {
+                return true;
+            }
+        } else {
+            if ((thereIsACollision(movingMagnet.leftTopCorner(), movingMagnetTopLeftNewPoint, magnet.leftBottomCorner(), magnet.rightBottomCorner())) ||
+                    (thereIsACollision(movingMagnet.leftBottomCorner(), movingMagnetBottomLeftNewPoint, magnet.leftBottomCorner(), magnet.rightBottomCorner())) ||
+                    (thereIsACollision(movingMagnet.rightTopCorner(), movingMagnetTopRightNewPoint, magnet.leftBottomCorner(), magnet.rightBottomCorner()))) {
+                //collidedSide = side.BOTTOM;
+                return true;
+            }
+        }
+        return false;
+    }
 
-    private side findPossibleCollisionsForFirstQuadrant(Magnet magnet, Magnet movingMagnet, float xTouchPosition, float yTouchPosition, PointF movingMagnetTopLeftNewPoint, PointF movingMagnetBottomLeftNewPoint,PointF movingMagnetTopRightNewPoint) {
+    private boolean thereIsARightCollisionInQuadrant1(Magnet movingMagnet, Magnet magnet, PointF movingMagnetTopLeftNewPoint, PointF movingMagnetBottomLeftNewPoint, PointF movingMagnetTopRightNewPoint,PointF staticMagnetBottomLeftNewPoint, PointF staticMagnetBottomRightNewPoint, PointF staticMagnetTopRightNewPoint) {
+        if(movingMagnet.height() > magnet.height()) {
+            if((thereIsACollision(magnet.leftBottomCorner(),staticMagnetBottomLeftNewPoint,movingMagnet.leftTopCorner(),movingMagnet.leftBottomCorner())) ||
+                    (thereIsACollision(magnet.rightBottomCorner(),staticMagnetBottomRightNewPoint,movingMagnet.leftTopCorner(),movingMagnet.leftBottomCorner())) ||
+                    (thereIsACollision(magnet.rightTopCorner(),staticMagnetTopRightNewPoint,movingMagnet.leftTopCorner(),movingMagnet.leftBottomCorner()))) {
+                return true;
+            }
+        } else {
+            if((thereIsACollision(movingMagnet.leftTopCorner(),movingMagnetTopLeftNewPoint,magnet.rightBottomCorner(),magnet.rightTopCorner())) ||
+                    (thereIsACollision(movingMagnet.leftBottomCorner(),movingMagnetBottomLeftNewPoint,magnet.rightBottomCorner(),magnet.rightTopCorner())) ||
+                    (thereIsACollision(movingMagnet.rightTopCorner(),movingMagnetTopRightNewPoint,magnet.rightBottomCorner(),magnet.rightTopCorner()))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean thereIsABottomCollisionInQuadrant2(Magnet movingMagnet, Magnet magnet, PointF movingMagnetTopLeftNewPoint, PointF movingMagnetBottomRightNewPoint, PointF movingMagnetTopRightNewPoint, PointF staticMagnetBottomLeftNewPoint, PointF staticMagnetBottomRightNewPoint, PointF staticMagnetTopLeftNewPoint){
+        if(movingMagnet.width() > magnet.width()) {
+            if((thereIsACollision(magnet.leftTopCorner(),staticMagnetTopLeftNewPoint,movingMagnet.leftTopCorner(),movingMagnet.rightTopCorner()))
+                    || (thereIsACollision(magnet.rightBottomCorner(),staticMagnetBottomRightNewPoint,movingMagnet.leftTopCorner(),movingMagnet.rightTopCorner()))
+                    || (thereIsACollision(magnet.leftBottomCorner(),staticMagnetBottomLeftNewPoint,movingMagnet.leftTopCorner(),movingMagnet.rightTopCorner()))) {
+                return true;
+            }
+        } else {
+            if((thereIsACollision(movingMagnet.leftTopCorner(),movingMagnetTopLeftNewPoint,magnet.leftBottomCorner(),magnet.rightBottomCorner()) )
+                    || (thereIsACollision(movingMagnet.rightBottomCorner(),movingMagnetBottomRightNewPoint,magnet.leftBottomCorner(),magnet.rightBottomCorner()))
+                    || (thereIsACollision(movingMagnet.rightTopCorner(),movingMagnetTopRightNewPoint,magnet.leftBottomCorner(),magnet.rightBottomCorner()))) {
+                //collidedSide = side.BOTTOM;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean thereIsALeftCollisionInQuadrant2(Magnet movingMagnet, Magnet magnet, PointF movingMagnetTopLeftNewPoint, PointF movingMagnetBottomRightNewPoint, PointF movingMagnetTopRightNewPoint,PointF staticMagnetBottomLeftNewPoint, PointF staticMagnetBottomRightNewPoint, PointF staticMagnetTopLeftNewPoint) {
+        if(movingMagnet.height() > magnet.height()) {
+            if((thereIsACollision(magnet.leftTopCorner(),staticMagnetTopLeftNewPoint,movingMagnet.rightBottomCorner(),movingMagnet.rightTopCorner()))
+                    || (thereIsACollision(magnet.rightBottomCorner(),staticMagnetBottomRightNewPoint,movingMagnet.rightBottomCorner(),movingMagnet.rightTopCorner()))
+                    || (thereIsACollision(magnet.leftBottomCorner(),staticMagnetBottomLeftNewPoint,movingMagnet.rightBottomCorner(),movingMagnet.rightTopCorner()))) {
+                return true;
+            }
+        } else {
+            if((thereIsACollision(movingMagnet.leftTopCorner(),movingMagnetTopLeftNewPoint,magnet.leftBottomCorner(),magnet.leftTopCorner()))
+                    || (thereIsACollision(movingMagnet.rightBottomCorner(),movingMagnetBottomRightNewPoint,magnet.leftBottomCorner(),magnet.leftTopCorner()))
+                    || (thereIsACollision(movingMagnet.rightTopCorner(),movingMagnetTopRightNewPoint,magnet.leftBottomCorner(),magnet.leftTopCorner()))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean thereIsATopCollisionInQuadrant3(Magnet movingMagnet, Magnet magnet, PointF movingMagnetTopLeftNewPoint, PointF movingMagnetBottomRightNewPoint, PointF movingMagnetBottomLeftNewPoint, PointF staticMagnetTopRightNewPoint, PointF staticMagnetBottomRightNewPoint, PointF staticMagnetTopLeftNewPoint){
+        if(movingMagnet.width() > magnet.width()) {
+            if((thereIsACollision(magnet.leftTopCorner(),staticMagnetTopLeftNewPoint,movingMagnet.leftBottomCorner(),movingMagnet.rightBottomCorner()) )
+                    || (thereIsACollision(magnet.rightBottomCorner(),staticMagnetBottomRightNewPoint,movingMagnet.leftBottomCorner(),movingMagnet.rightBottomCorner()))
+                    || (thereIsACollision(magnet.rightTopCorner(),staticMagnetTopRightNewPoint,movingMagnet.leftBottomCorner(),movingMagnet.rightBottomCorner()))) {
+                return true;
+            }
+        } else {
+            if((thereIsACollision(movingMagnet.leftTopCorner(),movingMagnetTopLeftNewPoint,magnet.leftTopCorner(),magnet.rightTopCorner()))
+                    || (thereIsACollision(movingMagnet.rightBottomCorner(),movingMagnetBottomRightNewPoint,magnet.leftTopCorner(),magnet.rightTopCorner()))
+                    || (thereIsACollision(movingMagnet.leftBottomCorner(),movingMagnetBottomLeftNewPoint,magnet.leftTopCorner(),magnet.rightTopCorner()))) {
+                //collidedSide = side.BOTTOM;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean thereIsARightCollisionInQuadrant3(Magnet movingMagnet, Magnet magnet, PointF movingMagnetTopLeftNewPoint, PointF movingMagnetBottomRightNewPoint, PointF movingMagnetBottomLeftNewPoint,PointF staticMagnetTopRightNewPoint, PointF staticMagnetBottomRightNewPoint, PointF staticMagnetTopLeftNewPoint) {
+        if(movingMagnet.height() > magnet.height()) {
+            if((thereIsACollision(magnet.leftTopCorner(),staticMagnetTopLeftNewPoint,movingMagnet.leftBottomCorner(),movingMagnet.leftTopCorner()))
+                    || (thereIsACollision(magnet.rightBottomCorner(),staticMagnetBottomRightNewPoint,movingMagnet.leftBottomCorner(),movingMagnet.leftTopCorner()))
+                    || (thereIsACollision(magnet.rightTopCorner(),staticMagnetTopRightNewPoint,movingMagnet.leftBottomCorner(),movingMagnet.leftTopCorner()))) {
+                return true;
+            }
+        } else {
+            if((thereIsACollision(movingMagnet.leftTopCorner(),movingMagnetTopLeftNewPoint,magnet.rightBottomCorner(),magnet.rightTopCorner()))
+                    || (thereIsACollision(movingMagnet.rightBottomCorner(),movingMagnetBottomRightNewPoint,magnet.rightBottomCorner(),magnet.rightTopCorner()))
+                    || (thereIsACollision(movingMagnet.leftBottomCorner(),movingMagnetBottomLeftNewPoint,magnet.rightBottomCorner(),magnet.rightTopCorner()))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    private boolean thereIsTopCollisionInQuadrant4(Magnet movingMagnet, Magnet magnet, PointF movingMagnetBottomRightNewPoint, PointF movingMagnetBottomLeftNewPoint, PointF movingMagnetTopRightNewPoint, PointF staticMagnetBottomLeftNewPoint, PointF staticMagnetTopLeftNewPoint, PointF staticMagnetTopRightNewPoint){
+        if(movingMagnet.width() > magnet.width()) {
+            if((thereIsACollision(magnet.leftTopCorner(), staticMagnetTopLeftNewPoint, movingMagnet.leftBottomCorner(), movingMagnet.rightBottomCorner())) ||
+                    (thereIsACollision(magnet.leftBottomCorner(), staticMagnetBottomLeftNewPoint, movingMagnet.leftBottomCorner(), movingMagnet.rightBottomCorner())) ||
+                    (thereIsACollision(magnet.rightTopCorner(), staticMagnetTopRightNewPoint, movingMagnet.leftBottomCorner(), movingMagnet.rightBottomCorner()))) {
+                return true;
+            }
+        } else {
+            if((thereIsACollision(movingMagnet.leftBottomCorner(),movingMagnetBottomLeftNewPoint,magnet.leftTopCorner(),magnet.rightTopCorner())) ||
+                    (thereIsACollision(movingMagnet.rightBottomCorner(),movingMagnetBottomRightNewPoint,magnet.leftTopCorner(),magnet.rightTopCorner())) ||
+                    (thereIsACollision(movingMagnet.rightTopCorner(),movingMagnetTopRightNewPoint,magnet.leftTopCorner(),magnet.rightTopCorner()))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean thereIsLeftCollisionInQuadrant4(Magnet movingMagnet, Magnet magnet, PointF movingMagnetBottomRightNewPoint, PointF movingMagnetBottomLeftNewPoint, PointF movingMagnetTopRightNewPoint,PointF staticMagnetBottomLeftNewPoint, PointF staticMagnetTopLeftNewPoint, PointF staticMagnetTopRightNewPoint) {
+        if(movingMagnet.height() > magnet.height()) {
+            if((thereIsACollision(magnet.leftTopCorner(),staticMagnetTopLeftNewPoint,movingMagnet.rightBottomCorner(),movingMagnet.rightTopCorner())) ||
+                    (thereIsACollision(magnet.leftBottomCorner(),staticMagnetBottomLeftNewPoint,movingMagnet.rightBottomCorner(),movingMagnet.rightTopCorner())) ||
+                    (thereIsACollision(magnet.rightTopCorner(),staticMagnetTopRightNewPoint,movingMagnet.rightBottomCorner(),movingMagnet.rightTopCorner()))) {
+                return true;
+            }
+        } else {
+            if((thereIsACollision(movingMagnet.leftBottomCorner(),movingMagnetBottomLeftNewPoint,magnet.leftTopCorner(),magnet.leftBottomCorner())) ||
+                    (thereIsACollision(movingMagnet.rightBottomCorner(),movingMagnetBottomRightNewPoint,magnet.leftTopCorner(),magnet.leftBottomCorner())) ||
+                    (thereIsACollision(movingMagnet.rightTopCorner(),movingMagnetTopRightNewPoint,magnet.leftTopCorner(),magnet.leftBottomCorner()))) {
+                return true;
+            }
+        }
+
+
+        return false;
+    }
+
+
+    private side findPossibleCollisionsForFirstQuadrant(Magnet magnet, Magnet movingMagnet, PointF movingMagnetTopLeftNewPoint, PointF movingMagnetBottomLeftNewPoint,PointF movingMagnetTopRightNewPoint, PointF movingMagnetBottomRightNewPoint,PointF staticMagnetBottomLeftNewPoint, PointF staticMagnetBottomRightNewPoint, PointF staticMagnetTopRightNewPoint) {
         side collidedSide = null;
-        if((thereIsACollision(movingMagnet.leftTopCorner(),movingMagnetTopLeftNewPoint,magnet.leftBottomCorner(),magnet.rightBottomCorner())) ||
+
+        //if(thereIsABottomCollisionInQuadrant1(movingMagnet,magnet,movingMagnetTopLeftNewPoint,movingMagnetBottomLeftNewPoint,movingMagnetTopRightNewPoint)) collidedSide = side.BOTTOM;
+
+        if(thereIsABottomCollisionInQuadrant1(movingMagnet,magnet,movingMagnetTopLeftNewPoint,movingMagnetBottomLeftNewPoint,movingMagnetTopRightNewPoint,staticMagnetBottomLeftNewPoint,staticMagnetBottomRightNewPoint,staticMagnetTopRightNewPoint)) collidedSide = side.BOTTOM;
+        if(thereIsARightCollisionInQuadrant1(movingMagnet,magnet,movingMagnetTopLeftNewPoint,movingMagnetBottomLeftNewPoint,movingMagnetTopRightNewPoint, staticMagnetBottomLeftNewPoint, staticMagnetBottomRightNewPoint, staticMagnetTopRightNewPoint)) {
+            if(collidedSide == null) {
+                collidedSide = side.RIGHT;
+            } else {
+                if((movingMagnet.rightTopCorner().y - magnet.leftBottomCorner().y) >= 0) collidedSide = side.BOTTOM;
+                else collidedSide = side.RIGHT;
+            }
+
+        }
+
+       /* if((thereIsACollision(movingMagnet.leftTopCorner(),movingMagnetTopLeftNewPoint,magnet.leftBottomCorner(),magnet.rightBottomCorner())) ||
                 (thereIsACollision(movingMagnet.leftBottomCorner(),movingMagnetBottomLeftNewPoint,magnet.leftBottomCorner(),magnet.rightBottomCorner())) ||
                 (thereIsACollision(movingMagnet.rightTopCorner(),movingMagnetTopRightNewPoint,magnet.leftBottomCorner(),magnet.rightBottomCorner()))) {
             collidedSide = side.BOTTOM;
-        } else if((thereIsACollision(movingMagnet.leftTopCorner(),movingMagnetTopLeftNewPoint,magnet.rightBottomCorner(),magnet.rightTopCorner())) ||
+        }
+
+        if((thereIsACollision(movingMagnet.leftTopCorner(),movingMagnetTopLeftNewPoint,magnet.rightBottomCorner(),magnet.rightTopCorner())) ||
                 (thereIsACollision(movingMagnet.leftBottomCorner(),movingMagnetBottomLeftNewPoint,magnet.rightBottomCorner(),magnet.rightTopCorner())) ||
                 (thereIsACollision(movingMagnet.rightTopCorner(),movingMagnetTopRightNewPoint,magnet.rightBottomCorner(),magnet.rightTopCorner()))) {
-            collidedSide = side.RIGHT;
-        }
+            if(collidedSide == null) {
+                collidedSide = side.RIGHT;
+            } else {
+                if((movingMagnet.rightTopCorner().y - magnet.leftBottomCorner().y) >= 0) collidedSide = side.BOTTOM;
+                else collidedSide = side.RIGHT;
+            }
+        }*/
+
         return collidedSide;
     }
-    private side findPossibleCollisionsForSecondQuadrant(Magnet magnet, Magnet movingMagnet, float xTouchPosition, float yTouchPosition,PointF movingMagnetTopLeftNewPoint,PointF movingMagnetBottomRightNewPoint,PointF movingMagnetTopRightNewPoint) {
+    private side findPossibleCollisionsForSecondQuadrant(Magnet magnet, Magnet movingMagnet, PointF movingMagnetTopLeftNewPoint,PointF movingMagnetBottomRightNewPoint,PointF movingMagnetTopRightNewPoint, PointF staticMagnetBottomLeftNewPoint, PointF staticMagnetBottomRightNewPoint, PointF staticMagnetTopLeftNewPoint) {
         side collidedSide = null;
-        if((thereIsACollision(movingMagnet.leftTopCorner(),movingMagnetTopLeftNewPoint,magnet.leftBottomCorner(),magnet.rightBottomCorner()) )
+        /*if((thereIsACollision(movingMagnet.leftTopCorner(),movingMagnetTopLeftNewPoint,magnet.leftBottomCorner(),magnet.rightBottomCorner()) )
                 || (thereIsACollision(movingMagnet.rightBottomCorner(),movingMagnetBottomRightNewPoint,magnet.leftBottomCorner(),magnet.rightBottomCorner()))
                 || (thereIsACollision(movingMagnet.rightTopCorner(),movingMagnetTopRightNewPoint,magnet.leftBottomCorner(),magnet.rightBottomCorner()))) {
             collidedSide = side.BOTTOM;
-        } else if((thereIsACollision(movingMagnet.leftTopCorner(),movingMagnetTopLeftNewPoint,magnet.leftBottomCorner(),magnet.leftTopCorner()))
+        }
+        if((thereIsACollision(movingMagnet.leftTopCorner(),movingMagnetTopLeftNewPoint,magnet.leftBottomCorner(),magnet.leftTopCorner()))
                 || (thereIsACollision(movingMagnet.rightBottomCorner(),movingMagnetBottomRightNewPoint,magnet.leftBottomCorner(),magnet.leftTopCorner()))
                 || (thereIsACollision(movingMagnet.rightTopCorner(),movingMagnetTopRightNewPoint,magnet.leftBottomCorner(),magnet.leftTopCorner()))) {
-            collidedSide = side.LEFT;
+            if(collidedSide == null) {
+                collidedSide = side.LEFT;
+            } else {
+                if((movingMagnet.rightTopCorner().y - magnet.leftBottomCorner().y) >= 0) collidedSide = side.BOTTOM;
+                else collidedSide = side.LEFT;
+            }
+        }*/
+        if(thereIsABottomCollisionInQuadrant2(movingMagnet,magnet, movingMagnetTopLeftNewPoint,  movingMagnetBottomRightNewPoint, movingMagnetTopRightNewPoint,  staticMagnetBottomLeftNewPoint,  staticMagnetBottomRightNewPoint,  staticMagnetTopLeftNewPoint)) collidedSide = side.BOTTOM;
+        if(thereIsALeftCollisionInQuadrant2( movingMagnet,  magnet,  movingMagnetTopLeftNewPoint,  movingMagnetBottomRightNewPoint,  movingMagnetTopRightNewPoint, staticMagnetBottomLeftNewPoint, staticMagnetBottomRightNewPoint, staticMagnetTopLeftNewPoint)) {
+            if(collidedSide == null) {
+                collidedSide = side.LEFT;
+            } else {
+                if((movingMagnet.rightTopCorner().y - magnet.leftBottomCorner().y) >= 0) collidedSide = side.BOTTOM;
+                else collidedSide = side.LEFT;
+            }
+
         }
         return collidedSide;
     }
 
-    private side findPossibleCollisionsForThirdQuadrant(Magnet magnet, Magnet movingMagnet, float xTouchPosition, float yTouchPosition, PointF movingMagnetTopLeftNewPoint, PointF movingMagnetBottomLeftNewPoint, PointF movingMagnetBottomRightNewPoint) {
+    private side findPossibleCollisionsForThirdQuadrant(Magnet magnet, Magnet movingMagnet, PointF movingMagnetTopLeftNewPoint, PointF movingMagnetBottomLeftNewPoint, PointF movingMagnetBottomRightNewPoint, PointF staticMagnetTopRightNewPoint, PointF staticMagnetBottomRightNewPoint, PointF staticMagnetTopLeftNewPoint) {
         side collidedSide = null;
 
-        if((thereIsACollision(movingMagnet.leftTopCorner(),movingMagnetTopLeftNewPoint,magnet.leftTopCorner(),magnet.rightTopCorner()))
+       /* if((thereIsACollision(movingMagnet.leftTopCorner(),movingMagnetTopLeftNewPoint,magnet.leftTopCorner(),magnet.rightTopCorner()))
                 || (thereIsACollision(movingMagnet.rightBottomCorner(),movingMagnetBottomRightNewPoint,magnet.leftTopCorner(),magnet.rightTopCorner()))
                 || (thereIsACollision(movingMagnet.leftBottomCorner(),movingMagnetBottomLeftNewPoint,magnet.leftTopCorner(),magnet.rightTopCorner()))) {
             collidedSide = side.TOP;
-        } else if((thereIsACollision(movingMagnet.leftTopCorner(),movingMagnetTopLeftNewPoint,magnet.rightBottomCorner(),magnet.rightTopCorner()))
+        }
+        if((thereIsACollision(movingMagnet.leftTopCorner(),movingMagnetTopLeftNewPoint,magnet.rightBottomCorner(),magnet.rightTopCorner()))
                 || (thereIsACollision(movingMagnet.rightBottomCorner(),movingMagnetBottomRightNewPoint,magnet.rightBottomCorner(),magnet.rightTopCorner()))
                 || (thereIsACollision(movingMagnet.leftBottomCorner(),movingMagnetBottomLeftNewPoint,magnet.rightBottomCorner(),magnet.rightTopCorner()))) {
-            collidedSide = side.RIGHT;
+            if(collidedSide == null) {
+                collidedSide = side.RIGHT;
+            } else {
+                if((magnet.leftTopCorner().y - movingMagnet.leftBottomCorner().y) >= 0) collidedSide = side.TOP;
+                else collidedSide = side.RIGHT;
+            }
+        }*/
+        if(thereIsATopCollisionInQuadrant3( movingMagnet, magnet,  movingMagnetTopLeftNewPoint,  movingMagnetBottomRightNewPoint,  movingMagnetBottomLeftNewPoint,  staticMagnetTopRightNewPoint,  staticMagnetBottomRightNewPoint,  staticMagnetTopLeftNewPoint)) collidedSide = side.TOP;
+        if(thereIsARightCollisionInQuadrant3(movingMagnet, magnet, movingMagnetTopLeftNewPoint, movingMagnetBottomRightNewPoint, movingMagnetBottomLeftNewPoint,staticMagnetTopRightNewPoint, staticMagnetBottomRightNewPoint, staticMagnetTopLeftNewPoint )) {
+            if(collidedSide == null) {
+                collidedSide = side.RIGHT;
+            } else {
+                if((magnet.leftTopCorner().y - movingMagnet.leftBottomCorner().y) >= 0) collidedSide = side.TOP;
+                else collidedSide = side.RIGHT;
+            }
+
         }
+
         return collidedSide;
     }
 
-    private side findPossibleCollisionsForFourthQuadrant(Magnet magnet, Magnet movingMagnet, float xTouchPosition, float yTouchPosition, PointF movingMagnetBottomLeftNewPoint, PointF movingMagnetBottomRightNewPoint, PointF movingMagnetTopRightNewPoint) {
+    private side findPossibleCollisionsForFourthQuadrant(Magnet magnet, Magnet movingMagnet, PointF movingMagnetBottomLeftNewPoint, PointF movingMagnetBottomRightNewPoint, PointF movingMagnetTopRightNewPoint,PointF movingMagnetTopLeftNewPoint,PointF staticMagnetBottomLeftNewPoint,PointF staticMagnetBottomRightNewPoint, PointF staticMagnetTopRightNewPoint) {
         side collidedSide = null;
-        if((thereIsACollision(movingMagnet.leftBottomCorner(),movingMagnetBottomLeftNewPoint,magnet.leftTopCorner(),magnet.rightTopCorner())) ||
+        /*if((thereIsACollision(movingMagnet.leftBottomCorner(),movingMagnetBottomLeftNewPoint,magnet.leftTopCorner(),magnet.rightTopCorner())) ||
                 (thereIsACollision(movingMagnet.rightBottomCorner(),movingMagnetBottomRightNewPoint,magnet.leftTopCorner(),magnet.rightTopCorner())) ||
                 (thereIsACollision(movingMagnet.rightTopCorner(),movingMagnetTopRightNewPoint,magnet.leftTopCorner(),magnet.rightTopCorner()))) {
             collidedSide = side.TOP;
-        } else if((thereIsACollision(movingMagnet.leftBottomCorner(),movingMagnetBottomLeftNewPoint,magnet.leftTopCorner(),magnet.leftBottomCorner())) ||
+        }
+        if((thereIsACollision(movingMagnet.leftBottomCorner(),movingMagnetBottomLeftNewPoint,magnet.leftTopCorner(),magnet.leftBottomCorner())) ||
                 (thereIsACollision(movingMagnet.rightBottomCorner(),movingMagnetBottomRightNewPoint,magnet.leftTopCorner(),magnet.leftBottomCorner())) ||
                 (thereIsACollision(movingMagnet.rightTopCorner(),movingMagnetTopRightNewPoint,magnet.leftTopCorner(),magnet.leftBottomCorner()))) {
-            collidedSide = side.LEFT;
+            if(collidedSide == null) {
+                collidedSide = side.LEFT;
+
+            }else {
+                if((magnet.leftTopCorner().y - movingMagnet.leftBottomCorner().y) >= 0) collidedSide = side.TOP;
+                else collidedSide = side.LEFT;
+            }
+        }*/
+        if(thereIsTopCollisionInQuadrant4(movingMagnet,magnet,movingMagnetTopLeftNewPoint,movingMagnetBottomLeftNewPoint,movingMagnetTopRightNewPoint,staticMagnetBottomLeftNewPoint,staticMagnetBottomRightNewPoint,staticMagnetTopRightNewPoint)) collidedSide = side.TOP;
+        if(thereIsLeftCollisionInQuadrant4(movingMagnet,magnet,movingMagnetTopLeftNewPoint,movingMagnetBottomLeftNewPoint,movingMagnetTopRightNewPoint, staticMagnetBottomLeftNewPoint, staticMagnetBottomRightNewPoint, staticMagnetTopRightNewPoint)) {
+            if(collidedSide == null) {
+                collidedSide = side.LEFT;
+            } else {
+                if((magnet.leftTopCorner().y - movingMagnet.leftBottomCorner().y) >= 0) collidedSide = side.TOP;
+                else collidedSide = side.LEFT;
+            }
+
         }
         return collidedSide;
     }
@@ -711,6 +936,11 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
         float crossProduct1 = zComponentOfCrossProduct(movingMagnetVector,vectorFromMovingMagnetToEdge1);
         float crossProduct2 = zComponentOfCrossProduct(movingMagnetVector,vectorFromMovingMagnetToEdge2);
         return theCrossProductsHaveADifferentSign(crossProduct1,crossProduct2);
+    }
+
+    private boolean theMagnetIsMovingAway(PointF movingMagnetVector,PointF vectorFromMovingMagnetToEdge1) {
+        //return ((movingMagnetVector.x * vectorFromMovingMagnetToEdge1.x) < 0) || ((movingMagnetVector.y * vectorFromMovingMagnetToEdge1.y) < 0);
+        return false;
     }
 
     private boolean theCrossProductsHaveADifferentSign(double crossProduct1, double crossProduct2) {
@@ -776,10 +1006,18 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
         }
     }
 
+    private float transformToWorldCoordinates(float coordinate) {
+        return (-1*scalePivotX / scaleFactor) + (coordinate / scaleFactor) + (scalePivotX);
+    }
 
     /* A convenience method called by handleMovingClickedTile to set the magnetIsAboveTrashCan class variable.*/
     private void checkIfTheMagnetIsAboveTheTrashCan(Magnet clickedTile) {
-        magnetIsAboveTrashCan = trashCan.collidesWithTrashCan(clickedTile,getWidth(),getHeight());
+        //float width = (-1*scalePivotX / scaleFactor) + (getWidth() / scaleFactor) + (scalePivotX);
+        //float height = (-1*scalePivotY / scaleFactor) + (getHeight() / scaleFactor) + (scalePivotY);
+        //float width = (-1*scalePivotX / scaleFactor) + (getWidth() / scaleFactor) + (scalePivotX);
+        //float height = (-1*scalePivotY / scaleFactor) + (getHeight() / scaleFactor) + (scalePivotY);
+
+        magnetIsAboveTrashCan = trashCan.collidesWithTrashCan(clickedTile,getWidth(),getHeight(),scaleFactor,scalePivotX,scalePivotY);
     }
 
 
@@ -878,15 +1116,21 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
 
     }
 
-    private void resetIfPastCanvasBoundary(Magnet magnet, float rightBoundary, float bottomBoundary) {
-        float halfWidth = magnet.width()/2;
-        float halfHeight = magnet.height()/2;
-        if((magnet.x() + halfWidth) > rightBoundary) magnet.setX(rightBoundary - halfWidth);
-        if(magnet.x() - halfWidth < 0) {
-            magnet.setX(halfWidth);
+    private void resetIfPastCanvasBoundary(Magnet magnet, float rightBoundaryOriginal, float bottomBoundaryOriginal) {
+        float halfWidth = (magnet.width()*scaleFactor)/2;
+        float halfHeight = (magnet.height()*scaleFactor)/2;
+        float movingTileX = (-1*scalePivotX * scaleFactor) + (magnet.x() * scaleFactor) + (scalePivotX);
+        float movingTileY = (-1*scalePivotY * scaleFactor) + (magnet.y() * scaleFactor) + (scalePivotY);
+        float rightBoundary = (-1*scalePivotX / scaleFactor) + (rightBoundaryOriginal / scaleFactor) + (scalePivotX);
+        float leftBoundary = (-1*scalePivotX / scaleFactor) + (0 / scaleFactor) + (scalePivotX);
+        float topBoundary = (-1*scalePivotY / scaleFactor) + (0 / scaleFactor) + (scalePivotY);
+        float bottomBoundary = (-1*scalePivotY / scaleFactor) + (bottomBoundaryOriginal / scaleFactor) + (scalePivotY);
+        if((movingTileX + halfWidth) > rightBoundaryOriginal) magnet.setX(rightBoundary-magnet.width()/2);
+        if(movingTileX - halfWidth < 0) {
+            magnet.setX(leftBoundary + magnet.width()/2);
         }
-        if (magnet.y() + halfHeight > bottomBoundary) magnet.setY(bottomBoundary - halfHeight);
-        if (magnet.y() - halfHeight < 0) magnet.setY(halfHeight);
+        if (movingTileY + halfHeight > bottomBoundaryOriginal) magnet.setY(bottomBoundary - magnet.height()/2);
+        if (movingTileY - halfHeight < 0) magnet.setY(topBoundary + magnet.height()/2);
     }
 
 
@@ -949,31 +1193,14 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
             if(awardAlert != null) awardAlert.setAlert(false);
         }
         invalidate();
-
     }
+
 
     @Override
     public void onDraw(Canvas canvas) {
         canvas.drawColor(Color.parseColor("#EFEBE7"));
-        //canvas.save();
-        canvas.scale(scaleFactor,scaleFactor,0,0);
-        //canvas.translate(xOffset/scaleFactor,yOffset/scaleFactor);
-
-        boolean animateAward;
-        if(continuouslyAnimateTrashCan) {
-            trashCan.drawTrashCan(canvas,true,getWidth(),getHeight());
-        } else {
-            trashCan.drawTrashCan(canvas,magnetIsAboveTrashCan,getWidth(),getHeight());
-        }
-
-        if(continuouslyAnimateAward) {
-            awardAlert.setAlert(true);
-            awardAlert.drawAwardAlert(canvas, getWidth());
-            animateAward = true;
-        } else {
-            animateAward = awardAlert.drawAwardAlert(canvas, getWidth());
-        }
-
+        canvas.save();
+        canvas.scale(scaleFactor,scaleFactor,scalePivotX,scalePivotY);
         for(Magnet magnet : magnets) {
             magnet.setHighlight(false);
         }
@@ -985,14 +1212,33 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
             magnet.draw(canvas, getWidth(),  getHeight(),getRootView());
             //magnet.setHighlight(false);
         }
+        canvas.restore();
+        boolean animateAward;
+        if(continuouslyAnimateTrashCan) {
+            trashCan.drawTrashCan(canvas,true,getScaledCoordinate(getWidth()),getHeight());
+        } else {
+            trashCan.drawTrashCan(canvas,magnetIsAboveTrashCan,getWidth(),getHeight());
+        }
+
+        //System.out.println("width " + Float.toString(getWidth()));
+
+        if(continuouslyAnimateAward) {
+            awardAlert.setAlert(true);
+            awardAlert.drawAwardAlert(canvas, getWidth());
+            animateAward = true;
+        } else {
+            animateAward = awardAlert.drawAwardAlert(canvas, getWidth());
+        }
+
+
         //toHighlightMagnets.clear();
         // if the trash can should be shaking, keep drawing
         if(magnetIsAboveTrashCan || animateAward|| continuouslyAnimateTrashCan) {
             invalidate();
         }
         //canvas.restore();
-        lastWidth = getWidth();
-        lastHeight = getHeight();
+        //lastWidth = getWidth();
+        //lastHeight = getHeight();
     }
 
 
@@ -1017,8 +1263,7 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
      * todo: handle scaling better
      */
 
-    private float scaleX = getWidth()/2;
-    private float scaleY = getHeight()/2;
+
     private final ScaleGestureDetector.OnScaleGestureListener scaleGestureListener
             = new ScaleGestureDetector.SimpleOnScaleGestureListener() {
         /**
@@ -1031,41 +1276,17 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
         }
         @Override
         public boolean onScale(ScaleGestureDetector scaleGestureDetector) {
+            //lastScaleFactor = scaleFactor;
             scaleFactor *= scaleGestureDetector.getScaleFactor();
             // Don't let the object get too small or too large.
-            scaleFactor = Math.max(0.1f, Math.min(scaleFactor, 5.0f));
+            scaleFactor = Math.max(0.5f, Math.min(scaleFactor, 3.5f));
 
-            scaleX = scaleGestureDetector.getFocusX();
-            scaleY = scaleGestureDetector.getFocusY();
+            scalePivotX = scaleGestureDetector.getFocusX();
+            scalePivotY = scaleGestureDetector.getFocusY();
 
+            scalePivotX = (-1*scalePivotX/scaleFactor) + (scalePivotX / scaleFactor) + (scalePivotX) ;
+            scalePivotY = (-1*scalePivotY/scaleFactor) + (scalePivotY / scaleFactor) + (scalePivotY) ;
 
-            // if any connected tiles, scale those together, otherwise, scale separately
-
-
-
-            /*for(Magnet magnet : magnets) {
-                boolean attachedToAnything = false;
-                for(ArrayList<Magnet> block : connectedMagnets) {
-                    if(block.contains(magnet)) {
-                        attachedToAnything = true;
-                    }
-                }
-                if(!attachedToAnything) {
-                    magnet.updateScaleFactor(scaleFactor,magnets);
-                }
-            }
-
-            for(ArrayList<Magnet> block : connectedMagnets) {
-               // scale these magnets
-                for(Magnet magnet : block) {
-                    magnet.updateScaleFactor(scaleFactor,magnets);
-                }
-
-            }*/
-
-            for(Magnet magnet : magnets) {
-               // magnet.updateScaleFactor(scaleFactor, magnets);
-            }
             invalidate();
             return true;
         }

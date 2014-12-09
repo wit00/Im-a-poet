@@ -35,15 +35,12 @@ public class DrawingPanelFragment extends Fragment implements LoaderManager.Load
     }
 
     public void loadMagnets(){
-        System.out.println("loading magnets from database");
-
         if(!loaderExists) getLoaderManager().initLoader(0,null,this);
         else getLoaderManager().restartLoader(0,null,this);
         loaderExists = true;
     }
-    public void loadMagnets(ArrayList<Magnet> magnets, boolean previouslySavedPoem, String previouslySavedPoemId, String previouslySavedPoemName) {
-        System.out.println("loading magnets from retained fragment" + Integer.toString(magnets.size()));
-        drawingPanel.loadMagnets(magnets,previouslySavedPoem,previouslySavedPoemId,previouslySavedPoemName);
+    public void loadMagnets(ArrayList<Magnet> magnets, boolean previouslySavedPoem, String previouslySavedPoemId, String previouslySavedPoemName, float scaleFactor, float scalePivotX, float scalePivotY) {
+        drawingPanel.loadMagnets(magnets,previouslySavedPoem,previouslySavedPoemId,previouslySavedPoemName,scaleFactor,scalePivotX,scalePivotY);
     }
 
     public DrawingPanel drawingPanel() { return drawingPanel; }

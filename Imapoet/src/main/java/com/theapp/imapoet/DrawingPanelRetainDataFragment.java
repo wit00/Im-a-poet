@@ -15,6 +15,9 @@ public class DrawingPanelRetainDataFragment extends Fragment {
     private boolean previouslySavedPoem = false;
     private String previouslySavedPoemID = null;
     private String previouslySavedPoemName = null;
+    private float scaleFactor = 1.0f;
+    private float scalePivotX = 0.0f;
+    private float scalePivotY = 0.0f;
 
     public static DrawingPanelRetainDataFragment newInstance() { return new DrawingPanelRetainDataFragment();}
 
@@ -27,7 +30,7 @@ public class DrawingPanelRetainDataFragment extends Fragment {
         setRetainInstance(true); // don't destroy on orientation change
     }
 
-    public void setMagnetData(ArrayList<Magnet> newMagnets, boolean previouslySavedPoem, String previouslySavedPoemID, String previouslySavedPoemName) {
+    public void setMagnetData(ArrayList<Magnet> newMagnets, boolean previouslySavedPoem, String previouslySavedPoemID, String previouslySavedPoemName, float scaleFactor, float scalePivotX, float scalePivotY) {
 
        // for(Magnet newMagnet : newMagnets) {
         /*for(Iterator<Magnet> it = newMagnets.iterator(); it.hasNext();) {
@@ -38,14 +41,12 @@ public class DrawingPanelRetainDataFragment extends Fragment {
         this.previouslySavedPoem = previouslySavedPoem;
         this.previouslySavedPoemID = previouslySavedPoemID;
         this.previouslySavedPoemName = previouslySavedPoemName;
+        this.scaleFactor = scaleFactor;
+        this.scalePivotX = scalePivotX;
+        this.scalePivotY = scalePivotY;
     }
 
-    public ArrayList<Magnet> getMagnets() {
-        for(Magnet magnet : this.magnets) {
-            System.out.println("getting magnet: "+magnet.word());
-        }
-        return magnets;
-    }
+    public ArrayList<Magnet> getMagnets() { return magnets; }
 
     public boolean getPreviouslySavedPoem() {
         return previouslySavedPoem;
@@ -55,9 +56,11 @@ public class DrawingPanelRetainDataFragment extends Fragment {
         return previouslySavedPoemName;
     }
 
-    public String getPreviouslySavedPoemID() {
-        return previouslySavedPoemID;
-    }
+    public String getPreviouslySavedPoemID() { return previouslySavedPoemID;}
+
+    public float getScaleFactor() { return scaleFactor; }
+    public float getScalePivotX () { return scalePivotX; }
+    public float getScalePivotY () { return scalePivotY; }
 
 
 

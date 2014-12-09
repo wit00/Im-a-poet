@@ -184,8 +184,8 @@ public class MainActivity extends FragmentActivity implements DrawerFragment.OnF
                 drawingPanelRetainDataFragment = drawingPanelRetainDataFragment.newInstance();
                 fragmentManager.beginTransaction().add(drawingPanelRetainDataFragment,"drawingPanelData").commit();
             } else { // it's an orientation change, so just load the magnets from data retaining fragment
-                System.out.println("magnet: loading from drawing panel retain data fragment");
-                drawingPanelFragment.loadMagnets(drawingPanelRetainDataFragment.getMagnets(),drawingPanelRetainDataFragment.getPreviouslySavedPoem(),drawingPanelRetainDataFragment.getPreviouslySavedPoemID(),drawingPanelRetainDataFragment.getPreviouslySavedPoemName());
+                //System.out.println("magnet: loading from drawing panel retain data fragment");
+                drawingPanelFragment.loadMagnets(drawingPanelRetainDataFragment.getMagnets(),drawingPanelRetainDataFragment.getPreviouslySavedPoem(),drawingPanelRetainDataFragment.getPreviouslySavedPoemID(),drawingPanelRetainDataFragment.getPreviouslySavedPoemName(),drawingPanelRetainDataFragment.getScaleFactor(),drawingPanelRetainDataFragment.getScalePivotX(),drawingPanelRetainDataFragment.getScalePivotY());
             }
         }
     }
@@ -407,7 +407,7 @@ public class MainActivity extends FragmentActivity implements DrawerFragment.OnF
         gameState.setCurrentPoemForAutoSave(drawingPanelFragment.getPoem());
         getIntent().removeExtra("poem_name");
         getIntent().removeExtra("poem_id");
-        drawingPanelRetainDataFragment.setMagnetData(drawingPanelFragment.getPoem(),drawingPanelFragment.drawingPanel().getSavedPoemState(),drawingPanelFragment.drawingPanel().getSavedPoemId(),drawingPanelFragment.drawingPanel().getSavedPoemName());
+        drawingPanelRetainDataFragment.setMagnetData(drawingPanelFragment.getPoem(),drawingPanelFragment.drawingPanel().getSavedPoemState(),drawingPanelFragment.drawingPanel().getSavedPoemId(),drawingPanelFragment.drawingPanel().getSavedPoemName(),drawingPanelFragment.drawingPanel().scaleFactor(),drawingPanelFragment.drawingPanel().scalePivotX(),drawingPanelFragment.drawingPanel().scalePivotY());
 
     }
 
