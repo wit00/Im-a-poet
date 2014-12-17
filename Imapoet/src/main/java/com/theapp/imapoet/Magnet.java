@@ -1,5 +1,6 @@
 package com.theapp.imapoet;
 
+import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -11,14 +12,11 @@ import java.util.Arrays;
 import java.util.List;
 
 public class Magnet {
-    private float scaleFactor;
     private int id;
     private String word;
     private int packID;
     private float x = 0;
     private float y = 0;
-    private float unscaledWidth;
-    private float unscaledHeight = 30;
     private float width;
     private float height;
     private Paint magnetPaint = makePaint(Color.parseColor("#E7E0DB"));
@@ -41,6 +39,8 @@ public class Magnet {
     private ArrayList<Integer> bottomSideConnectedIds = new ArrayList<Integer>();
     private ArrayList<Integer> leftSideConnectedIds = new ArrayList<Integer>();
     private ArrayList<Integer> rightSideConnectedIds = new ArrayList<Integer>();
+    private Context context;
+
 
     public void setTopSideConnectedMagnet(Magnet magnet) {
         topSideConnectedMagnets.add(magnet);
@@ -52,8 +52,9 @@ public class Magnet {
     public void setRightSideConnectedMagnet(Magnet magnet) { rightSideConnectedMagnets.add(magnet); }
 
 
+
     public Magnet clone() {
-        return new Magnet(this.word,this.id,this.scaleFactor,this.packID,this.topSideConnectedMagnets,this.bottomSideConnectedMagnets,this.rightSideConnectedMagnets,this.leftSideConnectedMagnets,this.x,this.y,textPaintSize);
+        return new Magnet(context,this.word,this.id,0,this.packID,this.topSideConnectedMagnets,this.bottomSideConnectedMagnets,this.rightSideConnectedMagnets,this.leftSideConnectedMagnets,this.x,this.y,textPaintSize);
     }
 
     // a convenience function used by setUpConnectedSides to get a reference to each poemMagnet in the connected magnets arrays and use that reference to replace the temporary one in the list, used when the user loads the manual save or the program loads the auto-saved poem
@@ -115,14 +116,14 @@ public class Magnet {
     }
 
 
-
-    public Magnet(String word, int id, float scaleFactor, int packID,String top,String bottom, String left, String right,float density){
+    public Magnet(Context context, String word, int id, float scaleFactor, int packID,String top,String bottom, String left, String right,float density){
         clearAllConnectedMagnets();
         this.word = word;
+        this.context = context;
         this.id = id + 1;
         this.packID = packID;
-        setTextSizeBasedOnDensity(density);
-        textPaint.setTextSize(textPaintSize);
+        //setTextSizeBasedOnDensity(density);
+        textPaint.setTextSize(context.getResources().getDimensionPixelSize(R.dimen.magnet_starting_text_size));
         textPaint.setTextAlign(Paint.Align.CENTER);
         Rect bounds = new Rect();
         textPaint.getTextBounds(word,0,word.length(),bounds);
@@ -133,29 +134,11 @@ public class Magnet {
         setTemporaryConnectedMagnets(top,bottom,left,right);
     }
 
-
-    private void setTextSizeBasedOnDensity(float density) {
-        if(density == 0.75) { //ldpi
-            textPaintSize = 16.0f;
-        } else if(density == 1.0) { //mdpi
-            textPaintSize = 22.0f;
-        } else if(density == 1.5) { //hdpi
-            textPaintSize = 28.0f;
-        } else if(density == 2.0) { //xhdpi
-            textPaintSize = 36.0f;
-        } else if(density == 3.0) { //xhdpi
-            textPaintSize = 40.0f;
-        } else if(density == 4.0) { //xxhdpi
-            textPaintSize = 48.0f;
-        } else { //something else?
-            textPaintSize = 22.0f;
-        }
-    }
-
-    public Magnet(String word, int id, float scaleFactor, int packID,ArrayList<Magnet> topSideConnectedMagnets,ArrayList<Magnet> bottomSideConnectedMagnets, ArrayList<Magnet> leftSideConnectedMagnets, ArrayList<Magnet> rightSideConnectedMagnets, float x, float y, float textPaintSize){
+    public Magnet(Context context, String word, int id, float scaleFactor, int packID,ArrayList<Magnet> topSideConnectedMagnets,ArrayList<Magnet> bottomSideConnectedMagnets, ArrayList<Magnet> leftSideConnectedMagnets, ArrayList<Magnet> rightSideConnectedMagnets, float x, float y, float textPaintSize){
         clearAllConnectedMagnets();
-        textPaint.setTextSize(textPaintSize);
+        textPaint.setTextSize(context.getResources().getDimensionPixelSize(R.dimen.magnet_starting_text_size));
         this.word = word;
+        this.context = context;
         Rect bounds = new Rect();
         textPaint.getTextBounds(word,0,word.length(),bounds);
         float padding = 15;
@@ -204,6 +187,10 @@ public class Magnet {
     }
 
 
+    public boolean areConnected(Magnet otherMagnet) {
+        return (topSideConnectedMagnets.contains(otherMagnet) || bottomSideConnectedMagnets.contains(otherMagnet) || leftSideConnectedMagnets.contains(otherMagnet) || rightSideConnectedMagnets.contains(otherMagnet));
+    }
+
     public void setHighlight(Boolean highlight) {
         this.highlight = highlight;
     }
@@ -220,12 +207,12 @@ public class Magnet {
     }
 
     private void drawShadowedMagnet(Canvas canvas, Paint currentPaint,View view) {
-        borderPaint.setShadowLayer(10.0f, 0.0f, 2.0f, 0xFF000000);
+        borderPaint.setShadowLayer(10.0f, 3.0f, 5.0f, Color.parseColor("#3C332A"));
+        //borderPaint.setShadowLayer(10.0f, 0.0f, 2.0f, 0xFF000000);
         view.setLayerType(View.LAYER_TYPE_SOFTWARE,currentPaint);
         canvas.drawRect(convertCenterToCorner(x,width), convertCenterToCorner(y,height),x + ((width)/2),y + ((height)/2),borderPaint);
         canvas.drawRect(convertCenterToCorner(x,width-borderWidth), convertCenterToCorner(y,height-borderWidth),x + ((width-borderWidth)/2),y + ((height-borderWidth)/2),currentPaint);
     }
-
 
     public void draw(Canvas canvas, float canvasWidth, float canvasHeight, View view) {
         Paint currentPaint = magnetPaint;
@@ -235,6 +222,7 @@ public class Magnet {
         } else {
             drawShadowedMagnet(canvas, currentPaint,view);
         }
+
         canvas.drawText(word,x,y + textYShift, textPaint);
     }
 
@@ -243,27 +231,19 @@ public class Magnet {
     public float y() { return y; }
     public float width() { return width; }
     public float height() { return height; }
-    public float leftTopCornerX() { return leftTopCorner.x; }
-    public float leftTopCornerY() { return leftTopCorner.y; }
-    public float leftBottomCornerX() { return leftBottomCorner.x; }
-    public float leftBottomCornerY() { return leftBottomCorner.y; }
-    public float rightTopCornerX() { return rightTopCorner.x; }
-    public float rightTopCornerY() { return rightTopCorner.y; }
-    public float rightBottomCornerX() { return rightBottomCorner.x; }
-    public float rightBottomCornerY() { return rightBottomCorner.y; }
-    public PointF leftTopCorner() { return new PointF(leftTopCornerX(),leftTopCornerY()); }
-    public PointF leftBottomCorner() { return new PointF(leftBottomCornerX(),leftBottomCornerY()); }
-    public PointF rightTopCorner() { return new PointF(rightTopCornerX(),rightTopCornerY()); }
-    public PointF rightBottomCorner() { return new PointF(rightBottomCornerX(),rightBottomCornerY()); }
+    public PointF leftTopCorner() { return leftTopCorner; }
+    public PointF leftBottomCorner() { return leftBottomCorner; }
+    public PointF rightTopCorner() { return rightTopCorner; }
+    public PointF rightBottomCorner() { return rightBottomCorner; }
     public int id() { return id; }
     public int packID() { return packID; }
     public void setX(float x) {
         this.x = x;
         float halfWidth = width/2;
-        leftTopCorner.set(x-halfWidth,leftTopCornerY());
-        leftBottomCorner.set(x-halfWidth,leftBottomCornerY());
-        rightTopCorner.set(x+halfWidth,rightTopCornerY());
-        rightBottomCorner.set(x+halfWidth,rightBottomCornerY());
+        leftTopCorner.set(x-halfWidth,leftTopCorner.y);
+        leftBottomCorner.set(x-halfWidth,leftBottomCorner.y);
+        rightTopCorner.set(x+halfWidth,rightTopCorner.y);
+        rightBottomCorner.set(x+halfWidth,rightBottomCorner.y);
     }
     public void setY(float y) {
         this.y = y;

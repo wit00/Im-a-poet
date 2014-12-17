@@ -18,6 +18,8 @@ public class DrawingPanelRetainDataFragment extends Fragment {
     private float scaleFactor = 1.0f;
     private float scalePivotX = 0.0f;
     private float scalePivotY = 0.0f;
+    private float scrollXOffset = 0.0f;
+    private float scrollYOffset = 0.0f;
 
     public static DrawingPanelRetainDataFragment newInstance() { return new DrawingPanelRetainDataFragment();}
 
@@ -30,7 +32,7 @@ public class DrawingPanelRetainDataFragment extends Fragment {
         setRetainInstance(true); // don't destroy on orientation change
     }
 
-    public void setMagnetData(ArrayList<Magnet> newMagnets, boolean previouslySavedPoem, String previouslySavedPoemID, String previouslySavedPoemName, float scaleFactor, float scalePivotX, float scalePivotY) {
+    public void setMagnetData(ArrayList<Magnet> newMagnets, boolean previouslySavedPoem, String previouslySavedPoemID, String previouslySavedPoemName, float scaleFactor, float scalePivotX, float scalePivotY, float scrollXOffset, float scrollYOffset) {
 
        // for(Magnet newMagnet : newMagnets) {
         /*for(Iterator<Magnet> it = newMagnets.iterator(); it.hasNext();) {
@@ -44,6 +46,8 @@ public class DrawingPanelRetainDataFragment extends Fragment {
         this.scaleFactor = scaleFactor;
         this.scalePivotX = scalePivotX;
         this.scalePivotY = scalePivotY;
+        this.scrollXOffset = scrollXOffset;
+        this.scrollYOffset = scrollYOffset;
     }
 
     public ArrayList<Magnet> getMagnets() { return magnets; }
@@ -61,6 +65,9 @@ public class DrawingPanelRetainDataFragment extends Fragment {
     public float getScaleFactor() { return scaleFactor; }
     public float getScalePivotX () { return scalePivotX; }
     public float getScalePivotY () { return scalePivotY; }
+
+    public float getScrollXOffset() { return scrollXOffset; }
+    public float getScrollYOffset() { return scrollYOffset; }
 
 
 

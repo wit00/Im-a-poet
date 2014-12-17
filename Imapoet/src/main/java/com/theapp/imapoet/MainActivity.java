@@ -185,7 +185,7 @@ public class MainActivity extends FragmentActivity implements DrawerFragment.OnF
                 fragmentManager.beginTransaction().add(drawingPanelRetainDataFragment,"drawingPanelData").commit();
             } else { // it's an orientation change, so just load the magnets from data retaining fragment
                 //System.out.println("magnet: loading from drawing panel retain data fragment");
-                drawingPanelFragment.loadMagnets(drawingPanelRetainDataFragment.getMagnets(),drawingPanelRetainDataFragment.getPreviouslySavedPoem(),drawingPanelRetainDataFragment.getPreviouslySavedPoemID(),drawingPanelRetainDataFragment.getPreviouslySavedPoemName(),drawingPanelRetainDataFragment.getScaleFactor(),drawingPanelRetainDataFragment.getScalePivotX(),drawingPanelRetainDataFragment.getScalePivotY());
+                drawingPanelFragment.loadMagnets(drawingPanelRetainDataFragment.getMagnets(),drawingPanelRetainDataFragment.getPreviouslySavedPoem(),drawingPanelRetainDataFragment.getPreviouslySavedPoemID(),drawingPanelRetainDataFragment.getPreviouslySavedPoemName(),drawingPanelRetainDataFragment.getScaleFactor(),drawingPanelRetainDataFragment.getScalePivotX(),drawingPanelRetainDataFragment.getScalePivotY(),drawingPanelRetainDataFragment.getScrollXOffset(),drawingPanelRetainDataFragment.getScrollYOffset());
             }
         }
     }
@@ -407,7 +407,7 @@ public class MainActivity extends FragmentActivity implements DrawerFragment.OnF
         gameState.setCurrentPoemForAutoSave(drawingPanelFragment.getPoem());
         getIntent().removeExtra("poem_name");
         getIntent().removeExtra("poem_id");
-        drawingPanelRetainDataFragment.setMagnetData(drawingPanelFragment.getPoem(),drawingPanelFragment.drawingPanel().getSavedPoemState(),drawingPanelFragment.drawingPanel().getSavedPoemId(),drawingPanelFragment.drawingPanel().getSavedPoemName(),drawingPanelFragment.drawingPanel().scaleFactor(),drawingPanelFragment.drawingPanel().scalePivotX(),drawingPanelFragment.drawingPanel().scalePivotY());
+        drawingPanelRetainDataFragment.setMagnetData(drawingPanelFragment.getPoem(),drawingPanelFragment.drawingPanel().getSavedPoemState(),drawingPanelFragment.drawingPanel().getSavedPoemId(),drawingPanelFragment.drawingPanel().getSavedPoemName(),drawingPanelFragment.drawingPanel().scaleFactor(),drawingPanelFragment.drawingPanel().scalePivotX(),drawingPanelFragment.drawingPanel().scalePivotY(),drawingPanelFragment.drawingPanel().getScrollXOffset(), drawingPanelFragment.drawingPanel().getScrollYOffset());
 
     }
 
@@ -418,7 +418,6 @@ public class MainActivity extends FragmentActivity implements DrawerFragment.OnF
         super.onDestroy();
         new File(this.getCacheDir(), "tempShareBitmap.jpg").delete();
         //unbindFromMediaMusicService();
-        System.out.println("destroy magnet:");
     }
 
     private void createExistingPoemSaveAlertDialog() {

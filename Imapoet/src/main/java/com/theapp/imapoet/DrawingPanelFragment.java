@@ -39,8 +39,8 @@ public class DrawingPanelFragment extends Fragment implements LoaderManager.Load
         else getLoaderManager().restartLoader(0,null,this);
         loaderExists = true;
     }
-    public void loadMagnets(ArrayList<Magnet> magnets, boolean previouslySavedPoem, String previouslySavedPoemId, String previouslySavedPoemName, float scaleFactor, float scalePivotX, float scalePivotY) {
-        drawingPanel.loadMagnets(magnets,previouslySavedPoem,previouslySavedPoemId,previouslySavedPoemName,scaleFactor,scalePivotX,scalePivotY);
+    public void loadMagnets(ArrayList<Magnet> magnets, boolean previouslySavedPoem, String previouslySavedPoemId, String previouslySavedPoemName, float scaleFactor, float scalePivotX, float scalePivotY, float scrollXOffset, float scrollYOffset) {
+        drawingPanel.loadMagnets(magnets,previouslySavedPoem,previouslySavedPoemId,previouslySavedPoemName,scaleFactor,scalePivotX,scalePivotY,scrollXOffset,scrollYOffset);
     }
 
     public DrawingPanel drawingPanel() { return drawingPanel; }
@@ -77,19 +77,12 @@ public class DrawingPanelFragment extends Fragment implements LoaderManager.Load
     @Override
     public void onCreate(Bundle bundle) {
         super.onCreate(bundle);
-        //System.out.println("creating");
-        //setRetainInstance(true); // don't delete me on rotations and other simple changes
     }
+
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         loadSettings();
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        //drawingPanel.stopMediaPlayer();
     }
 
     private void loadSettings() {
@@ -120,8 +113,6 @@ public class DrawingPanelFragment extends Fragment implements LoaderManager.Load
                 MagnetDatabaseContract.MagnetEntry.COLUMN_LEFT,
                 MagnetDatabaseContract.MagnetEntry.COLUMN_RIGHT,
                 MagnetDatabaseContract.MagnetEntry.COLUMN_MAGNET_TEXT, MagnetDatabaseContract.MagnetEntry.COLUMN_IF_SAVED_TITLE, MagnetDatabaseContract.MagnetEntry.COLUMN_IF_SAVED_ID, MagnetDatabaseContract.MagnetEntry.COLUMN_MAGNET_PACK_ID};
-        //queryHandler.startQuery(1,null,Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/currentPoem"),projection,null,null,null);
-
         return new CursorLoader(getActivity(),Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/currentPoem"),
                 projection,null,null, null);
     }

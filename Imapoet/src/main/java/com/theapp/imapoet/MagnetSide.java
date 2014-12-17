@@ -2,8 +2,6 @@ package com.theapp.imapoet;
 
 import android.graphics.PointF;
 
-import java.util.ArrayList;
-
 /**
  * Created by whitney on 10/15/14.
  */
@@ -11,20 +9,23 @@ public class MagnetSide implements Comparable<MagnetSide>{
     public int id;
     public Magnet referenceToMagnet;
     public PointF xAndyDistances = new PointF(0,0);
+    public Side fromSide;
+    public Side toSide;
 
     @Override
     public int compareTo(MagnetSide anotherSide) {
-        return Math.abs((int)(xAndyDistances.x*xAndyDistances.y) - (int)(anotherSide.xAndyDistances.x*anotherSide.xAndyDistances.y));
+        return Math.abs((int)(xAndyDistances.x + xAndyDistances.y)) - Math.abs((int)(anotherSide.xAndyDistances.x + anotherSide.xAndyDistances.y));
     }
-    public MagnetSide(int id, Magnet referenceToMagnet, float xDistance, float yDistance) {
+
+
+    public MagnetSide(int id, Magnet referenceToMagnet, float xDistance, float yDistance, Side fromSide, Side toSide) {
         this.id = id;
         this.referenceToMagnet = referenceToMagnet;
         this.xAndyDistances.set(xDistance,yDistance);
+        this.fromSide = fromSide;
+        this.toSide = toSide;
     }
 
-    public MagnetSide(int id, Magnet referenceToMagnet, side side) {
-
-    }
     /* This function returns the closest side as a magnetSide object depending on which of four quadrants the moving tile is in.*/
     protected static MagnetSide closestSide(Magnet movingTile, Magnet stationaryTile) {
         if(movingTile.x() <= stationaryTile.x()) {
@@ -42,101 +43,70 @@ public class MagnetSide implements Comparable<MagnetSide>{
         }
     }
 
-    public static side getOtherMagnetSide(PointF distances) {
-        //ArrayList<side> sides = new ArrayList<side>(2);
-        side theSide;
-        if(distances.x == 0) {
-            if(distances.y > 0) {
-                theSide = (side.TOP);
-            } else {
-                theSide =  (side.BOTTOM);
-            }
-        } else if(distances.y == 0) {
-            if(distances.x > 0) {
-                theSide = (side.LEFT);
-            } else {
-                theSide = (side.RIGHT);
-            }
-        } else {
-            if(distances.y > 0) {
-                theSide = (side.TOP);
-            } else {
-                theSide = (side.BOTTOM);
-
-            }
-            if(distances.x > 0) {
-                theSide = (side.LEFT);
-
-            } else {
-                theSide = (side.RIGHT);
-
-            }
-        }
-      /*  System.out.println(Integer.toString(sides.size())+" sides: " );
-        for(side s : sides) {
-            System.out.println("   side: " +  s.toString());
-        }*/
-        //return sides;
-        return theSide;
-    }
-
     /* Returns true if the possible connecting sides are parallel. This case happens when the top two sides are next to each other. If true, getLockingSides will pick the closest one */
     protected static boolean areParallel(PointF side1Distances, PointF side2Distances) {
         return (side1Distances.x == 0 && side2Distances.x == 0) || (side1Distances.y == 0 && side2Distances.y == 0);
     }
 
-    protected static MagnetSide getQuadrant1Side(Magnet movingTile, Magnet stationaryTile) {
-        float xDifference = stationaryTile.leftTopCornerX() - movingTile.rightBottomCornerX();
-        float yDifference = stationaryTile.leftTopCornerY() - movingTile.rightBottomCornerY();
-        if(xDifference >= 0 && yDifference < 0) { // move right, moving tile is to the left and in line
-            return new MagnetSide(movingTile.id(),stationaryTile,xDifference,0);
-        } else if(xDifference >= 0 && yDifference >= 0) { // move diagonal, moving tile is to the left and above
-            return new MagnetSide(movingTile.id(),stationaryTile,xDifference,yDifference);
-        } else { //(xDifference < 0 && yDifference >=0) { // move down, moving tile is above and in line
-            return new MagnetSide(movingTile.id(),stationaryTile,0,yDifference);
-        }
-    }
+   protected static MagnetSide getQuadrant1Side(Magnet movingTile, Magnet stationaryTile) {
+       float xDifference = stationaryTile.leftTopCorner().x - movingTile.rightBottomCorner().x;
+       float yDifference = stationaryTile.leftTopCorner().y - movingTile.rightBottomCorner().y;
+
+       if (xDifference >= 0 && yDifference < 0) { // move right, moving tile is to the left and in line
+           return new MagnetSide(movingTile.id(), stationaryTile, xDifference, 0, Side.RIGHT, Side.LEFT);
+       } else if (xDifference >= 0 && yDifference >= 0) { // move diagonal, moving tile is to the left and above
+           //return new MagnetSide(movingTile.id(), stationaryTile, xDifference, yDifference);
+           return null;
+       } else { //(xDifference < 0 && yDifference >=0) { // move down, moving tile is above and in line
+           return new MagnetSide(movingTile.id(), stationaryTile, 0, yDifference, Side.BOTTOM, Side.TOP);
+       }
+   }
+
+
     protected static MagnetSide getQuadrant2Side(Magnet movingTile, Magnet stationaryTile) {
-        float xDifference = stationaryTile.rightTopCornerX() - movingTile.leftBottomCornerX();
-        float yDifference = stationaryTile.rightTopCornerY() - movingTile.leftBottomCornerY();
+        float xDifference = stationaryTile.rightTopCorner().x - movingTile.leftBottomCorner().x;
+        float yDifference = stationaryTile.rightTopCorner().y - movingTile.leftBottomCorner().y;
+
         if(xDifference < 0 && yDifference >= 0) { // move right, moving tile is to the left and in line
-            return new MagnetSide(movingTile.id(),stationaryTile,xDifference,yDifference);
+            //return new MagnetSide(movingTile.id(),stationaryTile,xDifference,yDifference);
+            return null;
         }
         if(xDifference >= 0 && yDifference >= 0) { // move diagonal, moving tile is to the left and above
-            return new MagnetSide(movingTile.id(),stationaryTile,0,yDifference);
+            return new MagnetSide(movingTile.id(),stationaryTile,0,yDifference, Side.BOTTOM, Side.TOP);
         }
         else { //(xDifference < 0 && yDifference >=0) { // move down, moving tile is above and in line
-            return new MagnetSide(movingTile.id(),stationaryTile,xDifference,0);
+            return new MagnetSide(movingTile.id(),stationaryTile,xDifference,0, Side.LEFT, Side.RIGHT);
         }
     }
 
     protected static MagnetSide getQuadrant3Side(Magnet movingTile, Magnet stationaryTile) {
-        float xDifference = stationaryTile.leftBottomCornerX() - movingTile.rightTopCornerX();
-        float yDifference =  stationaryTile.leftBottomCornerY() - movingTile.rightTopCornerY();
+        float xDifference = stationaryTile.leftBottomCorner().x - movingTile.rightTopCorner().x;
+        float yDifference =  stationaryTile.leftBottomCorner().y - movingTile.rightTopCorner().y;
+
         if(xDifference >= 0 && yDifference <= 0) { // move right, moving tile is to the left and in line
-            return new MagnetSide(movingTile.id(),stationaryTile,xDifference,yDifference);
+            //return new MagnetSide(movingTile.id(),stationaryTile,xDifference,yDifference);
+            return null;
         }
         if(xDifference >= 0 && yDifference >= 0) { // move diagonal, moving tile is to the left and above
-            return new MagnetSide(movingTile.id(),stationaryTile,xDifference,0);
+            return new MagnetSide(movingTile.id(),stationaryTile,xDifference,0, Side.RIGHT, Side.LEFT);
         }
         else { //(xDifference < 0 && yDifference >=0) { // move down, moving tile is above and in line
-            return new MagnetSide(movingTile.id(),stationaryTile,0,yDifference);
+            return new MagnetSide(movingTile.id(),stationaryTile,0,yDifference, Side.TOP, Side.BOTTOM);
         }
     }
 
     protected static MagnetSide getQuadrant4Side(Magnet movingTile, Magnet stationaryTile) {
-        float xDifference =  stationaryTile.rightBottomCornerX() - movingTile.leftTopCornerX();
-        float yDifference = stationaryTile.rightBottomCornerY() - movingTile.leftTopCornerY();
+        float xDifference =  stationaryTile.rightBottomCorner().x - movingTile.leftTopCorner().x;
+        float yDifference = stationaryTile.rightBottomCorner().y - movingTile.leftTopCorner().y;
 
-        System.out.println("testing "+Float.toString(stationaryTile.rightBottomCornerY())+","+Float.toString(movingTile.leftTopCornerY())+", "+Float.toString(yDifference));
         if(xDifference >= 0 && yDifference < 0) { // move right, moving tile is to the left and in line
-            return new MagnetSide(movingTile.id(),stationaryTile,0,yDifference);
+            return new MagnetSide(movingTile.id(), stationaryTile, 0, yDifference, Side.TOP, Side.BOTTOM);
         }
         if(xDifference < 0 && yDifference < 0) { // move diagonal, moving tile is to the left and above
-            return new MagnetSide(movingTile.id(),stationaryTile,xDifference,yDifference);
-        }
-        else { //(xDifference < 0 && yDifference >=0) { // move down, moving tile is above and in line
-            return new MagnetSide(movingTile.id(),stationaryTile,xDifference,0);
+            //return new MagnetSide(movingTile.id(),stationaryTile,xDifference,yDifference);
+            return null;
+        } else { //(xDifference < 0 && yDifference >=0) { // move down, moving tile is above and in line
+            return new MagnetSide(movingTile.id(),stationaryTile,xDifference,0, Side.LEFT, Side.RIGHT);
         }
     }
 

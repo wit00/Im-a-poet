@@ -67,15 +67,20 @@ public class TrashCan {
         canvas.drawBitmap(trashCan, width - trashCanWidth - trashCanPadding, height - trashCanHeight - trashCanPadding, null);
     }
 
-    public boolean collidesWithTrashCan(Magnet movingTile, float width, float height, float scaleFactor, float scalePivotX, float scalePivotY) {
+    public boolean collidesWithTrashCan(Magnet movingTile, float width, float height, float scaleFactor, float scalePivotX, float scalePivotY, float xOffset, float yOffset) {
         float movingTileWidth = movingTile.width()*scaleFactor;
         float movingTileHeight = movingTile.height()*scaleFactor;
         float halfPaddingWidth = (movingTileWidth)/2;
         float halfPaddingHeight = (movingTileHeight)/2;
         //float width = (-1*scalePivotX / scaleFactor) + (getWidth() / scaleFactor) + (scalePivotX);
         //float height = (-1*scalePivotY / scaleFactor) + (getHeight() / scaleFactor) + (scalePivotY);
-        float movingTileX = (-1*scalePivotX * scaleFactor) + (movingTile.x() * scaleFactor) + (scalePivotX);
-        float movingTileY = (-1*scalePivotY * scaleFactor) + (movingTile.y() * scaleFactor) + (scalePivotY);
+
+
+
+        //float movingTileX = (-1*scalePivotX * scaleFactor) + (movingTile.x() * scaleFactor) + (scalePivotX);
+        float movingTileX = (-1*scalePivotX * scaleFactor) + ((movingTile.x()) * scaleFactor) + (scalePivotX)  - xOffset;
+        //float movingTileY = (-1*scalePivotY * scaleFactor) + (movingTile.y() * scaleFactor) + (scalePivotY);
+        float movingTileY = (-1*scalePivotY * scaleFactor) + ((movingTile.y()) * scaleFactor) + (scalePivotY) - yOffset;
         return !(width - trashCanWidth > movingTileX + halfPaddingWidth ||
                 width - trashCanWidth + trashCan.getWidth() < movingTileX - halfPaddingWidth ||
                 height-trashCanHeight > movingTileY + halfPaddingHeight ||
