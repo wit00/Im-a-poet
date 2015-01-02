@@ -51,6 +51,9 @@ public class DemoFragment extends Fragment {
             case PACKS_SELECTED:
                 if(currentDemoPart.equals(DemoPart.PACKS_SELECTED)) packsSelected();
                 break;
+            case SCALE_AND_DRAG:
+                if(currentDemoPart.equals(DemoPart.SCALE_AND_DRAG)) scaledOrMoved();
+                break;
             case MAGNET_ADDED:
                 if(currentDemoPart.equals(DemoPart.MAGNET_ADDED)) magnetTilesChanged();
                 break;
@@ -79,14 +82,23 @@ public class DemoFragment extends Fragment {
     public void packsSelected() {
             demoListener.changeTextView(getString(R.string.demo_packs_selected));
             demoListener.highlightPacks(false);
+            //currentDemoPart = DemoPart.SCALE_AND_DRAG;
             currentDemoPart = DemoPart.MAGNET_ADDED;
+    }
+
+    public void scaledOrMoved(){
+        demoListener.changeTextView(getString(R.string.demo_dragged));
+        demoListener.highlightAward(true);
+        currentDemoPart = DemoPart.AWARD_CLICKED;
+        //currentDemoPart = DemoPart.SCALED_OR_MOVED;
     }
 
     // A magnet tile has been dragged onto the canvas space, so highlight the award and change the demo text button.
     public void magnetTilesChanged() {
         demoListener.changeTextView(getString(R.string.demo_magnet_tiles_changed));
-        demoListener.highlightAward(true);
-        currentDemoPart = DemoPart.AWARD_CLICKED;
+       // currentDemoPart = DemoPart.AWARD_CLICKED;
+        currentDemoPart = DemoPart.SCALE_AND_DRAG;
+
     }
 
     // The user has clicked the award (after the award has been highlighted and before the delete action), so change the demo text and highlight the trash can. Also remove the award highlight.
@@ -141,7 +153,6 @@ public class DemoFragment extends Fragment {
                    break;
                 case DRAWER_OPENED:
                     currentDemoPart = DemoPart.START;
-
                     break;
                 case PACKS_SELECTED:
                     currentDemoPart = DemoPart.DRAWER_OPENED;
@@ -149,8 +160,11 @@ public class DemoFragment extends Fragment {
                 case MAGNET_ADDED:
                     currentDemoPart = DemoPart.PACKS_SELECTED;
                     break;
-                case AWARD_CLICKED:
+                case SCALE_AND_DRAG:
                     currentDemoPart = DemoPart.MAGNET_ADDED;
+                    break;
+                case AWARD_CLICKED:
+                    currentDemoPart = DemoPart.SCALE_AND_DRAG;
                     break;
                 case MAGNET_DELETED:
                     currentDemoPart = DemoPart.AWARD_CLICKED;
@@ -209,7 +223,7 @@ public class DemoFragment extends Fragment {
     }
 
     public enum DemoPart {
-        START,DRAWER_OPENED,PACKS_SELECTED,MAGNET_ADDED,AWARD_CLICKED,MAGNET_DELETED,BUTTONS_CLICKED
+        START,DRAWER_OPENED,PACKS_SELECTED,MAGNET_ADDED,AWARD_CLICKED,MAGNET_DELETED,BUTTONS_CLICKED,SCALE_AND_DRAG
     }
 
 }

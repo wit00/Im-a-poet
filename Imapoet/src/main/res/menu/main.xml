@@ -4,20 +4,26 @@
     tools:context=".MainActivity" >
 
     <item android:id="@+id/action_clear"
-        android:title="clear the screen"
-        android:orderInCategory="3"
+        android:title="Clear the Screen"
+        android:orderInCategory="4"
         app:showAsAction="never" />
     <item android:id="@+id/action_save_to_sd"
-        android:title="save to sd card"
+        android:title="Save to SD Card"
         android:orderInCategory="2"
         app:showAsAction="never" />
+    <item android:id="@+id/action_slide"
+        android:title="Toggle Slide"
+        android:orderInCategory="3"
+        app:showAsAction="never"
+        />
     <item android:id="@+id/action_demo"
-        android:title="view demo"
+        android:title="View the Demo"
         android:orderInCategory="99"
         app:showAsAction="never" />
     <item android:id="@+id/action_rate"
-        android:title="rate us on google play"
+        android:title="Rate us on Google Play"
         android:orderInCategory="100"
-        android:showAsAction="never"
+        app:showAsAction="never"
         />
+
 </menu>

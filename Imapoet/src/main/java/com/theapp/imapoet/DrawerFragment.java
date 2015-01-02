@@ -1,7 +1,12 @@
 package com.theapp.imapoet;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.AsyncQueryHandler;
+import android.content.ContentValues;
+import android.content.DialogInterface;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
@@ -14,6 +19,16 @@ import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.Spinner;
 
+import com.example.android.trivialdrivesample.util.IabHelper;
+import com.example.android.trivialdrivesample.util.IabResult;
+import com.example.android.trivialdrivesample.util.Inventory;
+import com.example.android.trivialdrivesample.util.Purchase;
+import com.example.android.trivialdrivesample.util.SkuDetails;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+
 
 /* The DrawerFragment is the drawer that sits in the MainActivity and can be opened by swiping the left edge or pressing the top left button on the screen. It holds the Packs and Magnets that can be dragged onto the canvas */
 public class DrawerFragment extends android.support.v4.app.Fragment implements AdapterView.OnItemSelectedListener,  LoaderManager.LoaderCallbacks<Cursor>  {
@@ -24,8 +39,73 @@ public class DrawerFragment extends android.support.v4.app.Fragment implements A
     private DrawerSpinnerAdapter drawerSpinnerAdapter;
     private int spinnerPosition = 0;
     private boolean spinnerListenerSetUp = false;
+    private IabHelper iabHelper;
+    private ArrayList<String> skuList = new ArrayList<String>();
+    private AsyncQueryHandler queryHandler;
 
 
+    private void initializeSkuList() {
+        try {
+            Collections.addAll(skuList, getActivity().getAssets().list("inAppPurchasePacks"));
+        } catch (IOException ioException) {
+            ioException.printStackTrace();
+        }
+    }
+
+    public void updatePackAvailability(String packName, boolean isAvailable) {
+        ContentValues updatedPackValues = new ContentValues();
+        updatedPackValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_IS_AVAILABLE,isAvailable);
+        queryHandler.startUpdate(0,null, Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/update/pack"), updatedPackValues, MagnetDatabaseContract.MagnetEntry.COLUMN_PACK_NAME + " = " + "'" + packName + "'",null);
+    }
+
+    private void displayYourPurchaseHasBeenSuccessfulDialog() {
+        String message = "Excellent! Your purchase has gone through. You can now use your new pack!";
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        builder.setMessage(message)
+                .setPositiveButton("Okay", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+
+                    }});
+        (builder.create()).show();
+    }
+
+    private void displayProblemDialog(final String packName) {
+        String message = "Unfortunately, something went wrong loading your new purchase into our system. Press 'Try Again' to try loading it again. If you continue to have a problem with this, please email us using the Contact Us button in the Settings tab of the menu.";
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        builder.setMessage(message)
+                .setPositiveButton("Try Again", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        updatePackAvailability(packName,true);
+                    }})
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialogInterface, int id) {
+                        // do nothing
+                    }
+                });
+        (builder.create()).show();
+
+    }
+    private void createAsyncQueryHandler() {
+        queryHandler = new AsyncQueryHandler(getActivity().getContentResolver()) {
+            @Override
+            protected void onUpdateComplete(int token, Object cookie, int result) {
+                if (token == 0) {
+                    // move the pack from inAppPurchasePacks to purchasedInAppPurchasePacks
+                    if (result == 1) {
+                        // if(DataLoaderHelper.copyFile((String) cookie, "inAppPurchasePacks", "purchasedInAppPurchasePacks", getApplicationContext())) {
+                        // if has succeeded
+                        displayYourPurchaseHasBeenSuccessfulDialog();
+                        //displayYourPurchaseHasBeenSuccessfulDialog((String) cookie);
+                    } else {
+                        // io exception
+                        // displayProblemDialog("love.txt");
+                        displayProblemDialog((String) cookie);
+                    }
+                }
+
+            }
+        };
+    }
     // Required empty public constructor
     public DrawerFragment() {}
 
@@ -47,10 +127,35 @@ public class DrawerFragment extends android.support.v4.app.Fragment implements A
         });
     }
 
+
+    private void displayInAppPurchaseSetupFailureMessage() {
+        String message = "In app purchasing is not working at this time. Sorry for the inconvenience.";
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        builder.setMessage(message)
+                .setPositiveButton("Okay", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        // do nothing
+                    }
+                });
+        (builder.create()).show();
+    }
     // override the onCreate method to instantiate and run the cursor loader
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        createAsyncQueryHandler();
+        String base64EncodedPublicKey = ApplicationContract.base64 + ApplicationContract.encoded + ApplicationContract.Public + ApplicationContract.key;
+        initializeSkuList();
+        // compute your public key and store it in base64EncodedPublicKey
+        iabHelper = new IabHelper(getActivity(), base64EncodedPublicKey);
+
+        /*iabHelper.startSetup(new IabHelper.OnIabSetupFinishedListener() {
+            public void onIabSetupFinished(IabResult result) {
+                if (result.isFailure()) {
+                    displayInAppPurchaseSetupFailureMessage();
+                }
+            }
+        });*/
         getLoaderManager().initLoader(0,null,this);
     }
 
@@ -103,29 +208,105 @@ public class DrawerFragment extends android.support.v4.app.Fragment implements A
         public void onSpinnerClicked();
     }
 
-    public void restartMainLoader() {
+    /*public void restartMainLoader() {
         Bundle bundle = new Bundle();
         bundle.putInt("id",getCurrentPack());
         getLoaderManager().restartLoader(1, bundle, this);
+    }*/
+
+
+    IabHelper.OnIabPurchaseFinishedListener purchaseFinishedListener
+            = new IabHelper.OnIabPurchaseFinishedListener() {
+        public void onIabPurchaseFinished(IabResult result, Purchase purchase)
+        {
+            if (result.isFailure()) {
+                displayUnsuccessfulPurchaseDialog();
+            }
+            else {
+                updatePackAvailability(purchase.getSku(),true);
+            }
+
+        }
+    };
+
+    private void displayUnsuccessfulPurchaseDialog() {
+        String message = "Unfortunately something is wrong with the in-app purchase system, and you cannot buy this item at this time. We're sorry for the inconvenience.";
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        builder.setMessage(message)
+                .setPositiveButton("Okay", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        //purchaseInAppProduct(inAppPurchase.productId());
+                        // tempPurchaseInAppProduct();
+                    }
+                });
+        (builder.create()).show();
     }
 
+    private void displaySomethingIsWrongWithInAppPurchaseDialog() {
+        String message = "This pack requires an in-app purchase. Unfortunately something is wrong with the in-app purchase system at this time. We're sorry for the inconvenience.";
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        builder.setMessage(message)
+                .setPositiveButton("Okay", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        //purchaseInAppProduct(inAppPurchase.productId());
+                        // tempPurchaseInAppProduct();
+                    }
+                });
+        (builder.create()).show();
+    }
+    private void purchaseInAppProduct(String productSKU) {
+        iabHelper.launchPurchaseFlow(getActivity(), productSKU, 1 ,purchaseFinishedListener,null);
+    }
+    private void displayWouldYouLikeToBuyDialog(final InAppPurchase inAppPurchase) {
+        String message = "This pack requires an in-app purchase. Would you like to buy " + inAppPurchase.title() + " for " + inAppPurchase.price() + " ?";
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        builder.setMessage(message)
+                .setPositiveButton("Yes!", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        purchaseInAppProduct(inAppPurchase.productId());
+                    }
+                })
+                .setNegativeButton("Not right now.", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialogInterface, int id) {
+                        // do nothing
+                    }
+                });
+        (builder.create()).show();
+    }
+    private IabHelper.QueryInventoryFinishedListener
+            queryForNotPurchasedPacksFinishedListener = new IabHelper.QueryInventoryFinishedListener() {
+        public void onQueryInventoryFinished(IabResult result, Inventory inventory)
+        {
+            if (result.isFailure()) {
+                displaySomethingIsWrongWithInAppPurchaseDialog();
+            } else {
+                SkuDetails skuDetails = inventory.getSkuDetails(clickedSku);
+                displayWouldYouLikeToBuyDialog(new InAppPurchase(
+                        skuDetails.getTitle(),
+                        skuDetails.getDescription(),
+                        skuDetails.getType(),
+                        skuDetails.getPrice(),
+                        skuDetails.getSku(),false));
+            }
+        }
+    };
 
-
+    private String clickedSku = null;
     /** onItemSelected and onNothingSelected are parts of the interface for the magnet deck spinner **/
     public void onItemSelected(AdapterView<?> parent, View view,int position, long id) {
         Cursor cursor = (Cursor) drawerSpinnerAdapter.getItem(position);
         if(cursor.getInt(cursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry.COLUMN_IS_AVAILABLE))==0) {
-            //toDo
-            // do thing for unowned spinner packs
-            // make make an in-app purchase here? or go to the store?
-            System.out.println("you don't have this pack!");
+            clickedSku = cursor.getString(cursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry.COLUMN_PACK_NAME));
+            iabHelper.queryInventoryAsync(true, skuList,queryForNotPurchasedPacksFinishedListener);
+        } else {
+            Bundle bundle = new Bundle();
+            spinnerPosition = position;
+            bundle.putInt("id",cursor.getInt(cursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry._ID)));
+            getLoaderManager().restartLoader(1, bundle, this);
+            if(spinnerListenerSetUp) drawerFragmentListener.onSpinnerClicked();
+            spinnerListenerSetUp = true;
         }
-        Bundle bundle = new Bundle();
-        spinnerPosition = position;
-        bundle.putInt("id",cursor.getInt(cursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry._ID)));
-        getLoaderManager().restartLoader(1, bundle, this);
-        if(spinnerListenerSetUp) drawerFragmentListener.onSpinnerClicked();
-        spinnerListenerSetUp = true;
+
     }
 
     public void onNothingSelected(AdapterView<?> parent) {

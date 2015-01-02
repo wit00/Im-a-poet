@@ -76,14 +76,17 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
         return yScrollOffset;
     }
 
+    public void toggleDoubleTap() { this.doubleTap = !doubleTap; }
 
-    /* The CanvasListener interface is implemented by the MainActivity and lets the MainActivity know when something important has happened in the drawing area. The MainActivity then alertsthe GameState or AwardAlert as needed. */
+
+    /* The CanvasListener interface is implemented by the MainActivity and lets the MainActivity know when something important has happened in the drawing area. The MainActivity then alerts the GameState or AwardAlert as needed. */
     public interface CanvasListener {
         public void magnetTilesChanged(int numberMagnetTiles);
 
         public void magnetDeleted();
 
         public void awardClicked();
+        public void toggleDrag();
     }
 
     /* The MainActivity calls this method when a new tile has been moved from the drawerFragment onto the drawing surface. The letter or word on the magnet and the magnet's pack ID are stored in the temporary word and packID variables. It returns the number of different packs used during this session so an alert can be sent if the right number of packs have been used. */
@@ -386,7 +389,7 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
 
     private void handleCollision(ArrayList<MagnetSide> closestMagnetSides, float xTouchPosition, float yTouchPosition) {
         MagnetSide closestMagnetSide = closestMagnetSides.get(0);
-        if(closestMagnetSides.size() > 1) {
+        if(closestMagnetSides.size() == 1) {
             Magnet closestMagnet = closestMagnetSide.referenceToMagnet;
             if (!(clickedMagnet.rightSideConnectedMagnet().contains(closestMagnet) || clickedMagnet.leftSideConnectedMagnet().contains(closestMagnet) || clickedMagnet.topSideConnectedMagnet().contains(closestMagnet) || clickedMagnet.bottomSideConnectedMagnet().contains(closestMagnet))) {
                 if (soundEffects) mediaPlayerForSoundEffect.start();
@@ -1063,6 +1066,7 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
                 if (clickedMagnet == null) {
                     xScrollOffset = xScrollOffset + distanceX;
                     yScrollOffset = yScrollOffset + distanceY;
+                    canvasListener.toggleDrag();
                 }
             }
             return true;

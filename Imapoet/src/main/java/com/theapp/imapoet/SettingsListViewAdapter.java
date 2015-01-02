@@ -18,28 +18,18 @@ public class SettingsListViewAdapter extends BaseAdapter {
     private Boolean music;
     private Boolean soundEffects;
 
-    /*public SettingsListViewAdapter(Context context, int layout, Cursor cursor, String[] from, int[] to) {
-        super(context,R.layout.fragment_settings_list_header,cursor,from,to,0);
-        this.context = context;
-        this.layout = R.layout.fragment_awards_grid_item;
-        this.inflater = LayoutInflater.from(context);
-    }*/
-
-
-
     public SettingsListViewAdapter(Context context, Boolean music, Boolean soundEffects) {
         this.context = context;
         this.music = music;
         this.soundEffects = soundEffects;
     }
     public int getCount() {
-        return 8;
+        return 10;
     }
     public void setSounds (Boolean music, Boolean soundEffects) {
         this.music = music;
         this.soundEffects = soundEffects;
     }
-
 
     public Object getItem(int position) {
         return 0;
@@ -47,7 +37,6 @@ public class SettingsListViewAdapter extends BaseAdapter {
     public long getItemId(int position) {
         return 0;
     }
-
 
     public View getView(int position, View view, ViewGroup parent) {
         switch (position) {
@@ -58,10 +47,10 @@ public class SettingsListViewAdapter extends BaseAdapter {
             case 1:
                 view = LayoutInflater.from(context).inflate(R.layout.fragment_settings_list_row, parent, false);
                 if(soundEffects) {
-                    ((TextView) (view.findViewById(R.id.settingsRow))).setText("sound effects on!");
+                    ((TextView) (view.findViewById(R.id.settingsRow))).setText("Sound effects on!");
                     ((ImageView) (view.findViewById(R.id.settingsRowImage))).setImageResource(R.drawable.settings_sound_effects);
                 } else {
-                    ((TextView) (view.findViewById(R.id.settingsRow))).setText("sound effects off!");
+                    ((TextView) (view.findViewById(R.id.settingsRow))).setText("Sound effects off!");
                     ((ImageView) (view.findViewById(R.id.settingsRowImage))).setImageResource(R.drawable.settings_no_sound_effects);
                 }
                 return view;
@@ -72,10 +61,10 @@ public class SettingsListViewAdapter extends BaseAdapter {
             case 3:
                 view = LayoutInflater.from(context).inflate(R.layout.fragment_settings_list_row, parent, false);
                 if(music) {
-                    ((TextView) (view.findViewById(R.id.settingsRow))).setText("music on!");
+                    ((TextView) (view.findViewById(R.id.settingsRow))).setText("Music on!");
                     ((ImageView) (view.findViewById(R.id.settingsRowImage))).setImageResource(R.drawable.settings_music);
                 } else {
-                    ((TextView) (view.findViewById(R.id.settingsRow))).setText("music off!");
+                    ((TextView) (view.findViewById(R.id.settingsRow))).setText("Music off!");
                     ((ImageView) (view.findViewById(R.id.settingsRowImage))).setImageResource(R.drawable.settings_no_music);
                 }
                 return view;
@@ -85,7 +74,7 @@ public class SettingsListViewAdapter extends BaseAdapter {
                 return view;
             case 5:
                 view = LayoutInflater.from(context).inflate(R.layout.fragment_settings_list_row, parent, false);
-                ((TextView) (view.findViewById(R.id.settingsRow))).setText("Review this app on google play.");
+                ((TextView) (view.findViewById(R.id.settingsRow))).setText("Click here to review this app on google play.");
                 ((ImageView) (view.findViewById(R.id.settingsRowImage))).setImageResource(R.drawable.rate_us);
 
                 return view;
@@ -98,20 +87,18 @@ public class SettingsListViewAdapter extends BaseAdapter {
                 ((TextView) (view.findViewById(R.id.settingsRow))).setText("Send us an email!");
                 ((ImageView) (view.findViewById(R.id.settingsRowImage))).setImageResource(R.drawable.mail_us);
                 return view;
+            case 8:
+                view = LayoutInflater.from(context).inflate(R.layout.fragment_settings_list_header, parent, false);
+                ((TextView) (view.findViewById(R.id.headerTitle))).setText("Restore Purchases");
+                return view;
+            case 9:
+                view = LayoutInflater.from(context).inflate(R.layout.fragment_settings_list_row, parent, false);
+                ((TextView) (view.findViewById(R.id.settingsRow))).setText("If something is wrong with your in-app purchases, you can restore them here.");
+                ((ImageView) (view.findViewById(R.id.settingsRowImage))).setImageResource(R.drawable.restore);
+                return view;
             default:
                 return view;
-
         }
-       /* if(position == 0 || position == 2) {
-            view =  LayoutInflater.from(context).inflate(R.layout.fragment_settings_list_header, parent, false);
-            assert view != null;
-            ((TextView) (view.findViewById(R.id.headerTitle))).setText("header " + Integer.toString(position));
-            return  view;
-        }
-        view = LayoutInflater.from(context).inflate(R.layout.fragment_settings_list_row, parent, false);
-        ((TextView) (view.findViewById(R.id.settingsRow))).setText("settings");
-        return view;*/
-        //}
     }
 
 }

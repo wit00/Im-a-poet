@@ -36,4 +36,7 @@ public class ApplicationContract {
     protected static final Uri updateSettings_URI = Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/update/settings");
     protected static final Uri insertSettings_URI = Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/insert/settings");
     protected static final Uri getSettings_URI = Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/settings");
+
+
+
  }

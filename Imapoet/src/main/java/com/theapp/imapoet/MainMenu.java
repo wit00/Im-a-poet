@@ -19,26 +19,90 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import com.example.android.trivialdrivesample.util.IabHelper;
+import com.example.android.trivialdrivesample.util.IabResult;
+import com.example.android.trivialdrivesample.util.Inventory;
+import com.example.android.trivialdrivesample.util.SkuDetails;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+
 
 public class MainMenu extends ActionBarActivity implements ActionBar.TabListener, InAppPurchaseFragment.InAppPurchaseListener {
     private SectionsPagerAdapter sectionsPagerAdapter; // provides the fragments for the sections
     private ViewPager viewPager; // hosts the section contents
     private AsyncQueryHandler queryHandler;
     private MediaServiceHelper mediaServiceHelper = new MediaServiceHelper(this);
+    //private IabHelper iabHelper;
+
 
 
     public void inAppPurchaseClicked(String packName) {
         // update pack value to show it is bought
         updatePackAvailability(packName,true);
     }
+
+
+
+    //todo, what if the names don't match for some reason?
     public void updatePackAvailability(String packName, boolean isAvailable) {
         ContentValues updatedPackValues = new ContentValues();
         updatedPackValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_IS_AVAILABLE,isAvailable);
-        queryHandler.startUpdate(0,null,Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/update/pack"), updatedPackValues, MagnetDatabaseContract.MagnetEntry.COLUMN_PACK_NAME + " = " + "'"+packName+"'",null);
+        queryHandler.startUpdate(0,null,Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/update/pack"), updatedPackValues, MagnetDatabaseContract.MagnetEntry.COLUMN_PACK_NAME + " = " + "'" + packName + "'",null);
     }
 
+    private void displayYourPurchaseHasBeenSuccessfulDialog(final String inAppPurchase) {
+        String message = "Excellent! Your purchase has gone through. You can now use your new pack!";
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(message)
+                .setPositiveButton("Okay", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+
+                    }});
+        (builder.create()).show();
+    }
+
+    private void displayProblemDialog(final String packName) {
+        String message = "Unfortunately, something went wrong loading your new purchase into our system. Press 'Try Again' to try loading it again. If you continue to have a problem with this, please email us using the Contact Us button in the Settings tab of the menu.";
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(message)
+            .setPositiveButton("Try Again", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    updatePackAvailability(packName,true);
+                }})
+            .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialogInterface, int id) {
+                    // do nothing
+                }
+            });
+        (builder.create()).show();
+
+    }
     private void createAsyncQueryHandler() {
         queryHandler = new AsyncQueryHandler(getContentResolver()) {
+            @Override
+            protected void onUpdateComplete(int token, Object cookie, int result) {
+                if(token == 0) {
+                    // move the pack from inAppPurchasePacks to purchasedInAppPurchasePacks
+                    if(result == 1) {
+                   // if(DataLoaderHelper.copyFile((String) cookie, "inAppPurchasePacks", "purchasedInAppPurchasePacks", getApplicationContext())) {
+                        // if has succeeded
+                        displayYourPurchaseHasBeenSuccessfulDialog((String) cookie);
+                        //displayYourPurchaseHasBeenSuccessfulDialog((String) cookie);
+                    } else {
+                        // io exception
+                      // displayProblemDialog("love.txt");
+                       displayProblemDialog((String) cookie);
+                    }
+                }
+
+            }
+
             @Override
             protected void onDeleteComplete(int token, Object cookie, int result) {
                 switch (token) {
@@ -81,6 +145,17 @@ public class MainMenu extends ActionBarActivity implements ActionBar.TabListener
         startActivity(intent);
     }
 
+    private void displayInAppPurchaseSetupFailureMessage() {
+        String message = "In app purchasing is not working at this time. Sorry for the inconvenience.";
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(message)
+                .setPositiveButton("Okay", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        // do nothing
+                    }
+                });
+        (builder.create()).show();
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

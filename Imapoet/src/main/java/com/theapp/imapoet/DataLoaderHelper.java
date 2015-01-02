@@ -8,15 +8,19 @@ import android.content.DialogInterface;
 import android.content.res.Resources;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.provider.MediaStore;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.util.ArrayList;
 
 /**
@@ -120,8 +124,38 @@ public class DataLoaderHelper {
     public static ArrayList<Pack> loadMagnetText(Context context) {
         ArrayList<Pack> packs = new ArrayList<Pack>();
         loadPackDirectory(context,packs,"standardPacks",true);
-        loadPackDirectory(context,packs,"inAppPurchasePacks",false);
+        //loadPackDirectory(context,packs,"inAppPurchasePacks",false);
+        loadPackDirectory(context,packs,"purchasedInAppPurchasePacks",true);
+        loadPackDirectory(context,packs,"notPurchasedInAppPurchasePacks",false);
         return packs;
+    }
+
+    // copies a file from one directory to another directory; returns a boolean that indicates whether the copy was successful or not
+    public static boolean copyFile(String filename, String fromDirectory, String toDirectory, Context context) {
+        try {
+            InputStream inputStream = context.getAssets().open(fromDirectory + "/" + filename);
+            File outputFile = new File(toDirectory + "/" + filename);
+           // OutputStream outputStream = new FileOutputStream(outputFile);
+           // OutputStream outputStream =(context.getAssets().open(toDirectory ));
+            if(!outputFile.exists()) outputFile.createNewFile();
+            //copyFile(fromDirectory,toDirectory);
+            //OutputStream outputStream = new FileOutputStream(toDirectory + "/" + filename);
+            /*byte[] buffer = new byte[1024];
+            int read;
+            while ((read = inputStream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, read);
+            }*/
+            inputStream.close();
+            //outputStream.flush();
+            //outputStream.close();
+            System.out.println("no io exception here");
+        } catch (IOException ioException) {
+            System.out.println("i have an io exception");
+            ioException.printStackTrace();
+            return false;
+        }
+
+        return true;
     }
 
     private static void loadPackDirectory(Context context, ArrayList<Pack> packs, String packsDirectoryName, boolean isAvailable) {

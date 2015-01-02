@@ -120,7 +120,6 @@ public class DrawingPanelFragment extends Fragment implements LoaderManager.Load
 
 
     public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
-        System.out.println("destroy loading magnets " + Integer.toString(cursor.getCount()));
        if(cursor.getCount() > 0) {
            cursor.moveToFirst();
            drawingPanel.loadMagnets(cursor,

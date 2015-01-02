@@ -2,9 +2,12 @@ package com.theapp.imapoet;
 
 
 
+import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
 import android.content.AsyncQueryHandler;
 import android.content.ContentValues;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -17,6 +20,12 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.database.Cursor;
+import com.example.android.trivialdrivesample.util.IabHelper;
+import com.example.android.trivialdrivesample.util.IabResult;
+import com.example.android.trivialdrivesample.util.Inventory;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 
 
 /**
@@ -31,12 +40,83 @@ public class SettingsFragment extends android.support.v4.app.Fragment implements
     private AsyncQueryHandler queryHandler;
     private boolean music = true;
     private boolean soundEffect = true;
+    private IabHelper iabHelper;
+    private ArrayList<String> skuList = new ArrayList<String>();
+    private InAppPurchaseFragment.InAppPurchaseListener inAppPurchaseListener;
+
+
 
     public static SettingsFragment newInstance() {
         return new SettingsFragment();
     }
 
     public SettingsFragment() {}
+
+    private void initializeSkuList() {
+        try {
+            Collections.addAll(skuList, getActivity().getAssets().list("inAppPurchasePacks"));
+        } catch (IOException ioException) {
+            ioException.printStackTrace();
+        }
+    }
+
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        initializeSkuList();
+        try {
+            inAppPurchaseListener = (InAppPurchaseFragment.InAppPurchaseListener) activity;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(activity.toString()
+                    + " must implement OnFragmentInteractionListener");
+        }
+    }
+    private void displayInAppPurchaseSetupFailureMessage() {
+        String message = "In app purchasing is not working at this time. Sorry for the inconvenience.";
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        builder.setMessage(message)
+                .setPositiveButton("Okay", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        // do nothing
+                    }
+                });
+        (builder.create()).show();
+    }
+
+    private void getProductsPurchased() {
+        iabHelper.queryInventoryAsync(productsPurchasedInventoryListener);
+
+    }
+
+    private IabHelper.QueryInventoryFinishedListener productsPurchasedInventoryListener
+            = new IabHelper.QueryInventoryFinishedListener() {
+        public void onQueryInventoryFinished(IabResult result,
+                                             Inventory inventory) {
+            if (result.isFailure()) {
+                displayInAppPurchaseSetupFailureMessage();
+            }
+            else {
+                for(String sku : skuList) {
+                    if(inventory.hasPurchase(sku)) inAppPurchaseListener.inAppPurchaseClicked(sku);
+                }
+            }
+        }
+    };
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        String base64EncodedPublicKey = ApplicationContract.base64 + ApplicationContract.encoded + ApplicationContract.Public + ApplicationContract.key;
+        // compute your public key and store it in base64EncodedPublicKey
+        iabHelper = new IabHelper(getActivity(), base64EncodedPublicKey);
+        iabHelper.startSetup(new IabHelper.OnIabSetupFinishedListener() {
+            public void onIabSetupFinished(IabResult result) {
+                if (result.isFailure()) {
+                    displayInAppPurchaseSetupFailureMessage();
+                }
+            }
+        });
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -116,6 +196,9 @@ public class SettingsFragment extends android.support.v4.app.Fragment implements
                         intent.setType("text/plain");
                         intent.putExtra(Intent.EXTRA_EMAIL, ApplicationContract.supportEmailAddress);
                         startActivity(Intent.createChooser(intent, "Send Us an Email"));
+                        break;
+                    case 9:
+                        getProductsPurchased();
                         break;
                     default:
                         break;

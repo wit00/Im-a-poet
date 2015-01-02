@@ -23,11 +23,12 @@ public class InAppPurchase {
         purchased = hasBeenPurchased;
     }
 
-    public InAppPurchase(String title, String description, String type, String price, String productId) {
+    public InAppPurchase(String title, String description, String type, String price, String productId, boolean purchased) {
         this.title = title;
         this.description = description;
         this.type = type;
         this.price = price;
         this.productId = productId;
+        this.purchased = purchased;
     }
 }

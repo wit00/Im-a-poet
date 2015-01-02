@@ -218,6 +218,10 @@ public class MainActivity extends FragmentActivity implements DrawerFragment.OnF
         else drawingPanelFragment.setWord(clickedMagnetText,packID);
     }
 
+    public void toggleDrag() {
+        if(demoFragment != null) demoFragment.runDemo(DemoFragment.DemoPart.SCALE_AND_DRAG);
+    }
+
     public void onSpinnerClicked() {
         if(demoFragment != null) demoFragment.runDemo(DemoFragment.DemoPart.PACKS_SELECTED);
     }
@@ -313,8 +317,6 @@ public class MainActivity extends FragmentActivity implements DrawerFragment.OnF
                                 }
                                 break;
                             case R.id.action_demo:
-                                //demo = new Demo(MainActivity.this,helperContext);
-                                //demo.runDemoIntro();
                                 if(demoFragment == null) addDemoFragment(DemoFragment.DemoPart.START.toString());
                                 else {
                                     demoComplete();
@@ -330,6 +332,9 @@ public class MainActivity extends FragmentActivity implements DrawerFragment.OnF
                                 } catch (ActivityNotFoundException googleMarketApplicationNotFound) {
                                     startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(ApplicationContract.googleMarketWebAddress + packageName)));
                                 }
+                                break;
+                            case R.id.action_slide:
+                                drawingPanelFragment.drawingPanel().toggleDoubleTap();
                                 break;
                         }
 

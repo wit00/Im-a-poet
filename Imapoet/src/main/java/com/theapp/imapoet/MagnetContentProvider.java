@@ -206,30 +206,23 @@ public class MagnetContentProvider extends ContentProvider {
             throw new AssertionError(" the context is magnet in fish content provider");
         switch (uriMatcher.match(uri)) {
             case UPDATE_SETTINGS:
-                database.update(MagnetDatabaseContract.MagnetEntry.SETTINGS_TABLE_NAME,values,null,null);
+                int updateResult = database.update(MagnetDatabaseContract.MagnetEntry.SETTINGS_TABLE_NAME,values,null,null);
                 getContext().getContentResolver().notifyChange(Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/settings"),null);
-                break;
+                return updateResult;
             case UPDATE_POEM:
-                database.update(MagnetDatabaseContract.MagnetEntry.SAVED_POEMS_TABLE_NAME,values,selection,selectionArgs);
-                break;
+                return database.update(MagnetDatabaseContract.MagnetEntry.SAVED_POEMS_TABLE_NAME,values,selection,selectionArgs);
             case UPDATE_POEM_DETAIL:
-                database.update(MagnetDatabaseContract.MagnetEntry.SAVED_POEMS_MAGNET_DETAIL_TABLE_NAME,values,selection,selectionArgs);
-                break;
+                return database.update(MagnetDatabaseContract.MagnetEntry.SAVED_POEMS_MAGNET_DETAIL_TABLE_NAME,values,selection,selectionArgs);
             case UPDATE_CURRENT_POEM:
-                database.update(MagnetDatabaseContract.MagnetEntry.LAST_POEM_TABLE_NAME,values,selection,selectionArgs);
-                break;
+                return database.update(MagnetDatabaseContract.MagnetEntry.LAST_POEM_TABLE_NAME,values,selection,selectionArgs);
             case UPDATE_PACK:
-                database.update(MagnetDatabaseContract.MagnetEntry.PACKS_TABLE_NAME,values,selection,selectionArgs);
-                break;
+                return database.update(MagnetDatabaseContract.MagnetEntry.PACKS_TABLE_NAME,values,selection,selectionArgs);
             case UPDATE_AWARD:
-                database.update(MagnetDatabaseContract.MagnetEntry.AWARDS_TABLE_NAME,values,selection,selectionArgs);
-                break;
+                return database.update(MagnetDatabaseContract.MagnetEntry.AWARDS_TABLE_NAME,values,selection,selectionArgs);
             case UPDATE_AWARD_DETAIL:
-                database.update(MagnetDatabaseContract.MagnetEntry.AWARDS_DETAIL_TABLE_NAME,values,selection,selectionArgs);
-                break;
+                return database.update(MagnetDatabaseContract.MagnetEntry.AWARDS_DETAIL_TABLE_NAME,values,selection,selectionArgs);
             default:
                 throw new IllegalArgumentException("Unknown URI " + uri);
         }
-        return 0;
     }
 }
