@@ -7,11 +7,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
 
 /**
+ * Custom adapter for listing the in app purchase items.
  * Created by whitney on 10/7/14.
  */
 public class InAppPurchaseListViewAdapter extends BaseAdapter {
@@ -28,7 +30,6 @@ public class InAppPurchaseListViewAdapter extends BaseAdapter {
         return inAppPurchases.size();
     }
 
-
     public InAppPurchase getItem(int position) {
         return inAppPurchases.get(position);
     }
@@ -41,6 +42,8 @@ public class InAppPurchaseListViewAdapter extends BaseAdapter {
         ((TextView)rowView.findViewById(R.id.inAppPurchaseTitle)).setText(inAppPurchase.title());
         ((TextView)rowView.findViewById(R.id.inAppPurchaseDetail)).setText(inAppPurchase.description());
         ((TextView)rowView.findViewById(R.id.inAppPrice)).setText(inAppPurchase.price());
+        int newDeckImageResourceID = context.getResources().getIdentifier(inAppPurchase.title(), "drawable", "com.theapp.imapoet");
+        if(newDeckImageResourceID != 0) ((ImageView)rowView.findViewById(R.id.new_deck_icon)).setImageResource(newDeckImageResourceID);
     }
 
     private void setGrayedOutText(InAppPurchase inAppPurchase, View rowView) {
@@ -69,10 +72,7 @@ public class InAppPurchaseListViewAdapter extends BaseAdapter {
             LayoutInflater inflater = ((Activity) context).getLayoutInflater();
             view= inflater.inflate(R.layout.fragment_inapppurchase_row,parent, false);
         }
-
         setText(inAppPurchases.get(position),view);
-
-
         return view;
     }
 

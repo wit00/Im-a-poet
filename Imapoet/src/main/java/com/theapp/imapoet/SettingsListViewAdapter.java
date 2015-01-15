@@ -8,9 +8,8 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.android.vending.billing.IInAppBillingService;
-
 /**
+ * Custom adapter for the settings fragment in the main menu
  * Created by whitney on 6/30/14.
  */
 public class SettingsListViewAdapter extends BaseAdapter {

@@ -1,27 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent" android:layout_height="fill_parent"
+    android:orientation="horizontal"
     android:layout_margin="@dimen/extra_margin"
     android:padding="@dimen/extra_margin">
+    <ImageView
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.2"
+        android:contentDescription="@string/new_deck_icon_content_description"
+        android:id="@+id/new_deck_icon"
+        android:src="@drawable/default_new_deck"/>
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_weight="0.6"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content">
+        <TextView
+            android:id="@+id/inAppPurchaseTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+        <TextView
+            android:layout_marginLeft="@dimen/indent"
+            android:layout_marginStart="@dimen/indent"
+            android:id="@+id/inAppPurchaseDetail"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
     <TextView
-        android:id="@+id/inAppPurchaseTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
-    <TextView
-        android:layout_marginRight="@dimen/_big_top_margin"
-        android:layout_marginEnd="@dimen/_big_top_margin"
+        android:layout_weight="0.2"
+        android:layout_marginRight="@dimen/indent"
+        android:layout_marginEnd="@dimen/indent"
         android:id="@+id/inAppPrice"
         android:gravity="end"
-        android:layout_toRightOf="@id/inAppPurchaseTitle"
-        android:layout_toEndOf="@+id/inAppPurchaseTitle"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="match_parent" />
-    <TextView
-        android:layout_marginLeft="@dimen/indent"
-        android:layout_marginStart="@dimen/indent"
-        android:layout_below="@id/inAppPurchaseTitle"
-        android:id="@+id/inAppPurchaseDetail"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
-</RelativeLayout>
+</LinearLayout>

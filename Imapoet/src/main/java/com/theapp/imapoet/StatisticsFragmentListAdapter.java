@@ -8,9 +8,9 @@ import android.view.ViewGroup;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 
-import java.util.ArrayList;
 
 /**
+ * Custom adapter for the statistics fragment in the main menu
  * Created by whitney on 11/13/14.
  */
 public class StatisticsFragmentListAdapter extends SimpleCursorAdapter {

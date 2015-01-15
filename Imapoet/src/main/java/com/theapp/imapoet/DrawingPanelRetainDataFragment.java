@@ -4,8 +4,6 @@ package com.theapp.imapoet;
 import android.os.Bundle;
 import android.app.Fragment;
 import java.util.ArrayList;
-import java.util.Iterator;
-
 
 /**
  * A fragment for holding the magnet and saved poem data on orientation change

@@ -17,19 +17,30 @@ public class GameState {
     private AsyncQueryHandler queryHandler;
     private ArrayList<Magnet> currentPoem;
     private Context context;
-    private DrawingPanelListener drawingPanelListener;
+    private MainActivityListener mainActivityListener;
+    private DrawingPanelListener drawingPanelListener = null;
     private AwardHandler awardHandler;
+    private boolean lastPack = false;
+    private boolean lastMagnet = false;
+    private int packsInserted = 0;
+    private int totalNumberPacks = 0;
 
-    public GameState(Context context, DrawingPanelListener drawingPanelListener,Boolean firstLaunch) {
-        this.context = context;
+    public GameState(DrawingPanelListener drawingPanelListener, Boolean firstLaunch, MainActivity mainActivity) {
+        this.context = mainActivity;
         createAsyncQueryHandler();
         this.drawingPanelListener = drawingPanelListener;
+        this.mainActivityListener = mainActivity;
         awardHandler = new AwardHandler(context,R.raw.award_data,(AwardHandler.AwardManagerListener) drawingPanelListener);
         if(!firstLaunch) {
             awardHandler.attachAwardTypes();
         } else {
             awardHandler.setUpDatabaseAndAttachAwardTypes();
         }
+    }
+
+    public void setDrawingPanelListener(DrawingPanelListener drawingPanelListener) {
+        this.drawingPanelListener = drawingPanelListener;
+
     }
     // Called by MainActivity, tells the award manager that the demo has been completed
     public void demoComplete() { awardHandler.newSetToTrueAction("DEMO_FINISHED"); }
@@ -45,6 +56,10 @@ public class GameState {
         public void setSavedPoemId(String savedPoemId);
         public void setSavedPoemState(boolean loaded,String title);
         public void setSavedPoemState(boolean loaded);
+    }
+
+    public interface MainActivityListener {
+        public void packInsertsCompleted();
     }
 
     public void magnetDeleted() {
@@ -109,6 +124,12 @@ public class GameState {
         queryHandler.startInsert(LoaderCodes.insertPacks, pack, ApplicationContract.insertPacks_URI, packValues);
     }
 
+    public void deleteAndInsertPacksFromTextFiles(ArrayList<Pack> packs) {
+        totalNumberPacks = packs.size();
+        queryHandler.startDelete(LoaderCodes.deletePacks, packs, ApplicationContract.deletePacks_URI,null,null);
+
+    }
+
 
     private void createAsyncQueryHandler() {
         queryHandler = new AsyncQueryHandler(context.getContentResolver()) {
@@ -171,6 +192,20 @@ public class GameState {
                             queryHandler.startInsert(0,null,ApplicationContract.insertPoemDetail_URI,poemDetailValues);
                         }
                         break;
+                    case LoaderCodes.deletePacks:
+                        queryHandler.startDelete(LoaderCodes.deleteMagnets,cookie,ApplicationContract.deleteMagnets_URI,null,null);
+                        break;
+                    case LoaderCodes.deleteMagnets:
+                        //for(Pack pack : (ArrayList<Pack>) cookie) {
+                        for(int i = 0; i < ((ArrayList<Pack>) cookie).size() ;i++) {
+                            insertPacksFromTextFiles(((ArrayList<Pack>) cookie).get(i));
+                            if (i == ((ArrayList<Pack>) cookie).size() -1)  {
+                                lastPack = true;
+                            }
+                            //insertPacksFromTextFiles(pack);
+                            //if(pack == ((ArrayList<Pack>) cookie).get(((ArrayList<Pack>) cookie).size() -1)) lastPack = true;
+                        }
+                        break;
                 }
             }
             @Override
@@ -200,14 +235,32 @@ public class GameState {
                         }
                         break;
                     case LoaderCodes.insertPacks:
+                        System.out.println("pack inserts completed, not!!!");
                         int packID = Integer.parseInt(uri.getLastPathSegment());
-                        for(String magnet : ((Pack) cookie).magnets) { // fix this so that the pack is passed along in a bundle
+                        //for(String magnet : ((Pack) cookie).magnets) { // fix this so that the pack is passed along in a bundle
+                        for(int i = 0; i < ((Pack) cookie).magnets.size(); i++) {
                             ContentValues magnetValues = new ContentValues();
                             magnetValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_PACK_ID,packID);
-                            magnetValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_WORD_TEXT,magnet);
+                            //magnetValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_WORD_TEXT,magnet);
+                            magnetValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_WORD_TEXT,((Pack) cookie).magnets.get(i));
                             magnetValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_TIMES_USED_SAVED_OR_SHARED,0);
-                            queryHandler.startInsert(0,null,ApplicationContract.insertMagnet_URI,magnetValues);
+                            if (i == ((Pack) cookie).magnets.size() - 1)  {
+                                packsInserted++;
+                                lastMagnet = true;
+                            }
+
+                            queryHandler.startInsert(LoaderCodes.insertMagnets,null,ApplicationContract.insertMagnet_URI,magnetValues);
+
                         }
+
+                       // }
+                        break;
+                    case LoaderCodes.insertMagnets:
+                        System.out.println("pack inserts completed, magnets!!!");
+
+                        if((totalNumberPacks == packsInserted) && lastMagnet) mainActivityListener.packInsertsCompleted();
+                        lastPack = false;
+                        lastMagnet = false;
                         break;
                 }
 
@@ -242,4 +295,7 @@ class LoaderCodes {
     static final int updatePoem = 4;
     static final int insertNewPoem = 5;
     static final int insertPacks = 6;
+    static final int deletePacks = 7;
+    static final int deleteMagnets = 8;
+    static final int insertMagnets = 9;
 }

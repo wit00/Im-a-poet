@@ -8,8 +8,8 @@ android {
         applicationId "com.theapp.imapoet"
         minSdkVersion 11
         targetSdkVersion 19
-        versionCode 2
-        versionName "testing 0.11"
+        versionCode 6
+        versionName "testing 0.15"
     }
     buildTypes {
         release {

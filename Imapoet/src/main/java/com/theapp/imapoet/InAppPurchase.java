@@ -1,6 +1,7 @@
 package com.theapp.imapoet;
 
 /**
+ * In app purchase item
  * Created by whitney on 10/8/14.
  */
 public class InAppPurchase {
@@ -10,8 +11,8 @@ public class InAppPurchase {
     private String type;
     private String price;
     private String productId;
-    private String price_amount_micros;
-    private String price_currency_code;
+    //private String price_amount_micros;
+    //private String price_currency_code;
 
     public String title() { return title; }
     public String description() { return description; }
@@ -19,9 +20,9 @@ public class InAppPurchase {
     public String type() { return type; }
     public String productId() { return productId; }
     public boolean hasBeenPurchased () { return purchased; }
-    public void setPurchased(boolean hasBeenPurchased) {
-        purchased = hasBeenPurchased;
-    }
+    //public void setPurchased(boolean hasBeenPurchased) {
+   //     purchased = hasBeenPurchased;
+    //}
 
     public InAppPurchase(String title, String description, String type, String price, String productId, boolean purchased) {
         this.title = title;

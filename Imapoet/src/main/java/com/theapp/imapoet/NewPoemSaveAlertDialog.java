@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.widget.EditText;
 
 /**
+ * Dialog box for when a new poem is about to be saved
  * Created by whitney on 8/1/14.
  */
 public class NewPoemSaveAlertDialog extends DialogFragment {

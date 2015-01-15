@@ -41,28 +41,30 @@ public class DrawerSpinnerAdapter extends SimpleCursorAdapter {
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
         super.bindView(view, context, cursor);
-        if(view.findViewById(R.id.spinnerOwned) != null) {
-            TextView spinnerText = (TextView) view.findViewById(R.id.spinnerTitle);
-            TextView ownedText = (TextView) view.findViewById(R.id.spinnerOwned);
-            String packFileName = cursor.getString(cursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry.COLUMN_PACK_NAME));
-            String cleanedUpFileName = packFileName.substring(0,packFileName.indexOf("."));
-            cleanedUpFileName = cleanedUpFileName.replace("_"," ");
-            spinnerText.setText(cleanedUpFileName);
-            if(cursor.getInt(cursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry.COLUMN_IS_AVAILABLE)) == 0) {
-                spinnerText.setTextColor(Color.LTGRAY);
-                ownedText.setTextColor(Color.LTGRAY);
-                ownedText.setVisibility(View.VISIBLE);
-            } else {
-                spinnerText.setTextColor(Color.BLACK);
-                ownedText.setVisibility(View.GONE);
-            }
-        } else {
-            TextView spinnerText = (TextView) view.findViewById(android.R.id.text1);
-            String packFileName = cursor.getString(cursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry.COLUMN_PACK_NAME));
-            String cleanedUpFileName = packFileName.substring(0,packFileName.indexOf("."));
-            cleanedUpFileName = cleanedUpFileName.replace("_"," ");
-            spinnerText.setText(cleanedUpFileName);
-            spinnerText.setTextColor(Color.BLACK);
-        }
+       if(!cursor.isClosed()) {
+           if(view.findViewById(R.id.spinnerOwned) != null) {
+               TextView spinnerText = (TextView) view.findViewById(R.id.spinnerTitle);
+               TextView ownedText = (TextView) view.findViewById(R.id.spinnerOwned);
+               String packFileName = cursor.getString(cursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry.COLUMN_PACK_NAME));
+               String cleanedUpFileName = packFileName.substring(0,packFileName.indexOf("."));
+               cleanedUpFileName = cleanedUpFileName.replace("_"," ");
+               spinnerText.setText(cleanedUpFileName);
+               if(cursor.getInt(cursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry.COLUMN_IS_AVAILABLE)) == 0) {
+                   spinnerText.setTextColor(Color.LTGRAY);
+                   ownedText.setTextColor(Color.LTGRAY);
+                   ownedText.setVisibility(View.VISIBLE);
+               } else {
+                   spinnerText.setTextColor(Color.BLACK);
+                   ownedText.setVisibility(View.GONE);
+               }
+           } else {
+               TextView spinnerText = (TextView) view.findViewById(android.R.id.text1);
+               String packFileName = cursor.getString(cursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry.COLUMN_PACK_NAME));
+               String cleanedUpFileName = packFileName.substring(0,packFileName.indexOf("."));
+               cleanedUpFileName = cleanedUpFileName.replace("_"," ");
+               spinnerText.setText(cleanedUpFileName);
+               spinnerText.setTextColor(Color.BLACK);
+           }
+       }
     }
 }

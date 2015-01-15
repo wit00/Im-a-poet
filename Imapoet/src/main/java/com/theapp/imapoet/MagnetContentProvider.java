@@ -42,6 +42,8 @@ public class MagnetContentProvider extends ContentProvider {
     private static final int AWARDS_DETAIL = 26;
     private static final int UPDATE_AWARD = 27;
     private static final int UPDATE_AWARD_DETAIL = 28;
+    private static final int DELETE_PACKS = 29;
+    private static final int DELETE_MAGNETS = 30;
 
     static {
         uriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
@@ -73,6 +75,8 @@ public class MagnetContentProvider extends ContentProvider {
         uriMatcher.addURI(AUTHORITY,"awards/detail",AWARDS_DETAIL);
         uriMatcher.addURI(AUTHORITY,"update/award",UPDATE_AWARD);
         uriMatcher.addURI(AUTHORITY,"update/award/detail",UPDATE_AWARD_DETAIL);
+        uriMatcher.addURI(AUTHORITY,"delete/magnets",DELETE_MAGNETS);
+        uriMatcher.addURI(AUTHORITY,"delete/packs",DELETE_PACKS);
     }
 
     public MagnetContentProvider() {}
@@ -96,6 +100,12 @@ public class MagnetContentProvider extends ContentProvider {
                 break;
             case DELETE_POEM:
                 thisDelete = database.delete(MagnetDatabaseContract.MagnetEntry.SAVED_POEMS_TABLE_NAME,selection,selectionArgs);
+                break;
+            case DELETE_PACKS:
+                thisDelete = database.delete(MagnetDatabaseContract.MagnetEntry.PACKS_TABLE_NAME,selection,selectionArgs);
+                break;
+            case DELETE_MAGNETS:
+                thisDelete = database.delete(MagnetDatabaseContract.MagnetEntry.MAGNETS_TABLE_NAME,selection,selectionArgs);
                 break;
             default:
                 throw new IllegalArgumentException("Unknown URI " + uri);

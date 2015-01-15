@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 
 /**
+ * This is the trash can object seen on the main drawing area. This class controls its movements and image.
  * Created by whitney on 8/6/14.
  */
 public class TrashCan {

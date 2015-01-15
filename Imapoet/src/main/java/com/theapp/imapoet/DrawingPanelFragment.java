@@ -12,9 +12,7 @@ import android.support.v4.content.Loader;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-
 import java.util.ArrayList;
-import java.util.Iterator;
 
 /**
  * The drawing panel fragment is an android fragment element that holds the surface view (canvas) where the magnet drawing takes place.
@@ -30,7 +28,6 @@ public class DrawingPanelFragment extends Fragment implements LoaderManager.Load
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         createAsyncQueryHandler();
-        drawingPanel = new DrawingPanel(getActivity(),canvasListener);
         return drawingPanel;
     }
 
@@ -65,8 +62,8 @@ public class DrawingPanelFragment extends Fragment implements LoaderManager.Load
 
     public ArrayList<Magnet> getPoem() {
         ArrayList<Magnet> poem = new ArrayList<Magnet>();
-        for(Iterator<Magnet> poemIterator = drawingPanel.getPoem().iterator(); poemIterator.hasNext();) {
-            poem.add(poemIterator.next().clone());
+        for (Magnet magnet : drawingPanel.getPoem()) {
+            poem.add(magnet.clone());
         }
         return poem;
     }
@@ -77,6 +74,7 @@ public class DrawingPanelFragment extends Fragment implements LoaderManager.Load
     @Override
     public void onCreate(Bundle bundle) {
         super.onCreate(bundle);
+        drawingPanel = new DrawingPanel(getActivity(),canvasListener);
     }
 
     @Override
@@ -129,6 +127,7 @@ public class DrawingPanelFragment extends Fragment implements LoaderManager.Load
                    MagnetDatabaseContract.MagnetEntry.COLUMN_MAGNET_Y,
                    MagnetDatabaseContract.MagnetEntry.COLUMN_IF_SAVED_ID);
        }
+        //canvasListener.drawingPanelFragmentQueriesCompleted();
     }
 
     // This is called when the last Cursor provided to onLoadFinished()

@@ -64,7 +64,6 @@ public class SettingsFragment extends android.support.v4.app.Fragment implements
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
-        initializeSkuList();
         try {
             inAppPurchaseListener = (InAppPurchaseFragment.InAppPurchaseListener) activity;
         } catch (ClassCastException e) {
@@ -85,7 +84,19 @@ public class SettingsFragment extends android.support.v4.app.Fragment implements
     }
 
     private void getProductsPurchased() {
-        iabHelper.queryInventoryAsync(productsPurchasedInventoryListener);
+        initializeSkuList();
+        String base64EncodedPublicKey = ApplicationContract.base64 + ApplicationContract.encoded + ApplicationContract.Public + ApplicationContract.key;
+        // compute your public key and store it in base64EncodedPublicKey
+        iabHelper = new IabHelper(getActivity(), base64EncodedPublicKey);
+        iabHelper.startSetup(new IabHelper.OnIabSetupFinishedListener() {
+            public void onIabSetupFinished(IabResult result) {
+                if (result.isFailure()) {
+                    displayInAppPurchaseSetupFailureMessage();
+                } else {
+                    iabHelper.queryInventoryAsync(productsPurchasedInventoryListener);
+                }
+            }
+        });
 
     }
 
@@ -106,16 +117,7 @@ public class SettingsFragment extends android.support.v4.app.Fragment implements
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        String base64EncodedPublicKey = ApplicationContract.base64 + ApplicationContract.encoded + ApplicationContract.Public + ApplicationContract.key;
-        // compute your public key and store it in base64EncodedPublicKey
-        iabHelper = new IabHelper(getActivity(), base64EncodedPublicKey);
-        iabHelper.startSetup(new IabHelper.OnIabSetupFinishedListener() {
-            public void onIabSetupFinished(IabResult result) {
-                if (result.isFailure()) {
-                    displayInAppPurchaseSetupFailureMessage();
-                }
-            }
-        });
+
     }
 
     @Override

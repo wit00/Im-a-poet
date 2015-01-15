@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">Become a poet</string>
+    <string name="app_name">Be a poet</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">settings</string>
     <string name="action_share">share your poem</string>
@@ -25,7 +25,7 @@
     <string name="statistics_magnets_deleted">Number of Magnets Deleted:</string>
     <string name="requires_an_in_app_purchase_spinner_adapter">* requires an in-app purchase</string>
     <string name="demo_drawer_opened">Excellent! Your words are separated into packs. To use a new pack, select it from the drop down list above. Select a new pack to continue.</string>
-    <string name="demo_packs_selected">You can use a word by dragging it to the right. Drag a word to the right to continue. </string>
+    <string name="demo_packs_selected">You can use a word by dragging it to the right. Touch and drag a word to the right to continue. </string>
     <string name="demo_magnet_tiles_changed">To see your poem better, you can scale in or out and drag the workspace around. To turn dragging on or off, tap the screen twice. Try that now, tap the screen twice, and drag your workspace.</string>
     <string name="demo_dragged">You can win awards by completing certain tasks. When you win an award, the award icon will light up. Click on the award icon to continue.</string>
     <string name="demo_award_clicked">You can delete magnets by dragging them into the trash can. Delete a magnet to continue.</string>
@@ -44,21 +44,22 @@
     <string name="content_description_music_credit_link">link to the website of the music credit</string>
     <string name="credits_programmer">Programmer:</string>
     <string name="programmer_credit_name">S. Whitney Powell</string>
-    <string name="link_to_my_website_content_description">link to Whitney Powell\'s website</string>
-    <string name="link_to_my_twitter_content_description">link to Whitney Powell\'s twitter</string>
+    <string name="link_to_my_website_content_description">link to Whitney\'s website</string>
+    <string name="link_to_my_twitter_content_description">link to Whitney\'s twitter</string>
     <string name="background_for_settings_content_description">background for the settings page</string>
     <string name="go_to_the_menu_button_image_content_description">Go to the menu button</string>
     <string name="statistics_shared_poems">Poems Shared:</string>
     <string name="credits_music">Music:</string>
     <string name="credits_music_detail">\'When the Wind Blows\' Licensed under Creative Commons: By Attribution 3.0 http://creativecommons.org/licenses/by/3.0/</string>
     <string name="credits_music_credit">Kevin MacLeod (incompetech.com)</string>
+
     <string-array name="magnets_array">
-            <item>Basic</item>
-            <item>Love</item>
-            <item>Science!</item>
-        </string-array>
+        <item>Basic</item>
+        <item>Love</item>
+        <item>Science!</item>
+    </string-array>
 
-
-
+    <string name="title_activity_loading">LoadingActivity</string>
+    <string name="new_deck_icon_content_description">icon for this new deck</string>
 
 </resources>

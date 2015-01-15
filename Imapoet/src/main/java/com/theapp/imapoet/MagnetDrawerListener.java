@@ -15,11 +15,13 @@ public class MagnetDrawerListener implements DrawerLayout.DrawerListener {
     }
 
     public void onDrawerClosed (View drawerView) {
+
         //
     }
 
     public void onDrawerOpened (View drawerView) {
         //System.out.println("oink drawer open");
+
         test.drawerOpened();
     }
 

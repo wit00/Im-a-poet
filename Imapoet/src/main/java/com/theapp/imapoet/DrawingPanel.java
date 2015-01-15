@@ -368,6 +368,7 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
         }
         if (clickedMagnet == null && theUserHasTouchedTheAward(oldXTouch - xScrollOffset, oldYTouch - yScrollOffset)) {
             performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
+            awardAlert.setAlert(false);
             loadAwardDialog();
         }
     }

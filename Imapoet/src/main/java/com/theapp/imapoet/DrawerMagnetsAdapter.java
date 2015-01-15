@@ -9,6 +9,7 @@ import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 
 /**
+ * Custom adapter class for the drawer magnets
  * Created by whitney on 10/9/14.
  */
 public class DrawerMagnetsAdapter extends SimpleCursorAdapter{
@@ -27,7 +28,9 @@ public class DrawerMagnetsAdapter extends SimpleCursorAdapter{
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
         super.bindView(view, context, cursor);
-        TextView magnet = (TextView) view.findViewById(R.id.tile_text);
-        magnet.setText(cursor.getString(cursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry.COLUMN_WORD_TEXT)));
+        if(!cursor.isClosed()) {
+            TextView magnet = (TextView) view.findViewById(R.id.tile_text);
+            magnet.setText(cursor.getString(cursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry.COLUMN_WORD_TEXT)));
+        }
     }
 }

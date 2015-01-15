@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 /**
+ * Convenience class for using the awards system more easily
  * Created by whitney on 11/10/14.
  */
 public class AwardHandler {
@@ -40,6 +41,7 @@ public class AwardHandler {
     public interface AwardManagerListener {
         public void loadAward(String name, String description, int id);
     }
+
 
 
     public void setUpDatabaseAndAttachAwardTypes() {

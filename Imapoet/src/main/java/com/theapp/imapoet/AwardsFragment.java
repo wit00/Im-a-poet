@@ -3,6 +3,7 @@ package com.theapp.imapoet;
 
 
 import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -51,8 +52,16 @@ public  class AwardsFragment extends android.support.v4.app.Fragment implements 
             gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                     AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-                    builder.setMessage(((TextView) view.findViewById(R.id.description)).getText())
-                            .setTitle("About this award");
+                    builder.setMessage(((TextView) view.findViewById(R.id.description)).getText());
+                            //.setTitle("About this award");
+                    Cursor cursor = (Cursor) awardsGridViewAdapter.getItem(position);
+                    if(cursor.getInt(cursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry.COLUMN_COMPLETED)) == 0) builder.setTitle("You haven't completed this award.");
+                    else builder.setTitle("You have won this award!");
+                    builder.setPositiveButton("Okay", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            // do nothing
+                        }
+                    });
                     AlertDialog dialog = builder.create();
                     dialog.show();
                 }

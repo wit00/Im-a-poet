@@ -55,7 +55,6 @@ public class AwardAlert {
     }
 
     public boolean drawAwardAlert(Canvas canvas, float width) {
-
         boolean invalidate = false;
         if(awardAlert) {
             int currentTime = (int) (System.currentTimeMillis() % Integer.MAX_VALUE);

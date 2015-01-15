@@ -40,7 +40,7 @@ public class MagnetDatabaseContract {
         public static final String COLUMN_LEFT = "LeftConnectedMagnet";
         public static final String COLUMN_RIGHT = "RightConnectedMagnet";
 
-        public static final String COLUMN_AWARD_NAME = "awardName";
+        //public static final String COLUMN_AWARD_NAME = "awardName";
         public static final String COLUMN_COMPLETED = "completed";
         public static final String COLUMN_COMPLETED_IMAGE_ID = "completedImageID";
         public static final String COLUMN_UNCOMPLETED_IMAGE_ID = "uncompletedImageID";

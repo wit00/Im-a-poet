@@ -8,14 +8,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
-import android.widget.TextView;
 
 
 /**
  * A simple fragment that shows the game statistics, uses a cursor loader
  */
 public class StatisticsFragment extends android.support.v4.app.Fragment implements android.support.v4.app.LoaderManager.LoaderCallbacks<Cursor>  {
-    private ListView statisticsListView;
     private StatisticsFragmentListAdapter statisticsFragmentListAdapter;
 
 
@@ -33,7 +31,7 @@ public class StatisticsFragment extends android.support.v4.app.Fragment implemen
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_main_menu_statistics, container, false);
-        statisticsListView = (ListView) rootView.findViewById(R.id.statistics_list);
+        ListView statisticsListView = (ListView) rootView.findViewById(R.id.statistics_list);
         statisticsFragmentListAdapter = new StatisticsFragmentListAdapter(getActivity(),R.layout.fragment_main_menu_statistics_row,null,
                 new String[] {MagnetDatabaseContract.MagnetEntry._ID, MagnetDatabaseContract.MagnetEntry.COLUMN_CODE, MagnetDatabaseContract.MagnetEntry.COLUMN_CURRENT_VALUE},new int[]{android.R.id.text1});
         statisticsListView.setAdapter(statisticsFragmentListAdapter);
