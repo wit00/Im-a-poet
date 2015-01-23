@@ -5,6 +5,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.UriMatcher;
 import android.database.Cursor;
+import android.database.StaleDataException;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 
@@ -84,12 +85,13 @@ public class MagnetContentProvider extends ContentProvider {
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
         SQLiteDatabase database = magnetDatabaseHelper.getWritableDatabase();
+        //database.beginTransactionNonExclusive();
         assert database != null;
         int thisDelete;
         switch (uriMatcher.match(uri)) {
             case DELETE_MAGNET:
                 thisDelete = database.delete(MagnetDatabaseContract.MagnetEntry.MAGNETS_TABLE_NAME,selection,selectionArgs);
-                getContext().getContentResolver().notifyChange(Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/magnets"),null);
+                //getContext().getContentResolver().notifyChange(Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/magnets"),null);
                 break;
             case DELETE_CURRENT_POEM:
                 thisDelete = database.delete(MagnetDatabaseContract.MagnetEntry.LAST_POEM_TABLE_NAME,selection,selectionArgs);
@@ -111,6 +113,8 @@ public class MagnetContentProvider extends ContentProvider {
                 throw new IllegalArgumentException("Unknown URI " + uri);
         }
        // getContext().getContentResolver().notifyChange(Uri.parse("com.theapp.imapoet.provider.magnetcontentprovider/packs"),null);
+        //database.setTransactionSuccessful();
+        //database.endTransaction();
         return thisDelete;
     }
 
@@ -124,8 +128,11 @@ public class MagnetContentProvider extends ContentProvider {
     @Override
     public Uri insert(Uri uri, ContentValues values) {
         SQLiteDatabase database = magnetDatabaseHelper.getWritableDatabase();
+        //database.enableWriteAheadLogging();
+
         assert database != null;
         long thisInsert;
+
         switch (uriMatcher.match(uri)) {
             case INSERT_SETTINGS:
                 thisInsert = database.insert(MagnetDatabaseContract.MagnetEntry.SETTINGS_TABLE_NAME,null,values);
@@ -137,26 +144,38 @@ public class MagnetContentProvider extends ContentProvider {
                 thisInsert = database.insert(MagnetDatabaseContract.MagnetEntry.SAVED_POEMS_MAGNET_DETAIL_TABLE_NAME,null,values);
                 break;
             case INSERT_PACKS:
+                database.beginTransactionNonExclusive();
+
                 thisInsert = database.insert(MagnetDatabaseContract.MagnetEntry.PACKS_TABLE_NAME,null,values);
+                getContext().getContentResolver().notifyChange(Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/packs"),null);
+                database.setTransactionSuccessful();
+                database.endTransaction();
                 break;
             case INSERT_PACK_MAGNETS:
+                database.beginTransactionNonExclusive();
+
+                //database.enableWriteAheadLogging();
                 thisInsert = database.insert(MagnetDatabaseContract.MagnetEntry.MAGNETS_TABLE_NAME,null,values);
+                getContext().getContentResolver().notifyChange(Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/magnets"),null);
+                database.setTransactionSuccessful();
+                database.endTransaction();
                 break;
             case INSERT_CURRENT_POEM:
                 thisInsert = database.insert(MagnetDatabaseContract.MagnetEntry.LAST_POEM_TABLE_NAME,null,values);
-                getContext().getContentResolver().notifyChange(Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/currentPoem"),null); // alert the current poem loader
+                //getContext().getContentResolver().notifyChange(Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/currentPoem"),null); // alert the current poem loader
                 break;
             case INSERT_AWARDS:
                 thisInsert = database.insert(MagnetDatabaseContract.MagnetEntry.AWARDS_TABLE_NAME,null,values);
+                getContext().getContentResolver().notifyChange(Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/awards"),null);
                 break;
             case INSERT_AWARD_DETAILS:
                 thisInsert = database.insert(MagnetDatabaseContract.MagnetEntry.AWARDS_DETAIL_TABLE_NAME,null,values);
+                getContext().getContentResolver().notifyChange(Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/awards/detail"),null);
                 break;
             default:
                 throw new IllegalArgumentException("Unknown URI " + uri);
         }
-        getContext().getContentResolver().notifyChange(Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/magnets"),null);
-        getContext().getContentResolver().notifyChange(Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/packs"),null);
+
         return Uri.withAppendedPath(uri,String.valueOf(thisInsert));
     }
 
@@ -170,7 +189,10 @@ public class MagnetContentProvider extends ContentProvider {
     public Cursor query(Uri uri, String[] projection, String selection,
             String[] selectionArgs, String sortOrder) {
         Cursor magnetCursor;
+
         SQLiteDatabase database = magnetDatabaseHelper.getReadableDatabase();
+        //database.enableWriteAheadLogging();
+        //database.beginTransactionNonExclusive();
         Context context = getContext();
         switch (uriMatcher.match(uri)) {
             case SETTINGS:
@@ -178,9 +200,11 @@ public class MagnetContentProvider extends ContentProvider {
                 break;
             case PACKS:
                 magnetCursor = database.query(MagnetDatabaseContract.MagnetEntry.PACKS_TABLE_NAME,projection,null,null,null,null,sortOrder);
+                magnetCursor.setNotificationUri(context.getContentResolver(),uri);
                 break;
             case MAGNETS:
                 magnetCursor = database.query(MagnetDatabaseContract.MagnetEntry.MAGNETS_TABLE_NAME,projection,selection,selectionArgs,null,null,sortOrder);
+                magnetCursor.setNotificationUri(context.getContentResolver(),uri);
                 break;
             case GET_CURRENT_POEM:
                 magnetCursor = database.query(MagnetDatabaseContract.MagnetEntry.LAST_POEM_TABLE_NAME,projection,selection,selectionArgs,null,null,sortOrder);
@@ -193,15 +217,18 @@ public class MagnetContentProvider extends ContentProvider {
                 break;
             case AWARDS:
                 magnetCursor = database.query(MagnetDatabaseContract.MagnetEntry.AWARDS_TABLE_NAME,projection,selection,selectionArgs,null,null,sortOrder);
+                magnetCursor.setNotificationUri(context.getContentResolver(),uri);
                 break;
             case AWARDS_DETAIL:
                 magnetCursor = database.query(MagnetDatabaseContract.MagnetEntry.AWARDS_DETAIL_TABLE_NAME,projection,selection,selectionArgs,null,null,sortOrder);
+                magnetCursor.setNotificationUri(context.getContentResolver(),uri);
                 break;
             default:
                 // If the URI doesn't match any of the known patterns, throw an exception.
                 throw new IllegalArgumentException("Unknown URI " + uri);
         }
-        magnetCursor.setNotificationUri(context.getContentResolver(),uri);
+        //database.setTransactionSuccessful();
+        //database.endTransaction();
         return magnetCursor;
     }
 

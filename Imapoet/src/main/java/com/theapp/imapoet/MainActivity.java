@@ -1,6 +1,7 @@
 package com.theapp.imapoet;
 
 
+
 import android.annotation.TargetApi;
 import android.app.ActionBar;
 import android.app.AlertDialog;
@@ -32,7 +33,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.GridView;
@@ -55,8 +57,8 @@ import java.util.Date;
 import java.util.ArrayList;
 
 
-public class MainActivity extends FragmentActivity implements
-        NewPoemSaveAlertDialog.NewPoemSaveAlertDialogListener, ExistingPoemSaveAlertDialog.ExistingPoemDialogListener, DrawingPanel.CanvasListener, DemoFragment.DemoListener, GameState.MainActivityListener, AdapterView.OnItemSelectedListener,  LoaderManager.LoaderCallbacks<Cursor>  {
+public class MainActivity extends FragmentActivity implements AsyncTaskRetainDataFragment.AsyncTaskListener,
+        NewPoemSaveAlertDialog.NewPoemSaveAlertDialogListener, ExistingPoemSaveAlertDialog.ExistingPoemDialogListener, DrawingPanel.CanvasListener, DemoFragment.DemoListener, AdapterView.OnItemSelectedListener,LoaderManager.LoaderCallbacks<Cursor>  {
     private DemoFragment demoFragment = null;
     private Context helperContext = this;
     private DrawingPanelFragment drawingPanelFragment;
@@ -66,13 +68,15 @@ public class MainActivity extends FragmentActivity implements
     protected DrawerLayout drawerLayout;
     private GridView gridView;
     private DrawerMagnetsAdapter drawerMagnetsAdapter;
+    //private BasicDrawerMagnetsAdapter drawerMagnetsAdapter;
     private DrawerSpinnerAdapter drawerSpinnerAdapter;
     private int spinnerPosition = 0;
     private boolean spinnerListenerSetUp = false;
     private IabHelper iabHelper;
     private ArrayList<String> skuList = new ArrayList<String>();
     private AsyncQueryHandler asyncQueryHandler;
-    private boolean loadOk = false;
+    private boolean applicationIsRunning = false;
+
 
     private void highlight(int viewID) {
         View view = findViewById(viewID);
@@ -86,19 +90,10 @@ public class MainActivity extends FragmentActivity implements
         view.setBackgroundColor(Color.TRANSPARENT);
     }
 
-    public void packInsertsCompleted() {
-        loadOk = true;
-        getSupportLoaderManager().initLoader(0,null,this);
-        setProgressBarIndeterminateVisibility(false);
-        System.out.println("pack inserts completed");
-    }
-
     public void highlightButtons(boolean highlightButtons) {
         if(highlightButtons) {
             highlight(R.id.share_buttons);
-
         } else {
-
             clearHighlight(R.id.share_buttons);
         }
     }
@@ -134,6 +129,7 @@ public class MainActivity extends FragmentActivity implements
         fragmentTransaction.add(android.R.id.content, demoFragment);
         fragmentTransaction.addToBackStack(null);
         fragmentTransaction.commit();
+        //fragmentTransaction.commitAllowingStateLoss();
     }
 
     public void changeTextView(String text) {
@@ -191,12 +187,6 @@ public class MainActivity extends FragmentActivity implements
     }
 
 
-    private void handleFirstLaunch(SharedPreferences sharedPreferences) {
-        addDemoFragment(DemoFragment.DemoPart.START.toString());
-        loadValuesIntoDatabase();
-        setFirstLaunchToFalse(sharedPreferences);
-        gameState = new GameState(drawingPanelFragment.drawingPanel(),true,this);
-    }
 
 
     private void loadMagnetsOntoCanvas(FragmentManager fragmentManager) {
@@ -204,14 +194,18 @@ public class MainActivity extends FragmentActivity implements
         if(extras != null) { // we are loading from save
             gameState.loadSavedMagnets(extras);
         } else { // we are not loading from save
+            // it's an orientation change, so just load the magnets from data retaining fragment
+//System.out.println("magnet: loading from drawing panel retain data fragment");
             if(drawingPanelRetainDataFragment == null) { // this is not an orientation change because drawingPanelRetainFragment is null
-                drawingPanelFragment.loadMagnets();
+                if(drawingPanelFragment.isAdded()) drawingPanelFragment.loadMagnets();
+                else {
+                    drawingPanelFragment = (DrawingPanelFragment) getSupportFragmentManager().findFragmentById(R.id.the_canvas);
+                    //drawingPanelFragment.loadMagnets();
+                }
                 drawingPanelRetainDataFragment = drawingPanelRetainDataFragment.newInstance();
                 fragmentManager.beginTransaction().add(drawingPanelRetainDataFragment,"drawingPanelData").commit();
-            } else { // it's an orientation change, so just load the magnets from data retaining fragment
-                //System.out.println("magnet: loading from drawing panel retain data fragment");
-                drawingPanelFragment.loadMagnets(drawingPanelRetainDataFragment.getMagnets(),drawingPanelRetainDataFragment.getPreviouslySavedPoem(),drawingPanelRetainDataFragment.getPreviouslySavedPoemID(),drawingPanelRetainDataFragment.getPreviouslySavedPoemName(),drawingPanelRetainDataFragment.getScaleFactor(),drawingPanelRetainDataFragment.getScalePivotX(),drawingPanelRetainDataFragment.getScalePivotY(),drawingPanelRetainDataFragment.getScrollXOffset(),drawingPanelRetainDataFragment.getScrollYOffset());
-            }
+            } else
+                drawingPanelFragment.loadMagnets(drawingPanelRetainDataFragment.getMagnets(), drawingPanelRetainDataFragment.getPreviouslySavedPoem(), drawingPanelRetainDataFragment.getPreviouslySavedPoemID(), drawingPanelRetainDataFragment.getPreviouslySavedPoemName(), drawingPanelRetainDataFragment.getScaleFactor(), drawingPanelRetainDataFragment.getScalePivotX(), drawingPanelRetainDataFragment.getScalePivotY(), drawingPanelRetainDataFragment.getScrollXOffset(), drawingPanelRetainDataFragment.getScrollYOffset());
         }
     }
 
@@ -222,37 +216,9 @@ public class MainActivity extends FragmentActivity implements
         }
     }
 
-    private void setUpdatingFeatures() {
-        setProgressBarIndeterminateVisibility(true);
-        drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
-    }
 
-    private void getReferencesToFragmentsAndHandlePackUpdates() {
-        FragmentManager fragmentManager = getFragmentManager();
-        SharedPreferences sharedPreferences = getPreferences(0);
-        drawingPanelRetainDataFragment = (DrawingPanelRetainDataFragment)fragmentManager.findFragmentByTag("drawingPanelData");
-        drawingPanelFragment = (DrawingPanelFragment) getSupportFragmentManager().findFragmentById(R.id.the_canvas);
-        drawingPanelRetainDataFragment = (DrawingPanelRetainDataFragment)fragmentManager.findFragmentByTag("drawingPanelData");
-        drawerLayout = ((DrawerLayout) findViewById(R.id.pager));
-        ((DrawerLayout)findViewById(R.id.pager)).setDrawerListener(new MagnetDrawerListener(this));
-        if(sharedPreferences.getBoolean(ApplicationContract.FIRST_LAUNCH,true)) {
-            setUpdatingFeatures();
-            handleFirstLaunch(sharedPreferences);
-            updateSharedPreferencesVersionNumber(sharedPreferences);
-        } else {
-            if(sharedPreferences.getInt("version",-1) != ApplicationContract.VERSION) {
-                setUpdatingFeatures();
-                new loadNewTextFilesIntoPacksAsyncTask().execute();
-                // update packs because the application version has changed
-                //updateSharedPreferencesVersionNumber(sharedPreferences);
-            } else {
-                getSupportLoaderManager().initLoader(0,null,this);
-                loadOk = true;
-            }
-            gameState = new GameState(drawingPanelFragment.drawingPanel(),false,this);
-        }
-        loadMagnetsOntoCanvas(fragmentManager);
-    }
+
+
 
     public void onDrawerMagnetClicked(String clickedMagnetText, int packID) {
         //if(demoFragment == null) gameState.updatePackSize(drawingPanelFragment.setWord(clickedMagnetText,packID),drawerFragment.getCurrentPack(),drawerFragment.getCurrentPackName());
@@ -278,10 +244,6 @@ public class MainActivity extends FragmentActivity implements
         SharedPreferences.Editor sharedPreferencesEditor = sharedPreferences.edit();
         sharedPreferencesEditor.putInt("version",ApplicationContract.VERSION);
         sharedPreferencesEditor.apply();
-    }
-
-    private void loadValuesIntoDatabase() {
-        new loadTextFilesIntoPacksAsyncTask().execute();
     }
 
     private void saveBitmapToSDCard(File poemDirectory) {
@@ -429,13 +391,13 @@ public class MainActivity extends FragmentActivity implements
     @Override
     protected void onResume() {
         super.onResume();
-        loadDemoIfItIsRunning(getPreferences(0));
+        getReferencesToFragmentsAndHandlePackUpdates();
+        loadDemoIfItIsRunning(getSharedPreferences(ApplicationContract.PREFERENCES_FILE,0));
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         ActionBar actionBar = getActionBar();
         if(actionBar != null) actionBar.hide();
         setSystemVisibility();
@@ -444,8 +406,56 @@ public class MainActivity extends FragmentActivity implements
         createAsyncQueryHandler();
         initializeIabHelper();
         setupDrawerSpinnerAndDrawerMagnetGrid();
-        getReferencesToFragmentsAndHandlePackUpdates();
+    }
 
+
+    private void getReferencesToFragmentsAndHandlePackUpdates() {
+        FragmentManager fragmentManager = getFragmentManager();
+        SharedPreferences sharedPreferences = getSharedPreferences(ApplicationContract.PREFERENCES_FILE,0);
+        drawingPanelRetainDataFragment = (DrawingPanelRetainDataFragment)fragmentManager.findFragmentByTag("drawingPanelData");
+        drawingPanelFragment = (DrawingPanelFragment) getSupportFragmentManager().findFragmentById(R.id.the_canvas);
+        drawerLayout = ((DrawerLayout) findViewById(R.id.pager));
+        applicationIsRunning = true;
+        getSupportLoaderManager().initLoader(0,null,this);
+        ((DrawerLayout)findViewById(R.id.pager)).setDrawerListener(new MagnetDrawerListener(this));
+
+        if(sharedPreferences.getBoolean(ApplicationContract.FIRST_LAUNCH,true)) {
+            findViewById(R.id.big_loading_spinner).setVisibility(View.VISIBLE);
+            findViewById(R.id.loading_spinner).setVisibility(View.VISIBLE);
+            if(fragmentManager.findFragmentByTag("asyncData") == null) {
+                displayFirstLoadDialog();
+                AsyncTaskRetainDataFragment asyncTaskRetainDataFragment = AsyncTaskRetainDataFragment.newInstance();
+                fragmentManager.beginTransaction().add(asyncTaskRetainDataFragment,"asyncData").commit();
+                asyncTaskRetainDataFragment.performFirstRunAsyncTask();
+            } else {
+                ((AsyncTaskRetainDataFragment)(fragmentManager.findFragmentByTag("asyncData"))).signUpForFirstRunCompletionNotification(this);
+            }
+            //new loadTextFilesIntoPacksAsyncTask().execute();
+            gameState = new GameState(drawingPanelFragment.drawingPanel(),true,this);
+            updateSharedPreferencesVersionNumber(sharedPreferences);
+        } else {
+            Bundle extras = getIntent().getExtras();
+            boolean loadFromSettings = false;
+            if(extras != null) {
+                loadFromSettings = getIntent().getExtras().getBoolean("updatePacks");
+            }
+            if(sharedPreferences.getInt("version",-1) != ApplicationContract.VERSION  || loadFromSettings) {
+                if(extras != null) getIntent().removeExtra("updatePacks");
+                findViewById(R.id.big_loading_spinner).setVisibility(View.VISIBLE);
+                findViewById(R.id.loading_spinner).setVisibility(View.VISIBLE);
+                if(fragmentManager.findFragmentByTag("asyncData") == null) {
+                    displayUpdatedSystemDialog();
+                    AsyncTaskRetainDataFragment asyncTaskRetainDataFragment = AsyncTaskRetainDataFragment.newInstance();
+                    fragmentManager.beginTransaction().add(asyncTaskRetainDataFragment,"asyncData").commit();
+                    asyncTaskRetainDataFragment.performUpdateAsyncTask();
+                } else {
+                    ((AsyncTaskRetainDataFragment)(fragmentManager.findFragmentByTag("asyncData"))).signUpForUpdateCompletionNotification(this);
+                }
+            }
+
+            gameState = new GameState(drawingPanelFragment.drawingPanel(),false,this);
+        }
+        loadMagnetsOntoCanvas(fragmentManager);
     }
 
     public void loadMenu(View view) {
@@ -476,14 +486,15 @@ public class MainActivity extends FragmentActivity implements
     @Override
     protected void onPause() {
         super.onPause();
+        applicationIsRunning = false;
         if(demoFragment != null) { // if the demo is going on, set current demo fragment
-            SharedPreferences sharedPreferences = getPreferences(0);
+            SharedPreferences sharedPreferences = getSharedPreferences(ApplicationContract.PREFERENCES_FILE,0);
             SharedPreferences.Editor sharedPreferencesEditor = sharedPreferences.edit();
             sharedPreferencesEditor.putString(ApplicationContract.DEMO, demoFragment.getCurrentDemoPart().toString());
             sharedPreferencesEditor.apply();
             demoComplete();
         } else {
-            SharedPreferences sharedPreferences = getPreferences(0);
+            SharedPreferences sharedPreferences = getSharedPreferences(ApplicationContract.PREFERENCES_FILE,0);
             SharedPreferences.Editor sharedPreferencesEditor = sharedPreferences.edit();
             sharedPreferencesEditor.putString(ApplicationContract.DEMO, "");
             sharedPreferencesEditor.apply();
@@ -491,10 +502,9 @@ public class MainActivity extends FragmentActivity implements
         gameState.setCurrentPoemForAutoSave(drawingPanelFragment.getPoem());
         getIntent().removeExtra("poem_name");
         getIntent().removeExtra("poem_id");
-        drawingPanelRetainDataFragment.setMagnetData(drawingPanelFragment.getPoem(),drawingPanelFragment.drawingPanel().getSavedPoemState(),drawingPanelFragment.drawingPanel().getSavedPoemId(),drawingPanelFragment.drawingPanel().getSavedPoemName(),drawingPanelFragment.drawingPanel().scaleFactor(),drawingPanelFragment.drawingPanel().scalePivotX(),drawingPanelFragment.drawingPanel().scalePivotY(),drawingPanelFragment.drawingPanel().getScrollXOffset(), drawingPanelFragment.drawingPanel().getScrollYOffset());
+        if (drawingPanelRetainDataFragment != null) {drawingPanelRetainDataFragment.setMagnetData(drawingPanelFragment.getPoem(),drawingPanelFragment.drawingPanel().getSavedPoemState(),drawingPanelFragment.drawingPanel().getSavedPoemId(),drawingPanelFragment.drawingPanel().getSavedPoemName(),drawingPanelFragment.drawingPanel().scaleFactor(),drawingPanelFragment.drawingPanel().scalePivotX(),drawingPanelFragment.drawingPanel().scalePivotY(),drawingPanelFragment.drawingPanel().getScrollXOffset(), drawingPanelFragment.drawingPanel().getScrollYOffset());}
 
     }
-
 
     /* If the user shares a poem, a temporary bitmap is created in the cache directory. Delete that bitmap when the activity completes.*/
     @Override
@@ -604,27 +614,55 @@ public class MainActivity extends FragmentActivity implements
         }
     }
 
-    private class loadTextFilesIntoPacksAsyncTask extends AsyncTask<Void, Void, ArrayList<Pack>> {
-        protected ArrayList<Pack> doInBackground(Void... params) {
-            return DataLoaderHelper.loadMagnetText(helperContext);
-        }
-        protected void onPostExecute(ArrayList<Pack> packs) {
-            for(Pack pack : packs) {
-                gameState.insertPacksFromTextFiles(pack);
+    private void fadeOutView(final View view) {
+        AlphaAnimation alphaAnimation = new AlphaAnimation(1.0f, 0.0f);
+        alphaAnimation.setDuration(2000);
+        alphaAnimation.setRepeatCount(0);
+        view.startAnimation(alphaAnimation);
+        alphaAnimation.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+
             }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                view.setVisibility(View.GONE);
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+
+            }
+        });
+
+    }
+
+
+    public void firstRunAsyncLoadingComplete() {
+        fadeOutView(findViewById(R.id.loading_spinner));
+        fadeOutView(findViewById(R.id.big_loading_spinner));
+        setFirstLaunchToFalse(getSharedPreferences(ApplicationContract.PREFERENCES_FILE,0));
+        if(isFinishing() || !applicationIsRunning && demoFragment == null) {
+            SharedPreferences sharedPreferences = getSharedPreferences(ApplicationContract.PREFERENCES_FILE,0);
+            SharedPreferences.Editor sharedPreferencesEditor = sharedPreferences.edit();
+            sharedPreferencesEditor.putString(ApplicationContract.DEMO, DemoFragment.DemoPart.START.toString());
+            sharedPreferencesEditor.apply();
+        } else {
+            addDemoFragment(DemoFragment.DemoPart.START.toString());
         }
     }
 
-    private class loadNewTextFilesIntoPacksAsyncTask extends AsyncTask<Void, Void, ArrayList<Pack>> {
-        protected ArrayList<Pack> doInBackground(Void... params) {
-            return DataLoaderHelper.loadNewMagnetText(helperContext);
-        }
-        protected void onPostExecute(ArrayList<Pack> packs) {
-            //for(Pack pack : packs) {
-                gameState.deleteAndInsertPacksFromTextFiles(packs);
-            //}
-        }
+    public void updateAsyncLoadingComplete() {
+        fadeOutView(findViewById(R.id.loading_spinner));
+        fadeOutView(findViewById(R.id.big_loading_spinner));
+        updateSharedPreferencesVersionNumber(getSharedPreferences(ApplicationContract.PREFERENCES_FILE,0));
     }
+
+    private void initLoader() {
+        getSupportLoaderManager().initLoader(0,null,this);
+    }
+
 
     /** new media service stuff **/
     @Override
@@ -632,7 +670,6 @@ public class MainActivity extends FragmentActivity implements
         super.onStart();
         mediaServiceHelper.bindToMediaMusicService();
     }
-
 
     @Override
     protected void onStop() {
@@ -642,16 +679,6 @@ public class MainActivity extends FragmentActivity implements
        }
     }
 
-    private void loadFirstLaunchOrUpdatingDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(helperContext);
-        builder.setMessage("Be a poet is being updated. This could take a couple of minutes. ")
-                .setPositiveButton("ok", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                    }
-                });
-        builder.create();
-        builder.show();
-    }
 
     /* Drawer fragment stuff*/
 
@@ -697,6 +724,7 @@ public class MainActivity extends FragmentActivity implements
         (builder.create()).show();
 
     }
+
     private void createAsyncQueryHandler() {
         asyncQueryHandler = new AsyncQueryHandler(this.getContentResolver()) {
             @Override
@@ -810,6 +838,29 @@ public class MainActivity extends FragmentActivity implements
     private void purchaseInAppProduct(String productSKU) {
         iabHelper.launchPurchaseFlow(this, productSKU, 1 ,purchaseFinishedListener,null);
     }
+
+    private void displayUpdatedSystemDialog() {
+        String message = "Your system is updating. It might take a couple of minutes until all of your words and packs are available.";
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(message)
+                .setPositiveButton("Okay", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                    }
+                });
+        (builder.create()).show();
+    }
+
+    private void displayFirstLoadDialog () {
+        String message = "Welcome to Be a poet! We're loading your initial system data. This could take a couple of minutes.";
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(message)
+                .setPositiveButton("Okay", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                    }
+                });
+        (builder.create()).show();
+    }
+
     private void displayWouldYouLikeToBuyDialog(final InAppPurchase inAppPurchase) {
         String message = "This pack requires an in-app purchase. Would you like to buy " + inAppPurchase.title() + " for " + inAppPurchase.price() + " ?";
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -842,7 +893,7 @@ public class MainActivity extends FragmentActivity implements
         Bundle bundle = new Bundle();
         bundle.putInt("id",cursor.getInt(cursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry._ID)));
         if(spinnerListenerSetUp) {
-            if(loadOk) getSupportLoaderManager().restartLoader(1,bundle,this);
+            getSupportLoaderManager().restartLoader(1,bundle,this);
         }
     }
     private IabHelper.QueryInventoryFinishedListener
@@ -864,7 +915,17 @@ public class MainActivity extends FragmentActivity implements
     };
 
 
+    private void resetSpinner(int position, Cursor cursor) {
+        Bundle bundle = new Bundle();
+        spinnerPosition = position;
+        bundle.putInt("id", cursor.getInt(cursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry._ID)));
 
+        if (spinnerListenerSetUp) {
+            getSupportLoaderManager().destroyLoader(1);
+            getSupportLoaderManager().initLoader(1, bundle, this);
+            onSpinnerClicked();
+        }
+    }
 
     private String clickedSku = null;
     /** onItemSelected and onNothingSelected are parts of the interface for the magnet deck spinner **/
@@ -872,25 +933,12 @@ public class MainActivity extends FragmentActivity implements
         Cursor cursor = (Cursor) drawerSpinnerAdapter.getItem(position);
         if(cursor.getInt(cursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry.COLUMN_IS_AVAILABLE))==0) {
             clickedSku = cursor.getString(cursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry.COLUMN_PACK_NAME));
-            Bundle bundle = new Bundle();
-            //spinnerPosition = position;
-            bundle.putInt("id",cursor.getInt(cursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry._ID)));
-            if(spinnerListenerSetUp) {
-                if(loadOk) getSupportLoaderManager().restartLoader(1,bundle,this);
-                onSpinnerClicked();
-            }
+            resetSpinner(position,cursor);
             iabHelper.queryInventoryAsync(true, skuList,queryForNotPurchasedPacksFinishedListener);
         } else {
-            Bundle bundle = new Bundle();
-            spinnerPosition = position;
-            bundle.putInt("id",cursor.getInt(cursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry._ID)));
-            if(spinnerListenerSetUp) {
-                if(loadOk) getSupportLoaderManager().restartLoader(1,bundle,this);
-                onSpinnerClicked();
-            }
-            spinnerListenerSetUp = true;
+            resetSpinner(position,cursor);
         }
-
+        spinnerListenerSetUp = true;
     }
 
     public void onNothingSelected(AdapterView<?> parent) {
@@ -927,6 +975,7 @@ public class MainActivity extends FragmentActivity implements
             };
             String[] whereArguments = {Integer.toString(args.getInt("id"))};
 
+            //return new CursorLoader(this,ApplicationContract.getMagnets_URI,projection, null, null , MagnetDatabaseContract.MagnetEntry._ID + MagnetDatabaseContract.MagnetEntry.ASC);
             return new CursorLoader(this,ApplicationContract.getMagnets_URI,projection, MagnetDatabaseContract.MagnetEntry.COLUMN_PACK_ID + " =? ", whereArguments , MagnetDatabaseContract.MagnetEntry._ID + MagnetDatabaseContract.MagnetEntry.ASC);
         }
     }
@@ -939,22 +988,23 @@ public class MainActivity extends FragmentActivity implements
                 cursor.moveToFirst();
                 Bundle bundle = new Bundle();
                 bundle.putInt("id",cursor.getInt(cursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry._ID)));
+                //if(getSupportLoaderManager().getLoader(1) != null) getSupportLoaderManager().destroyLoader(1);
                 getSupportLoaderManager().initLoader(1,bundle,this);
                 drawerSpinnerAdapter.swapCursor(cursor);
             }
             if(loader.getId() == 1) {
-                drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
                 drawerMagnetsAdapter.swapCursor(cursor);
-                //drawerFragmentQueriesCompleted();
-
             }
         }
     }
 
     // This is called when the last Cursor provided to onLoadFinished() above is about to be closed.  We need to make sure we are no longer using any of the cursors
     public void onLoaderReset(Loader<Cursor> loader) {
-        drawerMagnetsAdapter.swapCursor(null);
-        drawerSpinnerAdapter.swapCursor(null);
+        if(loader.getId() == 0) {
+            drawerSpinnerAdapter.swapCursor(null);
+        } else {
+            drawerMagnetsAdapter.swapCursor(null);
+        }
     }
 
 

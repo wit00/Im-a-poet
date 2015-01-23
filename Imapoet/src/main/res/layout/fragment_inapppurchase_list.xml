@@ -5,9 +5,13 @@
     android:layout_height="match_parent"
     android:id="@+id/inAppPurchase"
     tools:context="com.theapp.imapoet.InAppPurchaseFragment">
-
+    <ProgressBar android:id="@+id/in_app_purchase_loading_spinner"
+        style="?android:progressBarStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"/>
     <ListView
-        android:id="@android:id/list"
+        android:id="@+id/inAppPurchaseList"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 

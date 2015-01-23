@@ -4,22 +4,31 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.theapp.imapoet.MainActivity" >
-   <fragment class="com.theapp.imapoet.MainActivity$CanvasHolderFragment"
+
+  <fragment class="com.theapp.imapoet.MainActivity$CanvasHolderFragment"
         android:id="@+id/canvas"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+      tools:layout="@layout/activity_main" />
     <!--<fragment class="com.theapp.imapoet.DrawerFragment"
         android:id="@+id/drawer_layout"
         android:layout_width="280dp"
         android:layout_gravity="start"
         android:layout_height="match_parent" />-->
-
-    <RelativeLayout
+    <ProgressBar android:id="@+id/big_loading_spinner"
+        style="?android:progressBarStyleLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        />
+    <LinearLayout
+        android:orientation="vertical"
         android:background="#ffffff"
         android:id="@+id/drawer_layout"
         android:layout_gravity="start"
         android:layout_width="280dp"
         android:layout_height="match_parent">
+
 
         <Spinner
             android:layout_marginTop="5dp"
@@ -28,16 +37,26 @@
             android:spinnerMode="dropdown"
             android:layout_height="wrap_content" />
 
-        <GridView
-            android:id="@+id/gridview"
-            android:layout_below="@id/sets_spinner"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:numColumns ="auto_fit"
-            android:verticalSpacing="10dp"
-            android:horizontalSpacing="10dp"
-            android:layout_marginTop="10dp" />
-</RelativeLayout>
+        <RelativeLayout
+            android:layout_gravity="center"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content">
+            <ProgressBar android:id="@+id/loading_spinner"
+                style="?android:progressBarStyleLarge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+               />
+            <GridView
+                android:id="@+id/gridview"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:numColumns ="auto_fit"
+                android:verticalSpacing="5dp"
+                android:horizontalSpacing="5dp"
+                android:layout_marginTop="10dp" />
+        </RelativeLayout>
+</LinearLayout>
     <!--<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/canvas"
         android:layout_width="match_parent"

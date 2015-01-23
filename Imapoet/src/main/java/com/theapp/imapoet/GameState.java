@@ -5,6 +5,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import java.util.ArrayList;
 
@@ -17,7 +18,6 @@ public class GameState {
     private AsyncQueryHandler queryHandler;
     private ArrayList<Magnet> currentPoem;
     private Context context;
-    private MainActivityListener mainActivityListener;
     private DrawingPanelListener drawingPanelListener = null;
     private AwardHandler awardHandler;
     private boolean lastPack = false;
@@ -29,7 +29,6 @@ public class GameState {
         this.context = mainActivity;
         createAsyncQueryHandler();
         this.drawingPanelListener = drawingPanelListener;
-        this.mainActivityListener = mainActivity;
         awardHandler = new AwardHandler(context,R.raw.award_data,(AwardHandler.AwardManagerListener) drawingPanelListener);
         if(!firstLaunch) {
             awardHandler.attachAwardTypes();
@@ -58,9 +57,7 @@ public class GameState {
         public void setSavedPoemState(boolean loaded);
     }
 
-    public interface MainActivityListener {
-        public void packInsertsCompleted();
-    }
+
 
     public void magnetDeleted() {
         awardHandler.newIncrementAction("MAGNET_DELETED");
@@ -122,12 +119,6 @@ public class GameState {
         packValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_MOST_USED_MAGNET_VALUE,0);
         packValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_IS_AVAILABLE, pack.isAvailable());
         queryHandler.startInsert(LoaderCodes.insertPacks, pack, ApplicationContract.insertPacks_URI, packValues);
-    }
-
-    public void deleteAndInsertPacksFromTextFiles(ArrayList<Pack> packs) {
-        totalNumberPacks = packs.size();
-        queryHandler.startDelete(LoaderCodes.deletePacks, packs, ApplicationContract.deletePacks_URI,null,null);
-
     }
 
 
@@ -256,11 +247,7 @@ public class GameState {
                        // }
                         break;
                     case LoaderCodes.insertMagnets:
-                        System.out.println("pack inserts completed, magnets!!!");
 
-                        if((totalNumberPacks == packsInserted) && lastMagnet) mainActivityListener.packInsertsCompleted();
-                        lastPack = false;
-                        lastMagnet = false;
                         break;
                 }
 

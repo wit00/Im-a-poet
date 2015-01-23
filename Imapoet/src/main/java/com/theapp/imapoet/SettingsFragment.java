@@ -202,6 +202,11 @@ public class SettingsFragment extends android.support.v4.app.Fragment implements
                     case 9:
                         getProductsPurchased();
                         break;
+                    case 11:
+                        Intent mainActivityIntent = new Intent(getActivity(), MainActivity.class);
+                        mainActivityIntent.putExtra("updatePacks",true);
+                        startActivity(mainActivityIntent);
+                        break;
                     default:
                         break;
                 }

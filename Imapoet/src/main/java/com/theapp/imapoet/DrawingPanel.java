@@ -931,6 +931,7 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             awardAlert.removeLastAward();
+                            canvasListener.awardClicked();
                             loadAwardDialog();
                         }
                     });

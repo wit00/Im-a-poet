@@ -23,7 +23,7 @@ public class SettingsListViewAdapter extends BaseAdapter {
         this.soundEffects = soundEffects;
     }
     public int getCount() {
-        return 10;
+        return 12;
     }
     public void setSounds (Boolean music, Boolean soundEffects) {
         this.music = music;
@@ -93,6 +93,15 @@ public class SettingsListViewAdapter extends BaseAdapter {
             case 9:
                 view = LayoutInflater.from(context).inflate(R.layout.fragment_settings_list_row, parent, false);
                 ((TextView) (view.findViewById(R.id.settingsRow))).setText("If something is wrong with your in-app purchases, you can restore them here.");
+                ((ImageView) (view.findViewById(R.id.settingsRowImage))).setImageResource(R.drawable.restore_in_app);
+                return view;
+            case 10:
+                view = LayoutInflater.from(context).inflate(R.layout.fragment_settings_list_header, parent, false);
+                ((TextView) (view.findViewById(R.id.headerTitle))).setText("Reload Packs and Words");
+                return view;
+            case 11:
+                view = LayoutInflater.from(context).inflate(R.layout.fragment_settings_list_row, parent, false);
+                ((TextView) (view.findViewById(R.id.settingsRow))).setText("If something is wrong with your packs and/or words, you can restore them here.");
                 ((ImageView) (view.findViewById(R.id.settingsRowImage))).setImageResource(R.drawable.restore);
                 return view;
             default:

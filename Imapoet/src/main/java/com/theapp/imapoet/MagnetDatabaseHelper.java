@@ -16,6 +16,7 @@ public class MagnetDatabaseHelper extends SQLiteOpenHelper {
     @Override
     public void onOpen(SQLiteDatabase db) {
         super.onOpen(db);
+        db.enableWriteAheadLogging();
     }
 
     public void onCreate(SQLiteDatabase db) {

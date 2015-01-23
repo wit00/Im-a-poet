@@ -9,8 +9,12 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
+import android.widget.BaseAdapter;
+import android.widget.CursorAdapter;
 import android.widget.ListAdapter;
 import com.example.android.trivialdrivesample.util.IabHelper;
 import com.example.android.trivialdrivesample.util.IabResult;
@@ -83,8 +87,31 @@ public class InAppPurchaseFragment extends android.support.v4.app.Fragment imple
             ioException.printStackTrace();
         }
     }
+    private void fadeOutView(final View view) {
+        AlphaAnimation alphaAnimation = new AlphaAnimation(1.0f, 0.0f);
+        alphaAnimation.setDuration(1000);
+        alphaAnimation.setRepeatCount(0);
+        view.startAnimation(alphaAnimation);
+        alphaAnimation.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
 
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                view.setVisibility(View.GONE);
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+
+            }
+        });
+
+    }
     private void initializeIabHelper() {
+        getActivity().findViewById(R.id.in_app_purchase_loading_spinner).setVisibility(View.VISIBLE);
         initializeSkuList();
         String base64EncodedPublicKey = ApplicationContract.base64 + ApplicationContract.encoded + ApplicationContract.Public + ApplicationContract.key;
         // compute your public key and store it in base64EncodedPublicKey
@@ -106,11 +133,18 @@ public class InAppPurchaseFragment extends android.support.v4.app.Fragment imple
     }
     private void setUpAdapter() {
        // Set the adapter
-        inAppPurchaseListView = (AbsListView) getView().findViewById(android.R.id.list);
+        inAppPurchaseListView = (AbsListView) getView().findViewById(R.id.inAppPurchaseList);
         (inAppPurchaseListView).setAdapter(inAppPurchaseAdapter); // what if adapter hasn't been initialized yet?
         // Set OnItemClickListener so we can be notified on item clicks
         inAppPurchaseListView.setOnItemClickListener(this);
-        System.out.println("sku adapter count:" + Integer.toString(inAppPurchaseAdapter.getCount()));
+    }
+
+    public void onResume() {
+        super.onResume();
+        if(inAppPurchaseAdapter != null) {
+            setUpAdapter();
+        }
+        else initializeIabHelper();
     }
     private IabHelper.QueryInventoryFinishedListener productsPurchasedInventoryListener
             = new IabHelper.QueryInventoryFinishedListener() {
@@ -134,6 +168,7 @@ public class InAppPurchaseFragment extends android.support.v4.app.Fragment imple
                     }
                 }
                 inAppPurchaseAdapter = new InAppPurchaseListViewAdapter(getActivity(),productsAvailableForPurchase);
+                fadeOutView(getActivity().findViewById(R.id.in_app_purchase_loading_spinner));
                 setUpAdapter();
             }
         }
@@ -152,7 +187,6 @@ public class InAppPurchaseFragment extends android.support.v4.app.Fragment imple
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        initializeIabHelper();
     }
 
     @Override

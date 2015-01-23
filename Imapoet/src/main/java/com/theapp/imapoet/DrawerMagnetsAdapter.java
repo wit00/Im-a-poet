@@ -12,7 +12,7 @@ import android.widget.TextView;
  * Custom adapter class for the drawer magnets
  * Created by whitney on 10/9/14.
  */
-public class DrawerMagnetsAdapter extends SimpleCursorAdapter{
+public class DrawerMagnetsAdapter extends SimpleCursorAdapter {
     private LayoutInflater inflater;
 
     public DrawerMagnetsAdapter(Context context, Cursor cursor, String[] from, int[] to) {
