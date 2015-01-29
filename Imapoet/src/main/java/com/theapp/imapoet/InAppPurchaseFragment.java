@@ -13,8 +13,6 @@ import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
-import android.widget.BaseAdapter;
-import android.widget.CursorAdapter;
 import android.widget.ListAdapter;
 import com.example.android.trivialdrivesample.util.IabHelper;
 import com.example.android.trivialdrivesample.util.IabResult;
@@ -38,7 +36,6 @@ public class InAppPurchaseFragment extends android.support.v4.app.Fragment imple
     private InAppPurchaseListener inAppPurchaseListener;
     private ArrayList<InAppPurchase> productsAvailableForPurchase = new ArrayList<InAppPurchase>();
     private ArrayList<String> skuList = new ArrayList<String>();
-    private AbsListView inAppPurchaseListView;
     private ListAdapter inAppPurchaseAdapter;
     private IabHelper iabHelper;
     public static InAppPurchaseFragment newInstance() {
@@ -95,7 +92,6 @@ public class InAppPurchaseFragment extends android.support.v4.app.Fragment imple
         alphaAnimation.setAnimationListener(new Animation.AnimationListener() {
             @Override
             public void onAnimationStart(Animation animation) {
-
             }
 
             @Override
@@ -133,7 +129,7 @@ public class InAppPurchaseFragment extends android.support.v4.app.Fragment imple
     }
     private void setUpAdapter() {
        // Set the adapter
-        inAppPurchaseListView = (AbsListView) getView().findViewById(R.id.inAppPurchaseList);
+        AbsListView inAppPurchaseListView = (AbsListView) getView().findViewById(R.id.inAppPurchaseList);
         (inAppPurchaseListView).setAdapter(inAppPurchaseAdapter); // what if adapter hasn't been initialized yet?
         // Set OnItemClickListener so we can be notified on item clicks
         inAppPurchaseListView.setOnItemClickListener(this);
@@ -208,13 +204,15 @@ public class InAppPurchaseFragment extends android.support.v4.app.Fragment imple
     public void onDetach() {
         super.onDetach();
         inAppPurchaseListener = null;
-    }
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
         if(iabHelper != null) iabHelper.dispose();
         iabHelper = null;
     }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+    }
+
     IabHelper.OnIabPurchaseFinishedListener purchaseFinishedListener
             = new IabHelper.OnIabPurchaseFinishedListener() {
         public void onIabPurchaseFinished(IabResult result, Purchase purchase)

@@ -362,12 +362,12 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
     private void checkForTouchCollisions(float transformedXTouch, float transformedYTouch, float oldXTouch, float oldYTouch) {
         for (Magnet magnet : magnets) {
             if (theUserHasTouchedAMagnet(magnet, transformedXTouch, transformedYTouch)) {
-                performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
+                getRootView().performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
                 clickedMagnet = magnet;
             }
         }
         if (clickedMagnet == null && theUserHasTouchedTheAward(oldXTouch - xScrollOffset, oldYTouch - yScrollOffset)) {
-            performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
+            getRootView().performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
             awardAlert.setAlert(false);
             loadAwardDialog();
         }

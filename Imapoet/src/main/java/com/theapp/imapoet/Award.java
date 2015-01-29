@@ -5,6 +5,7 @@ import android.database.Cursor;
 import java.util.ArrayList;
 
 /**
+ * Object containing the parts of an award
  * Created by whitney on 11/10/14.
  */
 public class Award {

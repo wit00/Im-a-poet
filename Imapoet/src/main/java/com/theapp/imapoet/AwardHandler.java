@@ -2,6 +2,7 @@ package com.theapp.imapoet;
 
 import android.app.AlertDialog;
 import android.content.AsyncQueryHandler;
+import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -16,6 +17,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -26,7 +28,7 @@ import java.util.Iterator;
 public class AwardHandler {
     private Context context;
     private int rawFile;
-    private AsyncQueryHandler asyncQueryHandler;
+    private AwardHandlerAsyncQueryHandler asyncQueryHandler;
     private ArrayList<Award> awards = new ArrayList<Award>();
     private AwardManagerListener awardManagerListener;
 
@@ -34,7 +36,7 @@ public class AwardHandler {
     public AwardHandler(Context context, int rawFile, AwardHandler.AwardManagerListener awardManagerListener) {
         this.context = context;
         this.rawFile = rawFile;
-        createAsyncQueryHandler();
+        asyncQueryHandler = new AwardHandlerAsyncQueryHandler(context.getContentResolver(),this);
         this.awardManagerListener = awardManagerListener;
 
     }
@@ -61,6 +63,10 @@ public class AwardHandler {
     private class SetupAwardsBackgroundTask extends AsyncTask<Void, Void, JSONArray> {
         @Override
         protected JSONArray doInBackground(Void... params) {
+            // delete old stuff
+            context.getContentResolver().delete(Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/delete/awards"),null,null);
+            context.getContentResolver().delete(Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/delete/award/details"),null,null);
+            // get award data
             return loadAwardData(context, rawFile);
         }
         @Override
@@ -76,7 +82,8 @@ public class AwardHandler {
                 }
             } catch (JSONException jsonException) {
                 jsonException.printStackTrace();
-            }        }
+            }
+        }
     }
 
     private void setUpAwardsDatabase() {
@@ -169,6 +176,7 @@ public class AwardHandler {
         return stringBuilder.toString();
     }
 
+
     public JSONArray loadAwardData(Context context, int resource) {
         String awardData = returnAwardData(context, resource);
         try {
@@ -180,8 +188,15 @@ public class AwardHandler {
         }
     }
 
-    private void createAsyncQueryHandler() {
-        asyncQueryHandler = new AsyncQueryHandler(context.getContentResolver()) {
+
+    private static class AwardHandlerAsyncQueryHandler extends AsyncQueryHandler {
+        private final WeakReference<AwardHandler> awardHandlerWeakReference;
+
+        public AwardHandlerAsyncQueryHandler(ContentResolver cr, AwardHandler awardHandler) {
+            super(cr);
+            awardHandlerWeakReference = new WeakReference<AwardHandler>(awardHandler);
+        }
+
             @Override
             protected void onQueryComplete(int token, Object cookie, Cursor cursor) {
                 switch (token) {
@@ -189,8 +204,8 @@ public class AwardHandler {
                         while(cursor.moveToNext()) {
                             int id = cursor.getInt(cursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry._ID));
                             Award award = new Award(id, cursor.getInt(cursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry.COLUMN_CURRENT_VALUE)), cursor.getString(cursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry.COLUMN_CODE)));
-                            awards.add(award);
-                            asyncQueryHandler.startQuery(2, award, Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/awards/detail"),null, MagnetDatabaseContract.MagnetEntry.COLUMN_AWARD_ID + " = " + Integer.toString(id),null,null);
+                            if(awardHandlerWeakReference.get() != null) awardHandlerWeakReference.get().awards.add(award);
+                            startQuery(2, award, Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/awards/detail"),null, MagnetDatabaseContract.MagnetEntry.COLUMN_AWARD_ID + " = " + Integer.toString(id),null,null);
                             //asyncQueryHandler.startQuery(2, null, Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/awards/detail"),null, null,null,null);
                         }
                         break;
@@ -216,16 +231,14 @@ public class AwardHandler {
                                 awardsValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_COMPLETED,0);
                                 awardsValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_COMPLETED_IMAGE_ID,award.getString("COMPLETED_IMAGE_ID"));
                                 awardsValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_UNCOMPLETED_IMAGE_ID,award.getString("UNCOMPLETED_IMAGE_ID"));
-                                asyncQueryHandler.startInsert(0,null,Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/insert/award/detail"),awardsValues);
+                                startInsert(0,null,Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/insert/award/detail"),awardsValues);
                             }
                         } catch (JSONException jsonException) {
                             jsonException.printStackTrace();
                         }
-                        queryAwardsDatabase();
+                        startQuery(1, null, Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/awards"), null, null, null, null);
                         break;
                 }
             }
-        };
-    }
-
+        }
 }

@@ -6,6 +6,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
 import android.content.AsyncQueryHandler;
+import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -24,6 +25,7 @@ import com.example.android.trivialdrivesample.util.IabHelper;
 import com.example.android.trivialdrivesample.util.IabResult;
 import com.example.android.trivialdrivesample.util.Inventory;
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -37,7 +39,7 @@ import java.util.Collections;
 public class SettingsFragment extends android.support.v4.app.Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
     private SettingsListViewAdapter settingsListViewAdapter;
     private ListView listView;
-    private AsyncQueryHandler queryHandler;
+    private SettingsFragmentAsyncQueryHandler settingsFragmentAsyncQueryHandler;
     private boolean music = true;
     private boolean soundEffect = true;
     private IabHelper iabHelper;
@@ -126,21 +128,32 @@ public class SettingsFragment extends android.support.v4.app.Fragment implements
         View rootView = inflater.inflate(R.layout.fragment_main_menu_settings, container, false);
         listView = (ListView) rootView.findViewById(R.id.settingsListView);
         getLoaderManager().initLoader(0,null,this);
-        queryHandler = new AsyncQueryHandler(getActivity().getContentResolver()) {
-            @Override
-            protected  void onInsertComplete(int token, Object cookie, Uri uri) {
-                settingsListViewAdapter = new SettingsListViewAdapter(getActivity(),true,true);
-                restartLoader();
-            }
-        };
+        settingsFragmentAsyncQueryHandler = new SettingsFragmentAsyncQueryHandler(getActivity().getContentResolver(),this);
         return rootView;
+    }
+
+    private static class SettingsFragmentAsyncQueryHandler extends AsyncQueryHandler {
+        private final WeakReference<SettingsFragment> settingsFragmentWeakReference;
+
+        public SettingsFragmentAsyncQueryHandler(ContentResolver cr, SettingsFragment settingsFragment) {
+            super(cr);
+            settingsFragmentWeakReference = new WeakReference<SettingsFragment>(settingsFragment);
+        }
+        @Override
+        protected  void onInsertComplete(int token, Object cookie, Uri uri) {
+            SettingsFragment settingsFragment = settingsFragmentWeakReference.get();
+            if(settingsFragment != null) {
+                settingsFragment.settingsListViewAdapter = new SettingsListViewAdapter(settingsFragment.getActivity(),true,true);
+                settingsFragment.restartLoader();
+            }
+        }
     }
 
     private void insertInitialValues() {
         ContentValues initialSettingsValues = new ContentValues();
         initialSettingsValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_SOUND_EFFECTS,1);
         initialSettingsValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_MUSIC,1);
-        queryHandler.startInsert(0,null,ApplicationContract.insertSettings_URI,initialSettingsValues);
+        settingsFragmentAsyncQueryHandler.startInsert(0,null,ApplicationContract.insertSettings_URI,initialSettingsValues);
     }
 
     private void restartLoader() {
@@ -196,7 +209,8 @@ public class SettingsFragment extends android.support.v4.app.Fragment implements
                     case 7:
                         Intent intent = new Intent(Intent.ACTION_SEND);
                         intent.setType("text/plain");
-                        intent.putExtra(Intent.EXTRA_EMAIL, ApplicationContract.supportEmailAddress);
+                        intent.putExtra(Intent.EXTRA_EMAIL, new String[]{ApplicationContract.supportEmailAddress});
+                        intent.putExtra(Intent.EXTRA_TEXT, "send us an email at " + ApplicationContract.supportEmailAddress);
                         startActivity(Intent.createChooser(intent, "Send Us an Email"));
                         break;
                     case 9:
@@ -219,16 +233,11 @@ public class SettingsFragment extends android.support.v4.app.Fragment implements
     // above is about to be closed.
     public void onLoaderReset(Loader<Cursor> loader) {
         listView.setAdapter(null);
-
     }
 
     private void updateSound(Boolean sound, String column) {
         ContentValues settingsValues = new ContentValues();
         settingsValues.put(column, (sound) ? 1 : 0);
-        queryHandler.startUpdate((sound) ? 1 : 0, column, ApplicationContract.updateSettings_URI, settingsValues, "", new String[]{});
+        settingsFragmentAsyncQueryHandler.startUpdate((sound) ? 1 : 0, column, ApplicationContract.updateSettings_URI, settingsValues, "", new String[]{});
     }
-
-
-
-
 }

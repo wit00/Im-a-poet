@@ -2,6 +2,7 @@ package com.theapp.imapoet;
 
 import android.app.Activity;
 import android.content.AsyncQueryHandler;
+import android.content.ContentResolver;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -12,6 +13,7 @@ import android.support.v4.content.Loader;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
 /**
@@ -19,7 +21,7 @@ import java.util.ArrayList;
  * Created by whitney on 8/1/14.
  */
 public class DrawingPanelFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
-    private AsyncQueryHandler queryHandler;
+    private DrawingPanelFragmentAsyncQueryHandler drawingPanelFragmentAsyncQueryHandler;
     private DrawingPanel.CanvasListener canvasListener;
     private DrawingPanel drawingPanel;
     private boolean loaderExists = false;
@@ -27,7 +29,7 @@ public class DrawingPanelFragment extends Fragment implements LoaderManager.Load
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        createAsyncQueryHandler();
+        drawingPanelFragmentAsyncQueryHandler = new DrawingPanelFragmentAsyncQueryHandler(getActivity().getContentResolver(),this);
         return drawingPanel;
     }
 
@@ -84,12 +86,14 @@ public class DrawingPanelFragment extends Fragment implements LoaderManager.Load
     }
 
     private void loadSettings() {
-        queryHandler.startQuery(1,null, Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/settings"),
-                new String[] {MagnetDatabaseContract.MagnetEntry.COLUMN_SOUND_EFFECTS, MagnetDatabaseContract.MagnetEntry.COLUMN_MUSIC},
+        drawingPanelFragmentAsyncQueryHandler.startQuery(1, null, Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/settings"),
+                new String[]{MagnetDatabaseContract.MagnetEntry.COLUMN_SOUND_EFFECTS, MagnetDatabaseContract.MagnetEntry.COLUMN_MUSIC},
                 null, null, null);
     }
-    private void createAsyncQueryHandler() {
-        queryHandler = new AsyncQueryHandler(getActivity().getContentResolver()) {
+
+
+    /*private void createAsyncQueryHandler() {
+        drawingPanelFragmentAsyncQueryHandler = new AsyncQueryHandler(getActivity().getContentResolver()) {
             @Override
             protected void onQueryComplete(int token, Object cookie, Cursor cursor) {
                 switch (token) {
@@ -104,7 +108,32 @@ public class DrawingPanelFragment extends Fragment implements LoaderManager.Load
                 }
             }
         };
+    }*/
+
+
+    private static class DrawingPanelFragmentAsyncQueryHandler extends AsyncQueryHandler {
+        private final WeakReference<DrawingPanelFragment> drawingPanelFragmentWeakReference;
+
+        public DrawingPanelFragmentAsyncQueryHandler(ContentResolver cr, DrawingPanelFragment drawingPanelFragment) {
+            super(cr);
+            drawingPanelFragmentWeakReference = new WeakReference<DrawingPanelFragment>(drawingPanelFragment);
+        }
+        @Override
+        protected void onQueryComplete(int token, Object cookie, Cursor cursor) {
+            switch (token) {
+                case 1:
+                    DrawingPanelFragment drawingPanelFragment = drawingPanelFragmentWeakReference.get();
+                    if(cursor.getCount() > 0) {
+                        cursor.moveToFirst();
+                        if(drawingPanelFragment != null) drawingPanelFragment.setSettings((cursor.getInt(cursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry.COLUMN_SOUND_EFFECTS)) != 0));
+                    } else {
+                        if(drawingPanelFragment != null) drawingPanelFragment.setSettings(true);
+                    }
+                    break;
+            }
+        }
     }
+
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         String[] projection = {MagnetDatabaseContract.MagnetEntry.COLUMN_MAGNET_X, MagnetDatabaseContract.MagnetEntry.COLUMN_MAGNET_Y,   MagnetDatabaseContract.MagnetEntry.COLUMN_TOP,
                 MagnetDatabaseContract.MagnetEntry.COLUMN_BOTTOM,

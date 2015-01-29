@@ -10,6 +10,7 @@ import android.graphics.RadialGradient;
 import java.util.ArrayList;
 
 /**
+ * Controls the radial gradient used in the award animation
  * Created by whitney on 8/11/14.
  */
 public class AwardAlert {
@@ -26,7 +27,7 @@ public class AwardAlert {
 
 
     public void addNewAward(String title, String description) {
-        awards.add(new award(title,description,0,0));
+        awards.add(new award(title,description,0));
     }
 
     public AwardAlert(Context context) {

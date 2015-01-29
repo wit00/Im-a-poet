@@ -28,6 +28,7 @@ public class DemoFragment extends Fragment {
         public void highlightButtons(boolean highlightButtons);
         public void demoComplete();
         public void changeTextView(String text);
+        public void runDemoComplete();
     }
 
     // Begin the demo by telling the MainActivity to highlight the drawer. Set the demoDrawerCompleted boolean to true so this event cannot be run again during this demo run.
@@ -103,6 +104,7 @@ public class DemoFragment extends Fragment {
 
     // The user has clicked the award (after the award has been highlighted and before the delete action), so change the demo text and highlight the trash can. Also remove the award highlight.
     public void awardClicked() {
+            demoListener.runDemoComplete();
             demoListener.changeTextView(getString(R.string.demo_award_clicked));
             demoListener.highlightTrashCan(true);
             demoListener.highlightAward(false);

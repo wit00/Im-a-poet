@@ -41,7 +41,7 @@ public class NewPoemSaveAlertDialog extends DialogFragment {
         builder.setTitle("Save Your Poem")
                 .setMessage("Do you want to save this poem?")
                 .setView(titleInput)
-                .setPositiveButton("yes", new DialogInterface.OnClickListener() {
+                .setPositiveButton("okay", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
                         String titleInputValue = (titleInput.getText()).toString();
                         if (titleInputValue.trim().length() == 0) {

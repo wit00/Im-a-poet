@@ -9,6 +9,7 @@ import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.ActivityNotFoundException;
 import android.content.AsyncQueryHandler;
+import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -29,7 +30,6 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.view.LayoutInflater;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -51,6 +51,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Date;
@@ -74,7 +75,7 @@ public class MainActivity extends FragmentActivity implements AsyncTaskRetainDat
     private boolean spinnerListenerSetUp = false;
     private IabHelper iabHelper;
     private ArrayList<String> skuList = new ArrayList<String>();
-    private AsyncQueryHandler asyncQueryHandler;
+    private MainActivityAsyncQueryHandler mainActivityAsyncQueryHandler;
     private boolean applicationIsRunning = false;
 
 
@@ -92,9 +93,9 @@ public class MainActivity extends FragmentActivity implements AsyncTaskRetainDat
 
     public void highlightButtons(boolean highlightButtons) {
         if(highlightButtons) {
-            highlight(R.id.share_buttons);
+            highlight(R.id.highlight_buttons);
         } else {
-            clearHighlight(R.id.share_buttons);
+            clearHighlight(R.id.highlight_buttons);
         }
     }
     public void highlightDrawer(boolean highlightDrawer) {
@@ -129,7 +130,6 @@ public class MainActivity extends FragmentActivity implements AsyncTaskRetainDat
         fragmentTransaction.add(android.R.id.content, demoFragment);
         fragmentTransaction.addToBackStack(null);
         fragmentTransaction.commit();
-        //fragmentTransaction.commitAllowingStateLoss();
     }
 
     public void changeTextView(String text) {
@@ -174,8 +174,11 @@ public class MainActivity extends FragmentActivity implements AsyncTaskRetainDat
     public void awardClicked() {
         if(demoFragment!=null) {
             demoFragment.runDemo(DemoFragment.DemoPart.AWARD_CLICKED);
-            gameState.demoComplete();
         }
+    }
+
+    public void runDemoComplete() {
+        if(demoFragment != null) gameState.demoComplete();
     }
 
     public void newPoemInsertIntoDatabase(String titleInputValue, boolean newPoem) {
@@ -185,8 +188,6 @@ public class MainActivity extends FragmentActivity implements AsyncTaskRetainDat
     public void existingPoemInsertIntoDatabase(String titleInputValue, boolean newPoem) {
         insertPoemIntoDatabase(titleInputValue, drawingPanelFragment.getPoem(), newPoem);
     }
-
-
 
 
     private void loadMagnetsOntoCanvas(FragmentManager fragmentManager) {
@@ -202,7 +203,7 @@ public class MainActivity extends FragmentActivity implements AsyncTaskRetainDat
                     drawingPanelFragment = (DrawingPanelFragment) getSupportFragmentManager().findFragmentById(R.id.the_canvas);
                     //drawingPanelFragment.loadMagnets();
                 }
-                drawingPanelRetainDataFragment = drawingPanelRetainDataFragment.newInstance();
+                drawingPanelRetainDataFragment = DrawingPanelRetainDataFragment.newInstance();
                 fragmentManager.beginTransaction().add(drawingPanelRetainDataFragment,"drawingPanelData").commit();
             } else
                 drawingPanelFragment.loadMagnets(drawingPanelRetainDataFragment.getMagnets(), drawingPanelRetainDataFragment.getPreviouslySavedPoem(), drawingPanelRetainDataFragment.getPreviouslySavedPoemID(), drawingPanelRetainDataFragment.getPreviouslySavedPoemName(), drawingPanelRetainDataFragment.getScaleFactor(), drawingPanelRetainDataFragment.getScalePivotX(), drawingPanelRetainDataFragment.getScalePivotY(), drawingPanelRetainDataFragment.getScrollXOffset(), drawingPanelRetainDataFragment.getScrollYOffset());
@@ -216,13 +217,8 @@ public class MainActivity extends FragmentActivity implements AsyncTaskRetainDat
         }
     }
 
-
-
-
-
     public void onDrawerMagnetClicked(String clickedMagnetText, int packID) {
-        //if(demoFragment == null) gameState.updatePackSize(drawingPanelFragment.setWord(clickedMagnetText,packID),drawerFragment.getCurrentPack(),drawerFragment.getCurrentPackName());
-        if(demoFragment == null) gameState.updatePackSize(drawingPanelFragment.setWord(clickedMagnetText,packID),getCurrentPack(),getCurrentPackName());
+        if(demoFragment == null) gameState.updatePackSize(drawingPanelFragment.setWord(clickedMagnetText,packID), getCurrentPackName());
         else drawingPanelFragment.setWord(clickedMagnetText,packID);
     }
 
@@ -242,7 +238,7 @@ public class MainActivity extends FragmentActivity implements AsyncTaskRetainDat
 
     private void updateSharedPreferencesVersionNumber(SharedPreferences sharedPreferences) {
         SharedPreferences.Editor sharedPreferencesEditor = sharedPreferences.edit();
-        sharedPreferencesEditor.putInt("version",ApplicationContract.VERSION);
+        sharedPreferencesEditor.putInt("version",ApplicationContract.PACKS_VERSION);
         sharedPreferencesEditor.apply();
     }
 
@@ -403,7 +399,7 @@ public class MainActivity extends FragmentActivity implements AsyncTaskRetainDat
         setSystemVisibility();
         setContentView(R.layout.activity_main);
         setupOverflowButton();
-        createAsyncQueryHandler();
+        mainActivityAsyncQueryHandler = new MainActivityAsyncQueryHandler(getContentResolver(),this);
         initializeIabHelper();
         setupDrawerSpinnerAndDrawerMagnetGrid();
     }
@@ -439,7 +435,7 @@ public class MainActivity extends FragmentActivity implements AsyncTaskRetainDat
             if(extras != null) {
                 loadFromSettings = getIntent().getExtras().getBoolean("updatePacks");
             }
-            if(sharedPreferences.getInt("version",-1) != ApplicationContract.VERSION  || loadFromSettings) {
+            if(sharedPreferences.getInt("version",-1) != ApplicationContract.PACKS_VERSION  || loadFromSettings) {
                 if(extras != null) getIntent().removeExtra("updatePacks");
                 findViewById(R.id.big_loading_spinner).setVisibility(View.VISIBLE);
                 findViewById(R.id.loading_spinner).setVisibility(View.VISIBLE);
@@ -574,37 +570,16 @@ public class MainActivity extends FragmentActivity implements AsyncTaskRetainDat
     public void loadShareDialog(View view) {
         if(demoFragment != null ) demoFragment.runDemo(DemoFragment.DemoPart.BUTTONS_CLICKED); // the demo is running and a button has been clicked
         (new ShareTask()).execute();
-
-
     }
 
     public void openDrawer(View view) {
         ((DrawerLayout) findViewById(R.id.pager)).openDrawer(GravityCompat.START);
-
-    }
-
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        //getMenuInflater().inflate(R.menu.main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-        return id == R.id.action_settings || super.onOptionsItemSelected(item);
     }
 
     public static class CanvasHolderFragment extends Fragment {
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
-            // Inflate the layout for this fragment
             return inflater.inflate(R.layout.canvas_fragment, container, false);
         }
 
@@ -622,20 +597,15 @@ public class MainActivity extends FragmentActivity implements AsyncTaskRetainDat
         alphaAnimation.setAnimationListener(new Animation.AnimationListener() {
             @Override
             public void onAnimationStart(Animation animation) {
-
             }
-
             @Override
             public void onAnimationEnd(Animation animation) {
                 view.setVisibility(View.GONE);
             }
-
             @Override
             public void onAnimationRepeat(Animation animation) {
-
             }
         });
-
     }
 
 
@@ -659,10 +629,6 @@ public class MainActivity extends FragmentActivity implements AsyncTaskRetainDat
         updateSharedPreferencesVersionNumber(getSharedPreferences(ApplicationContract.PREFERENCES_FILE,0));
     }
 
-    private void initLoader() {
-        getSupportLoaderManager().initLoader(0,null,this);
-    }
-
 
     /** new media service stuff **/
     @Override
@@ -679,7 +645,6 @@ public class MainActivity extends FragmentActivity implements AsyncTaskRetainDat
        }
     }
 
-
     /* Drawer fragment stuff*/
 
     private void initializeSkuList() {
@@ -693,7 +658,7 @@ public class MainActivity extends FragmentActivity implements AsyncTaskRetainDat
     public void updatePackAvailability(String packName, boolean isAvailable) {
         ContentValues updatedPackValues = new ContentValues();
         updatedPackValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_IS_AVAILABLE,isAvailable);
-        asyncQueryHandler.startUpdate(0, null, Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/update/pack"), updatedPackValues, MagnetDatabaseContract.MagnetEntry.COLUMN_PACK_NAME + " = " + "'" + packName + "'", null);
+        mainActivityAsyncQueryHandler.startUpdate(0, null, Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/update/pack"), updatedPackValues, MagnetDatabaseContract.MagnetEntry.COLUMN_PACK_NAME + " = " + "'" + packName + "'", null);
     }
 
     private void displayYourPurchaseHasBeenSuccessfulDialog() {
@@ -725,26 +690,30 @@ public class MainActivity extends FragmentActivity implements AsyncTaskRetainDat
 
     }
 
-    private void createAsyncQueryHandler() {
-        asyncQueryHandler = new AsyncQueryHandler(this.getContentResolver()) {
-            @Override
-            protected void onUpdateComplete(int token, Object cookie, int result) {
-                if (token == 0) {
-                    // move the pack from inAppPurchasePacks to purchasedInAppPurchasePacks
-                    if (result == 1) {
-                        // if(DataLoaderHelper.copyFile((String) cookie, "inAppPurchasePacks", "purchasedInAppPurchasePacks", getApplicationContext())) {
-                        // if has succeeded
-                        displayYourPurchaseHasBeenSuccessfulDialog();
-                        //displayYourPurchaseHasBeenSuccessfulDialog((String) cookie);
-                    } else {
-                        // io exception
-                        // displayProblemDialog("love.txt");
-                        displayProblemDialog((String) cookie);
-                    }
-                }
 
+    private static class MainActivityAsyncQueryHandler extends AsyncQueryHandler {
+        private final WeakReference<MainActivity> mainActivityWeakReference;
+        public MainActivityAsyncQueryHandler(ContentResolver cr, MainActivity mainActivity) {
+            super(cr);
+            mainActivityWeakReference = new WeakReference<MainActivity>(mainActivity);
+        }
+        @Override
+        protected void onUpdateComplete(int token, Object cookie, int result) {
+            if (token == 0) {
+                MainActivity mainActivity = mainActivityWeakReference.get();
+                // move the pack from inAppPurchasePacks to purchasedInAppPurchasePacks
+                if (result == 1) {
+                    // if(DataLoaderHelper.copyFile((String) cookie, "inAppPurchasePacks", "purchasedInAppPurchasePacks", getApplicationContext())) {
+                    // if has succeeded
+                    if(mainActivity != null) mainActivity.displayYourPurchaseHasBeenSuccessfulDialog();
+                    //displayYourPurchaseHasBeenSuccessfulDialog((String) cookie);
+                } else {
+                    // io exception
+                    // displayProblemDialog("love.txt");
+                    if(mainActivity != null) mainActivity.displayProblemDialog((String) cookie);
+                }
             }
-        };
+        }
     }
 
 
@@ -762,11 +731,9 @@ public class MainActivity extends FragmentActivity implements AsyncTaskRetainDat
                 Cursor cursor = (Cursor) drawerMagnetsAdapter.getItem(position);
                 onDrawerMagnetClicked(cursor.getString(cursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry.COLUMN_WORD_TEXT)),cursor.getInt(cursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry.COLUMN_PACK_ID)));
             return true;
-
             }
 
         });
-
     }
 
 
@@ -790,10 +757,8 @@ public class MainActivity extends FragmentActivity implements AsyncTaskRetainDat
 
     private void setupGridView() {
         gridView = (GridView) findViewById(R.id.gridview);
-        //drawerMagnetsAdapter = new DrawerMagnetsAdapter(getActivity(), null, new String[]{}, new int[]{});
         gridView.setAdapter(drawerMagnetsAdapter);
     }
-
 
     IabHelper.OnIabPurchaseFinishedListener purchaseFinishedListener
             = new IabHelper.OnIabPurchaseFinishedListener() {
@@ -804,9 +769,7 @@ public class MainActivity extends FragmentActivity implements AsyncTaskRetainDat
             }
             else {
                 updatePackAvailability(purchase.getSku(), true);
-                //);
             }
-
         }
     };
 
@@ -946,10 +909,10 @@ public class MainActivity extends FragmentActivity implements AsyncTaskRetainDat
     }
 
     /* Get the current pack by returning the pack id of the first magnet in the pack. */
-    public int getCurrentPack() {
+    /*public int getCurrentPack() {
         Cursor cursor = (Cursor) drawerMagnetsAdapter.getItem(0);
         return cursor.getInt(cursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry.COLUMN_PACK_ID));
-    }
+    }*/
 
     /* Get the current pack name by returning the name of the current item in the spinner */
     public String getCurrentPackName() {

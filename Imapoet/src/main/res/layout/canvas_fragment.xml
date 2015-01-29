@@ -32,34 +32,40 @@
             android:onClick="loadOverflow"
             android:id="@+id/overflow_button"
             android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
             android:contentDescription="@string/overflow_button_image_resource" />
-        <ImageView
-            style="@style/Main_Activity_Menu_Buttons"
+        <LinearLayout
+            android:id="@+id/highlight_buttons"
             android:layout_toLeftOf="@id/overflow_button"
-            android:id="@+id/share_button"
+            android:layout_toStartOf="@id/overflow_button"
             android:layout_width="wrap_content"
-            android:src="@drawable/sharexml"
-            android:onClick="loadShareDialog"
-            android:layout_height="wrap_content"
-            android:contentDescription="@string/share_button_image_content_description" />
-        <ImageView
-            style="@style/Main_Activity_Menu_Buttons"
-            android:layout_toLeftOf="@id/share_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/save_button"
-            android:src="@drawable/savexml"
-            android:onClick="loadSave"
-            android:contentDescription="@string/save_button_image_content_description" />
-        <ImageView
-            style="@style/Main_Activity_Menu_Buttons"
-            android:layout_toLeftOf="@id/save_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/menu_button"
-            android:src="@drawable/menuxml"
-            android:onClick="loadMenu"
-            android:contentDescription="@string/go_to_the_menu_button_image_content_description" />
+            android:layout_height="wrap_content">
+            <ImageView
+                style="@style/Main_Activity_Menu_Buttons"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/menu_button"
+                android:src="@drawable/menuxml"
+                android:onClick="loadMenu"
+                android:contentDescription="@string/go_to_the_menu_button_image_content_description" />
+            <ImageView
+                style="@style/Main_Activity_Menu_Buttons"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/save_button"
+                android:src="@drawable/savexml"
+                android:onClick="loadSave"
+                android:contentDescription="@string/save_button_image_content_description" />
+            <ImageView
+                style="@style/Main_Activity_Menu_Buttons"
+                android:id="@+id/share_button"
+                android:layout_width="wrap_content"
+                android:src="@drawable/sharexml"
+                android:onClick="loadShareDialog"
+                android:layout_height="wrap_content"
+                android:contentDescription="@string/share_button_image_content_description" />
+        </LinearLayout>
+
     </RelativeLayout>
     <fragment
         android:id="@+id/the_canvas"

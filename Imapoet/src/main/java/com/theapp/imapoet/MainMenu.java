@@ -3,6 +3,7 @@ package com.theapp.imapoet;
 
 import android.app.AlertDialog;
 import android.content.AsyncQueryHandler;
+import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -18,12 +19,13 @@ import android.support.v4.view.ViewPager;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import java.lang.ref.WeakReference;
 
 
 public class MainMenu extends ActionBarActivity implements ActionBar.TabListener, InAppPurchaseFragment.InAppPurchaseListener {
     private SectionsPagerAdapter sectionsPagerAdapter; // provides the fragments for the sections
     private ViewPager viewPager; // hosts the section contents
-    private AsyncQueryHandler queryHandler;
+    private MainMenuAsyncQueryHandler mainMenuAsyncQueryHandler;
     private MediaServiceHelper mediaServiceHelper = new MediaServiceHelper(this);
 
 
@@ -38,7 +40,7 @@ public class MainMenu extends ActionBarActivity implements ActionBar.TabListener
     public void updatePackAvailability(String packName, boolean isAvailable) {
         ContentValues updatedPackValues = new ContentValues();
         updatedPackValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_IS_AVAILABLE,isAvailable);
-        queryHandler.startUpdate(0,null,Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/update/pack"), updatedPackValues, MagnetDatabaseContract.MagnetEntry.COLUMN_PACK_NAME + " = " + "'" + packName + "'",null);
+        mainMenuAsyncQueryHandler.startUpdate(0, null, Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/update/pack"), updatedPackValues, MagnetDatabaseContract.MagnetEntry.COLUMN_PACK_NAME + " = " + "'" + packName + "'", null);
     }
 
     private void displayYourPurchaseHasBeenSuccessfulDialog() {
@@ -68,8 +70,46 @@ public class MainMenu extends ActionBarActivity implements ActionBar.TabListener
         (builder.create()).show();
 
     }
-    private void createAsyncQueryHandler() {
-        queryHandler = new AsyncQueryHandler(getContentResolver()) {
+
+    private static class MainMenuAsyncQueryHandler extends AsyncQueryHandler {
+        private final WeakReference<MainMenu> mainMenuWeakReference;
+
+        public MainMenuAsyncQueryHandler(ContentResolver cr, MainMenu mainMenu) {
+            super(cr);
+            mainMenuWeakReference = new WeakReference<MainMenu>(mainMenu);
+        }
+        @Override
+        protected void onUpdateComplete(int token, Object cookie, int result) {
+            if(token == 0) {
+                // move the pack from inAppPurchasePacks to purchasedInAppPurchasePacks
+                MainMenu mainMenu = mainMenuWeakReference.get();
+                if(result == 1) {
+                    if(mainMenu != null) mainMenu.displayYourPurchaseHasBeenSuccessfulDialog();
+                } else {
+                    if(mainMenu != null) mainMenu.displayProblemDialog((String) cookie);
+                }
+            }
+
+        }
+
+        @Override
+        protected void onDeleteComplete(int token, Object cookie, int result) {
+            switch (token) {
+                case 1:
+                    startDelete(2, cookie, Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/delete/poem"),
+                            MagnetDatabaseContract.MagnetEntry._ID + " = " + cookie, null);
+                    break;
+                case 2:
+                    startDelete(0, null, Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/delete/poem/detail"),
+                            MagnetDatabaseContract.MagnetEntry.COLUMN_POEM_ID + " = " + cookie, null);
+                    break;
+
+
+            }
+        }
+    }
+    /*private void createAsyncQueryHandler() {
+        mainMenuAsyncQueryHandler = new AsyncQueryHandler(getContentResolver()) {
             @Override
             protected void onUpdateComplete(int token, Object cookie, int result) {
                 if(token == 0) {
@@ -87,11 +127,11 @@ public class MainMenu extends ActionBarActivity implements ActionBar.TabListener
             protected void onDeleteComplete(int token, Object cookie, int result) {
                 switch (token) {
                     case 1:
-                        queryHandler.startDelete(2, cookie, Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/delete/poem"),
+                        mainMenuAsyncQueryHandler.startDelete(2, cookie, Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/delete/poem"),
                                 MagnetDatabaseContract.MagnetEntry._ID + " = " + cookie, null);
                         break;
                     case 2:
-                        queryHandler.startDelete(0, null, Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/delete/poem/detail"),
+                        mainMenuAsyncQueryHandler.startDelete(0, null, Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/delete/poem/detail"),
                                 MagnetDatabaseContract.MagnetEntry.COLUMN_POEM_ID + " = " + cookie,null);
                         break;
 
@@ -99,7 +139,7 @@ public class MainMenu extends ActionBarActivity implements ActionBar.TabListener
                 }
             }
         };
-    }
+    }*/
 
     public void loadMyWebsite(View view) {
         Uri uri = Uri.parse("http://www.wit00.com");
@@ -130,7 +170,8 @@ public class MainMenu extends ActionBarActivity implements ActionBar.TabListener
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_menu);
         setUpActionBarAndStuff();
-        createAsyncQueryHandler();
+        //createAsyncQueryHandler();
+        mainMenuAsyncQueryHandler = new MainMenuAsyncQueryHandler(getContentResolver(),this);
     }
 
 
@@ -152,7 +193,7 @@ public class MainMenu extends ActionBarActivity implements ActionBar.TabListener
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main_menu, menu);
+        //getMenuInflater().inflate(R.menu.main_menu, menu);
         return true;
     }
 
@@ -161,8 +202,9 @@ public class MainMenu extends ActionBarActivity implements ActionBar.TabListener
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-        return id == R.id.action_settings || super.onOptionsItemSelected(item);
+        //int id = item.getItemId();
+        //return id == R.id.action_settings || super.onOptionsItemSelected(item);
+        return super.onOptionsItemSelected(item);
     }
 
     
@@ -276,7 +318,7 @@ public class MainMenu extends ActionBarActivity implements ActionBar.TabListener
                 .setPositiveButton("yes", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
 
-                        queryHandler.startDelete(1, poemID, Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/delete/currentPoem"),
+                        mainMenuAsyncQueryHandler.startDelete(1, poemID, Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/delete/currentPoem"),
                                 MagnetDatabaseContract.MagnetEntry.COLUMN_IF_SAVED_ID + " = " + poemID, null);
                     }
                 })

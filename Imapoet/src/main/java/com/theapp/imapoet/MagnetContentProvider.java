@@ -5,7 +5,6 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.UriMatcher;
 import android.database.Cursor;
-import android.database.StaleDataException;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 
@@ -45,6 +44,8 @@ public class MagnetContentProvider extends ContentProvider {
     private static final int UPDATE_AWARD_DETAIL = 28;
     private static final int DELETE_PACKS = 29;
     private static final int DELETE_MAGNETS = 30;
+    private static final int DELETE_AWARDS = 31;
+    private static final int DELETE_AWARD_DETAILS = 32;
 
     static {
         uriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
@@ -78,6 +79,8 @@ public class MagnetContentProvider extends ContentProvider {
         uriMatcher.addURI(AUTHORITY,"update/award/detail",UPDATE_AWARD_DETAIL);
         uriMatcher.addURI(AUTHORITY,"delete/magnets",DELETE_MAGNETS);
         uriMatcher.addURI(AUTHORITY,"delete/packs",DELETE_PACKS);
+        uriMatcher.addURI(AUTHORITY,"delete/awards",DELETE_AWARDS);
+        uriMatcher.addURI(AUTHORITY,"delete/award/details",DELETE_AWARD_DETAILS);
     }
 
     public MagnetContentProvider() {}
@@ -108,6 +111,12 @@ public class MagnetContentProvider extends ContentProvider {
                 break;
             case DELETE_MAGNETS:
                 thisDelete = database.delete(MagnetDatabaseContract.MagnetEntry.MAGNETS_TABLE_NAME,selection,selectionArgs);
+                break;
+            case DELETE_AWARDS:
+                thisDelete = database.delete(MagnetDatabaseContract.MagnetEntry.AWARDS_TABLE_NAME,selection,selectionArgs);
+                break;
+            case DELETE_AWARD_DETAILS:
+                thisDelete = database.delete(MagnetDatabaseContract.MagnetEntry.AWARDS_DETAIL_TABLE_NAME,selection,selectionArgs);
                 break;
             default:
                 throw new IllegalArgumentException("Unknown URI " + uri);
@@ -197,6 +206,7 @@ public class MagnetContentProvider extends ContentProvider {
         switch (uriMatcher.match(uri)) {
             case SETTINGS:
                 magnetCursor = database.query(MagnetDatabaseContract.MagnetEntry.SETTINGS_TABLE_NAME,projection,null,null,null,null,sortOrder);
+                magnetCursor.setNotificationUri(context.getContentResolver(),uri);
                 break;
             case PACKS:
                 magnetCursor = database.query(MagnetDatabaseContract.MagnetEntry.PACKS_TABLE_NAME,projection,null,null,null,null,sortOrder);
@@ -243,8 +253,11 @@ public class MagnetContentProvider extends ContentProvider {
             throw new AssertionError(" the context is magnet in fish content provider");
         switch (uriMatcher.match(uri)) {
             case UPDATE_SETTINGS:
+                database.beginTransactionNonExclusive();
                 int updateResult = database.update(MagnetDatabaseContract.MagnetEntry.SETTINGS_TABLE_NAME,values,null,null);
                 getContext().getContentResolver().notifyChange(Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/settings"),null);
+                database.setTransactionSuccessful();
+                database.endTransaction();
                 return updateResult;
             case UPDATE_POEM:
                 return database.update(MagnetDatabaseContract.MagnetEntry.SAVED_POEMS_TABLE_NAME,values,selection,selectionArgs);

@@ -12,8 +12,8 @@ import android.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
-import android.widget.ListView;
 
 
 /**
@@ -21,7 +21,6 @@ import android.widget.ListView;
  *
  */
 public class SavedPoemsFragment extends android.support.v4.app.Fragment implements LoaderManager.LoaderCallbacks<Cursor>  {
-    private ListView listView;
     //private SimpleCursorAdapter simpleCursorAdapter;
     private SavedPoemsListAdapter savedPoemsListAdapter;
 
@@ -37,26 +36,22 @@ public class SavedPoemsFragment extends android.support.v4.app.Fragment implemen
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View rootView = inflater.inflate(R.layout.fragment_saved_poems, container, false);
-        listView = (ListView) rootView.findViewById(R.id.saved_poems_listview);
+        View rootView = inflater.inflate(R.layout.fragment_saved_poem, container, false);
+        AbsListView listView = (AbsListView) rootView.findViewById(R.id.saved_poems_listview);
          savedPoemsListAdapter = new SavedPoemsListAdapter(getActivity(),R.layout.fragment_saved_poems_list_row,null,
                 new String[] {MagnetDatabaseContract.MagnetEntry.COLUMN_TITLE},new int[]{android.R.id.text1});
         listView.setAdapter(savedPoemsListAdapter);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
                 // load saved poem
-                Intent loadMainActivityIntent = new Intent(getActivity(),MainActivity.class);
-                loadMainActivityIntent.putExtra("poem_id",savedPoemsListAdapter.getIDFromPosition(position));
-                loadMainActivityIntent.putExtra("poem_name",savedPoemsListAdapter.getNameFromPosition(position));
+                Intent loadMainActivityIntent = new Intent(getActivity(), MainActivity.class);
+                loadMainActivityIntent.putExtra("poem_id", savedPoemsListAdapter.getIDFromPosition(position));
+                loadMainActivityIntent.putExtra("poem_name", savedPoemsListAdapter.getNameFromPosition(position));
                 getActivity().startActivity(loadMainActivityIntent);
             }
         });
         getLoaderManager().initLoader(0,null,this);
         return rootView;
-    }
-
-    private void restartLoader() {
-        getLoaderManager().restartLoader(0,null,this);
     }
 
 

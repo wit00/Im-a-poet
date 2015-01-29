@@ -63,7 +63,7 @@ public class ExistingPoemSaveAlertDialog extends DialogFragment {
                         }
                 )
 
-                .setPositiveButton("yes", new DialogInterface.OnClickListener() {
+                .setPositiveButton("okay", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
                         String titleInputValue = (titleInput.getText()).toString();
                         if (titleInputValue.trim().length() == 0) {

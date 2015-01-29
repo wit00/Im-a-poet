@@ -1,12 +1,12 @@
 package com.theapp.imapoet;
 
 import android.content.AsyncQueryHandler;
+import android.content.ContentResolver;
 import android.content.ContentValues;
-import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
 /**
@@ -15,21 +15,19 @@ import java.util.ArrayList;
  * Created by whitney on 8/1/14.
  */
 public class GameState {
-    private AsyncQueryHandler queryHandler;
+    private GameStateAsyncQueryHandler queryHandler;
     private ArrayList<Magnet> currentPoem;
-    private Context context;
+    //private Context context;
     private DrawingPanelListener drawingPanelListener = null;
     private AwardHandler awardHandler;
-    private boolean lastPack = false;
-    private boolean lastMagnet = false;
-    private int packsInserted = 0;
-    private int totalNumberPacks = 0;
+
 
     public GameState(DrawingPanelListener drawingPanelListener, Boolean firstLaunch, MainActivity mainActivity) {
-        this.context = mainActivity;
-        createAsyncQueryHandler();
+        //this.context = mainActivity;
+        //createAsyncQueryHandler();
+        queryHandler = new GameStateAsyncQueryHandler(mainActivity.getContentResolver(),this);
         this.drawingPanelListener = drawingPanelListener;
-        awardHandler = new AwardHandler(context,R.raw.award_data,(AwardHandler.AwardManagerListener) drawingPanelListener);
+        awardHandler = new AwardHandler(mainActivity,R.raw.award_data,(AwardHandler.AwardManagerListener) drawingPanelListener);
         if(!firstLaunch) {
             awardHandler.attachAwardTypes();
         } else {
@@ -37,10 +35,7 @@ public class GameState {
         }
     }
 
-    public void setDrawingPanelListener(DrawingPanelListener drawingPanelListener) {
-        this.drawingPanelListener = drawingPanelListener;
 
-    }
     // Called by MainActivity, tells the award manager that the demo has been completed
     public void demoComplete() { awardHandler.newSetToTrueAction("DEMO_FINISHED"); }
 
@@ -62,7 +57,7 @@ public class GameState {
     public void magnetDeleted() {
         awardHandler.newIncrementAction("MAGNET_DELETED");
     }
-    public void updatePackSize(int numberPacksUsed, int currentPackID, String currentPackName) {
+    public void updatePackSize(int numberPacksUsed, String currentPackName) {
         awardHandler.newSetValueAction("PACK_USED",numberPacksUsed);
         if(currentPackName.equals("english_letters.txt")) awardHandler.newSetToTrueAction("ENGLISH_ALPHABET_PACK_USED");
         if(currentPackName.equals("love.txt")) awardHandler.newSetToTrueAction("LOVE_PACK_USED");
@@ -110,19 +105,116 @@ public class GameState {
         awardHandler.newSetValueAction("SAVED_POEMS_NUMBER_MAGNETS",magnets.size());
     }
 
-    // during first use or when the application is updated, this function inserts the packs (and later magnets) from the text files
-    public void insertPacksFromTextFiles(Pack pack) {
-        ContentValues packValues = new ContentValues();
-        packValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_PACK_NAME,pack.title);
-        packValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_TIMES_USED,0);
-        packValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_MOST_USED_MAGNET,"");
-        packValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_MOST_USED_MAGNET_VALUE,0);
-        packValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_IS_AVAILABLE, pack.isAvailable());
-        queryHandler.startInsert(LoaderCodes.insertPacks, pack, ApplicationContract.insertPacks_URI, packValues);
+    private static class GameStateAsyncQueryHandler extends AsyncQueryHandler {
+        private final WeakReference<GameState> gameStateWeakReference;
+
+        public GameStateAsyncQueryHandler(ContentResolver cr, GameState gameState) {
+            super(cr);
+            gameStateWeakReference = new WeakReference<GameState>(gameState);
+        }
+        @Override
+        protected void onQueryComplete(int token, Object cookie, Cursor cursor) {
+            switch (token) {
+                case LoaderCodes.savedMagnets: // load saved magnets (in on resume)
+                    if(gameStateWeakReference.get() != null) gameStateWeakReference.get().drawingPanelListener.loadSavedMagnets(cursor,
+                            MagnetDatabaseContract.MagnetEntry.COLUMN_MAGNET_PACK_ID,
+                            MagnetDatabaseContract.MagnetEntry.COLUMN_WORD_TEXT,
+                            MagnetDatabaseContract.MagnetEntry.COLUMN_X_LOCATION,
+                            MagnetDatabaseContract.MagnetEntry.COLUMN_Y_LOCATION,
+                            MagnetDatabaseContract.MagnetEntry.COLUMN_POEM_ID);
+                    break;
+            }
+        }
+        @Override
+        protected void onUpdateComplete(int token, Object cookie, int result) {
+            if(token == LoaderCodes.updatePoem) { // update a poem that is in the db
+                GameState gameState = gameStateWeakReference.get();
+                if(gameState != null) startDelete(LoaderCodes.updateSavedPoemDetail,gameState.currentPoem,ApplicationContract.deletePoemDetailBeforeUpdate_URI,MagnetDatabaseContract.MagnetEntry.COLUMN_POEM_ID + " = " + gameState.drawingPanelListener.getSavedPoemId(),null);
+            }
+        }
+        @Override
+        protected void onDeleteComplete(int token, Object cookie, int result) {
+            GameState gameState = gameStateWeakReference.get();
+            switch (token) {
+                case LoaderCodes.deleteOldAutoSavedPoem:
+                    if(gameState != null) {
+                        for(Magnet magnet : (ArrayList<Magnet>)cookie) {
+                            ContentValues updateCurrentPoemValues = new ContentValues();
+                            updateCurrentPoemValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_MAGNET_X, magnet.x());
+                            updateCurrentPoemValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_MAGNET_Y, magnet.y());
+                            updateCurrentPoemValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_MAGNET_COLOR, magnet.magnetColor());
+                            updateCurrentPoemValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_MAGNET_TEXT, magnet.word());
+                            updateCurrentPoemValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_MAGNET_PACK_ID, magnet.packID());
+                            updateCurrentPoemValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_TOP, magnet.getConnectedMagnetsString(magnet.topSideConnectedMagnet()));
+                            updateCurrentPoemValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_BOTTOM, magnet.getConnectedMagnetsString(magnet.bottomSideConnectedMagnet()));
+                            updateCurrentPoemValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_LEFT, magnet.getConnectedMagnetsString(magnet.leftSideConnectedMagnet()));
+                            updateCurrentPoemValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_RIGHT, magnet.getConnectedMagnetsString(magnet.rightSideConnectedMagnet()));
+                            if (gameState.drawingPanelListener.getSavedPoemState()) {
+                                updateCurrentPoemValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_IF_SAVED_TITLE, gameState.drawingPanelListener.getSavedPoemName());
+                                updateCurrentPoemValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_IF_SAVED_ID, gameState.drawingPanelListener.getSavedPoemId());
+                            } else {
+                                updateCurrentPoemValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_IF_SAVED_TITLE, -1);
+                                updateCurrentPoemValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_IF_SAVED_ID, -1);
+                            }
+                            startInsert(0, null, ApplicationContract.insertNewCurrentPoem_URI, updateCurrentPoemValues);
+                        }
+                    }
+                    break;
+                case LoaderCodes.updateSavedPoemDetail: // insert saved poem detail
+                    if(gameState != null) {
+                        for(Magnet magnet : gameState.currentPoem) {
+                            ContentValues poemDetailValues = new ContentValues();
+                            poemDetailValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_POEM_ID,gameState.drawingPanelListener.getSavedPoemId());
+                            poemDetailValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_WORD_TEXT, magnet.word());
+                            poemDetailValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_X_LOCATION, magnet.x());
+                            poemDetailValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_Y_LOCATION, magnet.y());
+                            poemDetailValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_TOP, magnet.getConnectedMagnetsString(magnet.topSideConnectedMagnet()));
+                            poemDetailValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_BOTTOM, magnet.getConnectedMagnetsString(magnet.bottomSideConnectedMagnet()));
+                            poemDetailValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_LEFT, magnet.getConnectedMagnetsString(magnet.leftSideConnectedMagnet()));
+                            poemDetailValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_RIGHT, magnet.getConnectedMagnetsString(magnet.rightSideConnectedMagnet()));
+                            poemDetailValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_MAGNET_PACK_ID, magnet.packID());
+                            startInsert(0,null,ApplicationContract.insertPoemDetail_URI,poemDetailValues);
+                        }
+                    }
+                    break;
+
+            }
+        }
+        @Override
+        protected  void onInsertComplete(int token, Object cookie, Uri uri) {
+            GameState gameState = gameStateWeakReference.get();
+            switch (token) {
+                case LoaderCodes.insertNewPoem: // insert saved poem detail values
+                    if(gameState != null) {
+                        String poemID = Integer.toString(Integer.parseInt(uri.getLastPathSegment()));
+                        gameState.drawingPanelListener.setSavedPoemId(poemID);
+                        ContentValues updateCurrentPoemValues = new ContentValues();
+                        updateCurrentPoemValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_IF_SAVED_ID,poemID);
+                        updateCurrentPoemValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_IF_SAVED_TITLE,gameState.drawingPanelListener.getSavedPoemName());
+                        startUpdate(0, null, ApplicationContract.updateCurrentPoem_URI, updateCurrentPoemValues,
+                                null, null);
+
+                        for(Magnet magnet : gameState.currentPoem) {
+                            ContentValues poemDetailValues = new ContentValues();
+                            poemDetailValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_POEM_ID,poemID);
+                            poemDetailValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_WORD_TEXT, magnet.word());
+                            poemDetailValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_X_LOCATION, magnet.x());
+                            poemDetailValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_Y_LOCATION, magnet.y());
+                            poemDetailValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_TOP, magnet.getConnectedMagnetsString(magnet.topSideConnectedMagnet()));
+                            poemDetailValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_BOTTOM, magnet.getConnectedMagnetsString(magnet.bottomSideConnectedMagnet()));
+                            poemDetailValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_LEFT, magnet.getConnectedMagnetsString(magnet.leftSideConnectedMagnet()));
+                            poemDetailValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_RIGHT, magnet.getConnectedMagnetsString(magnet.rightSideConnectedMagnet()));
+                            poemDetailValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_MAGNET_PACK_ID, magnet.packID());
+                            startInsert(0,null,ApplicationContract.insertPoemDetail_URI,poemDetailValues);
+                        }
+                    }
+                    break;
+            }
+
+        }
     }
 
-
-    private void createAsyncQueryHandler() {
+    /*private void createAsyncQueryHandler() {
         queryHandler = new AsyncQueryHandler(context.getContentResolver()) {
             @Override
             protected void onQueryComplete(int token, Object cookie, Cursor cursor) {
@@ -183,20 +275,7 @@ public class GameState {
                             queryHandler.startInsert(0,null,ApplicationContract.insertPoemDetail_URI,poemDetailValues);
                         }
                         break;
-                    case LoaderCodes.deletePacks:
-                        queryHandler.startDelete(LoaderCodes.deleteMagnets,cookie,ApplicationContract.deleteMagnets_URI,null,null);
-                        break;
-                    case LoaderCodes.deleteMagnets:
-                        //for(Pack pack : (ArrayList<Pack>) cookie) {
-                        for(int i = 0; i < ((ArrayList<Pack>) cookie).size() ;i++) {
-                            insertPacksFromTextFiles(((ArrayList<Pack>) cookie).get(i));
-                            if (i == ((ArrayList<Pack>) cookie).size() -1)  {
-                                lastPack = true;
-                            }
-                            //insertPacksFromTextFiles(pack);
-                            //if(pack == ((ArrayList<Pack>) cookie).get(((ArrayList<Pack>) cookie).size() -1)) lastPack = true;
-                        }
-                        break;
+
                 }
             }
             @Override
@@ -225,54 +304,27 @@ public class GameState {
                             queryHandler.startInsert(0,null,ApplicationContract.insertPoemDetail_URI,poemDetailValues);
                         }
                         break;
-                    case LoaderCodes.insertPacks:
-                        System.out.println("pack inserts completed, not!!!");
-                        int packID = Integer.parseInt(uri.getLastPathSegment());
-                        //for(String magnet : ((Pack) cookie).magnets) { // fix this so that the pack is passed along in a bundle
-                        for(int i = 0; i < ((Pack) cookie).magnets.size(); i++) {
-                            ContentValues magnetValues = new ContentValues();
-                            magnetValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_PACK_ID,packID);
-                            //magnetValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_WORD_TEXT,magnet);
-                            magnetValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_WORD_TEXT,((Pack) cookie).magnets.get(i));
-                            magnetValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_TIMES_USED_SAVED_OR_SHARED,0);
-                            if (i == ((Pack) cookie).magnets.size() - 1)  {
-                                packsInserted++;
-                                lastMagnet = true;
-                            }
-
-                            queryHandler.startInsert(LoaderCodes.insertMagnets,null,ApplicationContract.insertMagnet_URI,magnetValues);
-
-                        }
-
-                       // }
-                        break;
-                    case LoaderCodes.insertMagnets:
-
-                        break;
                 }
 
             }
         };
-    }
+    }*/
 }
 
 class award {
     private String name;
     private String description;
     private int id;
-    private int awardValue;
 
-    public award(String name, String description, int id, int awardValue) {
+    public award(String name, String description, int id) {
         this.name = name;
         this.description = description;
         this.id = id;
-        this.awardValue = awardValue;
     }
 
     public String name() { return  name; }
     public String description() { return  description; }
     public int id() { return  id; }
-    public int awardValue() { return  awardValue; }
 }
 
 class LoaderCodes {
@@ -281,8 +333,4 @@ class LoaderCodes {
     static final int updateSavedPoemDetail = 3;
     static final int updatePoem = 4;
     static final int insertNewPoem = 5;
-    static final int insertPacks = 6;
-    static final int deletePacks = 7;
-    static final int deleteMagnets = 8;
-    static final int insertMagnets = 9;
 }

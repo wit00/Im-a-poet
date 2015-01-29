@@ -34,7 +34,7 @@ public class StatisticsFragmentListAdapter extends SimpleCursorAdapter {
     }
 
     private boolean isTheSameStatistic(String cursorStatisticName, String statisticName) {
-        return cursorStatisticName.equals((statisticName.toString()));
+        return cursorStatisticName.equals((statisticName));
     }
 
 

@@ -10,10 +10,11 @@ import android.widget.TextView;
 import java.util.ArrayList;
 
 /**
+ * list adapter for the saved poems fragment
  * Created by whitney on 7/29/14.
  */
 public class SavedPoemsListAdapter extends SimpleCursorAdapter {
-    private Context context;
+    //private Context context;
     private int layout;
     private LayoutInflater inflater;
     private ArrayList<Integer> ids = new ArrayList<Integer>();
@@ -22,7 +23,7 @@ public class SavedPoemsListAdapter extends SimpleCursorAdapter {
 
     public SavedPoemsListAdapter(Context context, int layout, Cursor cursor, String[] from, int[] to) {
         super(context,layout,cursor,from,to,0);
-        this.context = context;
+        //this.context = context;
         this.layout = layout;
         this.inflater = LayoutInflater.from(context);
     }

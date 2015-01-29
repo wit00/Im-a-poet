@@ -6,14 +6,14 @@
         jumboMode="false"
         revision="19.1.0"
         sha1="3499ceba05ca1f6037c6a2fad73df8f636224a28">
-        <dex dex="/home/whitney/AndroidStudioProjects/Imapoet/Imapoet/build/intermediates/pre-dexed/debug/classes-ee02730833972498affcb2d28ed90a44159f5669.jar" />
+        <dex dex="/home/whitney/AndroidStudioProjects/Imapoet/Imapoet/build/intermediates/pre-dexed/release/classes-ee02730833972498affcb2d28ed90a44159f5669.jar" />
     </item>
     <item
         jar="/home/whitney/android-studio/sdk/extras/android/m2repository/com/android/support/support-v4/19.1.0/support-v4-19.1.0.jar"
         jumboMode="false"
         revision="19.1.0"
         sha1="85f201b380937e61a9dce6ca90ccf6872abbfb67">
-        <dex dex="/home/whitney/AndroidStudioProjects/Imapoet/Imapoet/build/intermediates/pre-dexed/debug/support-v4-19.1.0-30fee9f72d372d6b3cc2e14822ac0bc140d2ecdb.jar" />
+        <dex dex="/home/whitney/AndroidStudioProjects/Imapoet/Imapoet/build/intermediates/pre-dexed/release/support-v4-19.1.0-30fee9f72d372d6b3cc2e14822ac0bc140d2ecdb.jar" />
     </item>
 
 </items>

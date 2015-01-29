@@ -3,6 +3,7 @@ package com.theapp.imapoet;
 import android.graphics.PointF;
 
 /**
+ * helps determine the side to lock to (for colliding magnets)
  * Created by whitney on 10/15/14.
  */
 public class MagnetSide implements Comparable<MagnetSide>{

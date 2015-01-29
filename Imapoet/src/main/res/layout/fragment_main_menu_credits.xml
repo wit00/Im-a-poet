@@ -36,7 +36,6 @@
                 android:paddingLeft="@dimen/extra_margin"
                 android:paddingRight="@dimen/extra_margin"
                 android:paddingEnd="@dimen/extra_margin"
-                android:paddingStart="@dimen/extra_margin"
                 android:text="@string/programmer_credit_name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
@@ -73,9 +72,7 @@
                 android:layout_marginLeft="@dimen/indent"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="'When The Wind Blows'
-Kevin MacLeod (incompetech.com) Licensed under Creative Commons: By Attribution 3.0
-http://creativecommons.org/licenses/by/3.0/"/>
+                android:text="@string/credits_fragment_macleod_text"/>
             <ImageView
                 android:paddingLeft="@dimen/extra_margin"
                 android:paddingRight="@dimen/extra_margin"

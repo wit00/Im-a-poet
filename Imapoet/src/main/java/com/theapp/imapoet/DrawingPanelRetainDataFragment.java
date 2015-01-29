@@ -36,7 +36,7 @@ public class DrawingPanelRetainDataFragment extends Fragment {
         /*for(Iterator<Magnet> it = newMagnets.iterator(); it.hasNext();) {
             this.magnets.add(it.next());
         }*/
-        this.magnets = newMagnets; //toDo deep copy here
+        this.magnets = newMagnets;
 
         this.previouslySavedPoem = previouslySavedPoem;
         this.previouslySavedPoemID = previouslySavedPoemID;

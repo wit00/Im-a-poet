@@ -8,5 +8,7 @@
     http://developer.android.com/training/multiscreen/screensizes.html#TaskUseAliasFilters
     -->
     <item name="fragment_inapppurchase" type="layout">@layout/fragment_inapppurchase_grid</item>
+    <item name="fragment_saved_poem" type="layout">@layout/fragment_saved_poems_grid</item>
+
 
 </resources>
