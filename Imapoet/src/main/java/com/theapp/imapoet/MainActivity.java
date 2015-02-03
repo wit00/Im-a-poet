@@ -369,6 +369,8 @@ public class MainActivity extends FragmentActivity implements AsyncTaskRetainDat
             public void onIabSetupFinished(IabResult result) {
                 if (result.isFailure()) {
                     displayInAppPurchaseSetupFailureMessage();
+                } else {
+                    iabHelper.queryInventoryAsync(true, skuList,queryForNotPurchasedPacksFinishedListener);
                 }
             }
         });
@@ -699,15 +701,23 @@ public class MainActivity extends FragmentActivity implements AsyncTaskRetainDat
         }
         @Override
         protected void onUpdateComplete(int token, Object cookie, int result) {
+            System.out.println("on update completed moo ");
+
             if (token == 0) {
+                System.out.println("on update completed token 1 moo ");
+
                 MainActivity mainActivity = mainActivityWeakReference.get();
                 // move the pack from inAppPurchasePacks to purchasedInAppPurchasePacks
                 if (result == 1) {
+                    System.out.println("on update completed token 1 result 1 moo ");
+
                     // if(DataLoaderHelper.copyFile((String) cookie, "inAppPurchasePacks", "purchasedInAppPurchasePacks", getApplicationContext())) {
                     // if has succeeded
                     if(mainActivity != null) mainActivity.displayYourPurchaseHasBeenSuccessfulDialog();
                     //displayYourPurchaseHasBeenSuccessfulDialog((String) cookie);
                 } else {
+                    System.out.println("on update completed token 1 result not 1 moo ");
+
                     // io exception
                     // displayProblemDialog("love.txt");
                     if(mainActivity != null) mainActivity.displayProblemDialog((String) cookie);
@@ -799,7 +809,16 @@ public class MainActivity extends FragmentActivity implements AsyncTaskRetainDat
         (builder.create()).show();
     }
     private void purchaseInAppProduct(String productSKU) {
-        iabHelper.launchPurchaseFlow(this, productSKU, 1 ,purchaseFinishedListener,null);
+        iabHelper.launchPurchaseFlow(this, productSKU, 10001 ,purchaseFinishedListener,null);
+    }
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        // Pass on the activity result to the helper for handling
+        if (!iabHelper.handleActivityResult(requestCode, resultCode, data)) {
+            super.onActivityResult(requestCode, resultCode, data);
+        }
     }
 
     private void displayUpdatedSystemDialog() {
@@ -860,7 +879,7 @@ public class MainActivity extends FragmentActivity implements AsyncTaskRetainDat
         }
     }
     private IabHelper.QueryInventoryFinishedListener
-            queryForNotPurchasedPacksFinishedListener = new IabHelper.QueryInventoryFinishedListener() {
+            queryForClickedSkuFinishedListener = new IabHelper.QueryInventoryFinishedListener() {
         public void onQueryInventoryFinished(IabResult result, Inventory inventory)
         {
             if (result.isFailure()) {
@@ -877,10 +896,45 @@ public class MainActivity extends FragmentActivity implements AsyncTaskRetainDat
         }
     };
 
+    private IabHelper.QueryInventoryFinishedListener
+            queryForNotPurchasedPacksFinishedListener = new IabHelper.QueryInventoryFinishedListener() {
+        public void onQueryInventoryFinished(IabResult result, Inventory inventory)
+        {
+            if (result.isSuccess()) {
+                ArrayList<String> purchasedPacks = new ArrayList<String>();
+                for(String sku : skuList) {
+                    SkuDetails skuDetails = inventory.getSkuDetails(sku);
+                    if (inventory.hasPurchase(sku)) {
+                        InAppPurchase inAppPurchase = new InAppPurchase(skuDetails.getTitle(),skuDetails.getDescription(),skuDetails.getType(),skuDetails.getPrice(),skuDetails.getSku(),true);
+                        purchasedPacks.add(inAppPurchase.productId());
+                    }
+                }
+                (new CheckIfAvailableTask()).execute(purchasedPacks.toArray(new String[purchasedPacks.size()]));
+            }
+        }
+    };
 
-    private void resetSpinner(int position, Cursor cursor) {
+
+    private class CheckIfAvailableTask extends AsyncTask<String, Void, Void> {
+        protected Void doInBackground(String... googleInAppPurchasePacks) {
+            Cursor databaseInAppPurchasedPacksCursor = getContentResolver().query(ApplicationContract.getPacks_URI,new String[]{MagnetDatabaseContract.MagnetEntry.COLUMN_PACK_NAME}, MagnetDatabaseContract.MagnetEntry.COLUMN_IS_AVAILABLE,new String[]{"1"},null);
+            ArrayList<String> databaseInAppPurchasedPacks = new ArrayList<String>();
+            while(databaseInAppPurchasedPacksCursor.moveToNext()) {
+                databaseInAppPurchasedPacks.add(databaseInAppPurchasedPacksCursor.getString(databaseInAppPurchasedPacksCursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry.COLUMN_PACK_NAME)));
+            }
+            for(String googleInAppPurchasePack : googleInAppPurchasePacks) {
+                if(!databaseInAppPurchasedPacks.contains(googleInAppPurchasePack)) {
+                    ContentValues updatedPackValues = new ContentValues();
+                    updatedPackValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_IS_AVAILABLE,true);
+                    getContentResolver().update(Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/update/pack"),updatedPackValues,MagnetDatabaseContract.MagnetEntry.COLUMN_PACK_NAME + " = " + "'" + googleInAppPurchasePack + "'", null);
+                }
+            }
+            return null;
+        }
+    }
+    private void resetSpinner(int position, Cursor cursor, boolean inAppPurchase) {
         Bundle bundle = new Bundle();
-        spinnerPosition = position;
+        if(!inAppPurchase) spinnerPosition = position;
         bundle.putInt("id", cursor.getInt(cursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry._ID)));
 
         if (spinnerListenerSetUp) {
@@ -896,10 +950,10 @@ public class MainActivity extends FragmentActivity implements AsyncTaskRetainDat
         Cursor cursor = (Cursor) drawerSpinnerAdapter.getItem(position);
         if(cursor.getInt(cursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry.COLUMN_IS_AVAILABLE))==0) {
             clickedSku = cursor.getString(cursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry.COLUMN_PACK_NAME));
-            resetSpinner(position,cursor);
-            iabHelper.queryInventoryAsync(true, skuList,queryForNotPurchasedPacksFinishedListener);
+            resetSpinner(position,cursor,true);
+            iabHelper.queryInventoryAsync(true, skuList,queryForClickedSkuFinishedListener);
         } else {
-            resetSpinner(position,cursor);
+            resetSpinner(position,cursor,false);
         }
         spinnerListenerSetUp = true;
     }

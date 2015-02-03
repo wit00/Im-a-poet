@@ -1,5 +1,7 @@
 package com.theapp.imapoet;
 
+
+
 /**
  * In app purchase item
  * Created by whitney on 10/8/14.
@@ -32,4 +34,6 @@ public class InAppPurchase {
         this.productId = productId;
         this.purchased = purchased;
     }
+
+
 }

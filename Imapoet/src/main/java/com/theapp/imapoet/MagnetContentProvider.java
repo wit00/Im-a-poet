@@ -266,6 +266,7 @@ public class MagnetContentProvider extends ContentProvider {
             case UPDATE_CURRENT_POEM:
                 return database.update(MagnetDatabaseContract.MagnetEntry.LAST_POEM_TABLE_NAME,values,selection,selectionArgs);
             case UPDATE_PACK:
+                getContext().getContentResolver().notifyChange(Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/packs"),null);
                 return database.update(MagnetDatabaseContract.MagnetEntry.PACKS_TABLE_NAME,values,selection,selectionArgs);
             case UPDATE_AWARD:
                 return database.update(MagnetDatabaseContract.MagnetEntry.AWARDS_TABLE_NAME,values,selection,selectionArgs);

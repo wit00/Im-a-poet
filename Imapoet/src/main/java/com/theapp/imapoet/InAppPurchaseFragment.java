@@ -5,6 +5,7 @@ package com.theapp.imapoet;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -34,13 +35,14 @@ import java.util.Collections;
  */
 public class InAppPurchaseFragment extends android.support.v4.app.Fragment implements AbsListView.OnItemClickListener {
     private InAppPurchaseListener inAppPurchaseListener;
-    private ArrayList<InAppPurchase> productsAvailableForPurchase = new ArrayList<InAppPurchase>();
+    private ArrayList<InAppPurchase> inAppProducts = new ArrayList<InAppPurchase>();
     private ArrayList<String> skuList = new ArrayList<String>();
     private ListAdapter inAppPurchaseAdapter;
     private IabHelper iabHelper;
     public static InAppPurchaseFragment newInstance() {
         return new InAppPurchaseFragment();
     }
+
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
@@ -51,22 +53,22 @@ public class InAppPurchaseFragment extends android.support.v4.app.Fragment imple
         public void onQueryInventoryFinished(IabResult result, Inventory inventory)
         {
             if (result.isSuccess()){
+                inAppProducts.clear();
+                ArrayList<String> purchasedPacks = new ArrayList<String>();
                 for(String sku : skuList) {
                     SkuDetails skuDetails = inventory.getSkuDetails(sku);
-                    if(skuDetails != null){
-                        productsAvailableForPurchase.add(new InAppPurchase(
-                                skuDetails.getTitle(),
-                                skuDetails.getDescription(),
-                                skuDetails.getType(),
-                                skuDetails.getPrice(),
-                                skuDetails.getSku(), // product id?
-                                false
-                        ));
+                    if (inventory.hasPurchase(sku)) {
+                        InAppPurchase inAppPurchase = new InAppPurchase(skuDetails.getTitle(),skuDetails.getDescription(),skuDetails.getType(),skuDetails.getPrice(),skuDetails.getSku(),true);
+                        inAppProducts.add(inAppPurchase);
+                        purchasedPacks.add(inAppPurchase.productId());
                     } else {
-                        displayInAppPurchaseSetupFailureMessage();
+                        inAppProducts.add(new InAppPurchase(skuDetails.getTitle(), skuDetails.getDescription(), skuDetails.getType(), skuDetails.getPrice(), skuDetails.getSku(), false));
                     }
                 }
-                getPurchasedProducts();
+                inAppPurchaseListener.checkInAppPurchases(purchasedPacks.toArray(new String[purchasedPacks.size()]));
+                inAppPurchaseAdapter = new InAppPurchaseListViewAdapter(getActivity(), inAppProducts);
+                fadeOutView(getActivity().findViewById(R.id.in_app_purchase_loading_spinner));
+                setUpAdapter();
             }
             else {
                 displayInAppPurchaseSetupFailureMessage();
@@ -124,9 +126,6 @@ public class InAppPurchaseFragment extends android.support.v4.app.Fragment imple
         });
     }
 
-    private void getPurchasedProducts() {
-        iabHelper.queryInventoryAsync(productsPurchasedInventoryListener);
-    }
     private void setUpAdapter() {
        // Set the adapter
         AbsListView inAppPurchaseListView = (AbsListView) getView().findViewById(R.id.inAppPurchaseList);
@@ -142,33 +141,7 @@ public class InAppPurchaseFragment extends android.support.v4.app.Fragment imple
         }
         else initializeIabHelper();
     }
-    private IabHelper.QueryInventoryFinishedListener productsPurchasedInventoryListener
-            = new IabHelper.QueryInventoryFinishedListener() {
-        public void onQueryInventoryFinished(IabResult result,Inventory inventory) {
-            if (result.isFailure()) {
-                // handle error here
-                displayInAppPurchaseSetupFailureMessage();
-            }
-            else {
-                for(String sku : skuList) {
-                    if (inventory.hasPurchase(sku)) {
-                        SkuDetails skuDetails = inventory.getSkuDetails(sku);
-                        productsAvailableForPurchase.add(new InAppPurchase(
-                                skuDetails.getTitle(),
-                                skuDetails.getDescription(),
-                                skuDetails.getType(),
-                                skuDetails.getPrice(),
-                                skuDetails.getSku(),
-                                true
-                        ));
-                    }
-                }
-                inAppPurchaseAdapter = new InAppPurchaseListViewAdapter(getActivity(),productsAvailableForPurchase);
-                fadeOutView(getActivity().findViewById(R.id.in_app_purchase_loading_spinner));
-                setUpAdapter();
-            }
-        }
-    };
+
     private void displayInAppPurchaseSetupFailureMessage() {
         String message = "In app purchasing is not working at this time. Sorry for the inconvenience.";
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
@@ -213,12 +186,20 @@ public class InAppPurchaseFragment extends android.support.v4.app.Fragment imple
         super.onDestroy();
     }
 
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if(!iabHelper.handleActivityResult(requestCode, resultCode, data)) {
+            super.onActivityResult(requestCode, resultCode, data);
+        }
+    }
+
     IabHelper.OnIabPurchaseFinishedListener purchaseFinishedListener
             = new IabHelper.OnIabPurchaseFinishedListener() {
         public void onIabPurchaseFinished(IabResult result, Purchase purchase)
         {
             if (result.isSuccess()) {
                 inAppPurchaseListener.inAppPurchaseClicked(purchase.getSku());
+                getProductDetailsForSkuList();
             }
             else {
                 displayUnsuccessfulPurchaseDialog();
@@ -226,7 +207,7 @@ public class InAppPurchaseFragment extends android.support.v4.app.Fragment imple
         }
     };
     private void purchaseInAppProduct(String productSKU) {
-        iabHelper.launchPurchaseFlow(getActivity(), productSKU, 1 ,purchaseFinishedListener,null);
+        iabHelper.launchPurchaseFlow(getActivity(), productSKU, 1001 ,purchaseFinishedListener,null);
     }
     private void displayWouldYouLikeToBuyDialog(final InAppPurchase inAppPurchase) {
         String message = "Would you like to buy " + inAppPurchase.title() + " for " + inAppPurchase.price() + " ?";
@@ -284,6 +265,8 @@ public class InAppPurchaseFragment extends android.support.v4.app.Fragment imple
      */
     public interface InAppPurchaseListener {
         public void inAppPurchaseClicked(String packName);
+        public void resetInAppPurchases(String[] packName);
+        public void checkInAppPurchases(String[] purchases);
     }
 }
 

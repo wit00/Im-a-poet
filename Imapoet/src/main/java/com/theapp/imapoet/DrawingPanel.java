@@ -362,7 +362,6 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
     private void checkForTouchCollisions(float transformedXTouch, float transformedYTouch, float oldXTouch, float oldYTouch) {
         for (Magnet magnet : magnets) {
             if (theUserHasTouchedAMagnet(magnet, transformedXTouch, transformedYTouch)) {
-                getRootView().performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
                 clickedMagnet = magnet;
             }
         }
@@ -388,12 +387,17 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
         return (xTouch > (boxSmallestX - boxPadding)) && (xTouch < (boxBiggestX + boxPadding)) && (yTouch > (boxSmallestY - boxPadding)) && (yTouch < (boxBiggestY + boxPadding));
     }
 
+    private void playSoundAndPerformHapticFeedback() {
+        if (soundEffects) mediaPlayerForSoundEffect.start();
+        getRootView().performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
+    }
+
     private void handleCollision(ArrayList<MagnetSide> closestMagnetSides, float xTouchPosition, float yTouchPosition) {
         MagnetSide closestMagnetSide = closestMagnetSides.get(0);
         if(closestMagnetSides.size() == 1) {
             Magnet closestMagnet = closestMagnetSide.referenceToMagnet;
             if (!(clickedMagnet.rightSideConnectedMagnet().contains(closestMagnet) || clickedMagnet.leftSideConnectedMagnet().contains(closestMagnet) || clickedMagnet.topSideConnectedMagnet().contains(closestMagnet) || clickedMagnet.bottomSideConnectedMagnet().contains(closestMagnet))) {
-                if (soundEffects) mediaPlayerForSoundEffect.start();
+                playSoundAndPerformHapticFeedback();
             }
         if(closestMagnetSide.toSide == Side.BOTTOM || closestMagnetSide.toSide == Side.TOP) {
             clickedMagnet.setXAndY(xTouchPosition,clickedMagnet.y() + closestMagnetSide.xAndyDistances.y);
@@ -406,11 +410,11 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
             MagnetSide secondClosestMagnetSide = closestMagnetSides.get(1);
             Magnet closestMagnet = closestMagnetSide.referenceToMagnet;
             if (!(clickedMagnet.rightSideConnectedMagnet().contains(closestMagnet) || clickedMagnet.leftSideConnectedMagnet().contains(closestMagnet) || clickedMagnet.topSideConnectedMagnet().contains(closestMagnet) || clickedMagnet.bottomSideConnectedMagnet().contains(closestMagnet))) {
-                if (soundEffects) mediaPlayerForSoundEffect.start();
+                playSoundAndPerformHapticFeedback();
             }
             Magnet secondClosestMagnet = closestMagnetSide.referenceToMagnet;
             if (!(clickedMagnet.rightSideConnectedMagnet().contains(secondClosestMagnet) || clickedMagnet.leftSideConnectedMagnet().contains(secondClosestMagnet) || clickedMagnet.topSideConnectedMagnet().contains(secondClosestMagnet) || clickedMagnet.bottomSideConnectedMagnet().contains(secondClosestMagnet))) {
-                if (soundEffects) mediaPlayerForSoundEffect.start();
+                playSoundAndPerformHapticFeedback();
             }
             if(closestMagnetSide.toSide == Side.BOTTOM || closestMagnetSide.toSide == Side.TOP) {
                 clickedMagnet.setXAndY(clickedMagnet.x() + secondClosestMagnetSide.xAndyDistances.x,clickedMagnet.y() + closestMagnetSide.xAndyDistances.y);

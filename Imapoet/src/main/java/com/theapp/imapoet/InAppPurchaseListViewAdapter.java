@@ -39,11 +39,26 @@ public class InAppPurchaseListViewAdapter extends BaseAdapter {
     }
 
     private void setRegularText(InAppPurchase inAppPurchase, View rowView) {
-        ((TextView)rowView.findViewById(R.id.inAppPurchaseTitle)).setText(inAppPurchase.title());
+        TextView title = ((TextView)rowView.findViewById(R.id.inAppPurchaseTitle));
+        title.setTextColor(Color.BLACK);
+        title.setText(inAppPurchase.title());
+        TextView description = ((TextView)rowView.findViewById(R.id.inAppPurchaseDetail));
+        description.setTextColor(Color.BLACK);
+        description.setText(inAppPurchase.description());
+        TextView price = ((TextView)rowView.findViewById(R.id.inAppPrice));
+        price.setTextColor(Color.BLACK);
+        price.setText(inAppPurchase.price());
+
+
+
+        /*((TextView)rowView.findViewById(R.id.inAppPurchaseTitle)).setText(inAppPurchase.title());
         ((TextView)rowView.findViewById(R.id.inAppPurchaseDetail)).setText(inAppPurchase.description());
-        ((TextView)rowView.findViewById(R.id.inAppPrice)).setText(inAppPurchase.price());
-        int newDeckImageResourceID = context.getResources().getIdentifier(inAppPurchase.title(), "drawable", "com.theapp.imapoet");
+        ((TextView)rowView.findViewById(R.id.inAppPrice)).setText(inAppPurchase.price());*/
+        String productId = inAppPurchase.productId().substring(0, inAppPurchase.productId().length()-4);
+        int newDeckImageResourceID = context.getResources().getIdentifier(productId, "drawable", "com.theapp.imapoet");
+        System.out.println("product id " + productId);
         if(newDeckImageResourceID != 0) ((ImageView)rowView.findViewById(R.id.new_deck_icon)).setImageResource(newDeckImageResourceID);
+        else ((ImageView)rowView.findViewById(R.id.new_deck_icon)).setImageResource(R.drawable.default_new_deck);
     }
 
     private void setGrayedOutText(InAppPurchase inAppPurchase, View rowView) {

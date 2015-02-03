@@ -7,7 +7,9 @@ import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBar;
 import android.support.v4.app.Fragment;
@@ -20,6 +22,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 
 
 public class MainMenu extends ActionBarActivity implements ActionBar.TabListener, InAppPurchaseFragment.InAppPurchaseListener {
@@ -29,18 +32,68 @@ public class MainMenu extends ActionBarActivity implements ActionBar.TabListener
     private MediaServiceHelper mediaServiceHelper = new MediaServiceHelper(this);
 
 
-
     public void inAppPurchaseClicked(String packName) {
         // update pack value to show it is bought
-        updatePackAvailability(packName,true);
+        (new UpdateAvailabilityToTrueTask()).execute(packName);
     }
 
+    public void resetInAppPurchases(String[] packNames) {
+        (new UpdateMultiplePacksAvailabilityToTrueTask()).execute(packNames);
+    }
 
+    public void checkInAppPurchases(String[] packNames) {
+        (new CheckIfAvailableTask()).execute(packNames);
+    }
 
-    public void updatePackAvailability(String packName, boolean isAvailable) {
+    private class CheckIfAvailableTask extends AsyncTask<String, Void, Void> {
+        protected Void doInBackground(String... googleInAppPurchasePacks) {
+            Cursor databaseInAppPurchasedPacksCursor = getContentResolver().query(ApplicationContract.getPacks_URI,new String[]{MagnetDatabaseContract.MagnetEntry.COLUMN_PACK_NAME}, MagnetDatabaseContract.MagnetEntry.COLUMN_IS_AVAILABLE,new String[]{"1"},null);
+            ArrayList<String> databaseInAppPurchasedPacks = new ArrayList<String>();
+            while(databaseInAppPurchasedPacksCursor.moveToNext()) {
+                databaseInAppPurchasedPacks.add(databaseInAppPurchasedPacksCursor.getString(databaseInAppPurchasedPacksCursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry.COLUMN_PACK_NAME)));
+            }
+            for(String googleInAppPurchasePack : googleInAppPurchasePacks) {
+                if(!databaseInAppPurchasedPacks.contains(googleInAppPurchasePack)) {
+                    updateAPackToTrue(googleInAppPurchasePack);
+                }
+            }
+            if(!databaseInAppPurchasedPacksCursor.isClosed()) databaseInAppPurchasedPacksCursor.close();
+            return null;
+        }
+    }
+
+    private class UpdateAvailabilityToTrueTask extends AsyncTask<String, Void, Integer> {
+        private String packName;
+        protected Integer doInBackground(String... packNames) {
+            packName = packNames[0];
+            return updateAPackToTrue(packName);
+        }
+        protected void onPostExecute(Integer result) {
+            if(result == 1) {
+                displayYourPurchaseHasBeenSuccessfulDialog();
+            } else {
+               displayProblemDialog(packName);
+            }
+        }
+    }
+
+    // returns the number of rows affected
+    private int updateAPackToTrue(String packName) {
         ContentValues updatedPackValues = new ContentValues();
-        updatedPackValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_IS_AVAILABLE,isAvailable);
-        mainMenuAsyncQueryHandler.startUpdate(0, null, Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/update/pack"), updatedPackValues, MagnetDatabaseContract.MagnetEntry.COLUMN_PACK_NAME + " = " + "'" + packName + "'", null);
+        updatedPackValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_IS_AVAILABLE,true);
+        return getContentResolver().update(Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/update/pack"),updatedPackValues,MagnetDatabaseContract.MagnetEntry.COLUMN_PACK_NAME + " = " + "'" + packName + "'", null);
+    }
+
+    private class UpdateMultiplePacksAvailabilityToTrueTask extends AsyncTask<String, Void, Void> {
+        protected Void doInBackground(String... packNames) {
+            for(String packName : packNames) {
+                updateAPackToTrue(packName);
+            }
+            return null;
+        }
+        protected void onPostExecute(Void nothing) {
+            displaySuccessfulSettingsResetDialog();
+        }
     }
 
     private void displayYourPurchaseHasBeenSuccessfulDialog() {
@@ -53,32 +106,59 @@ public class MainMenu extends ActionBarActivity implements ActionBar.TabListener
                     }});
         (builder.create()).show();
     }
+    private void displaySuccessfulSettingsResetDialog() {
+        String message = "Excellent! Your in app purchases have been reset.";
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(message)
+                .setPositiveButton("Okay", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
 
+                    }});
+        (builder.create()).show();
+    }
+    private void displayProblemWithSettingsUpdateDialog() {
+        String message = "Unfortunately, something went wrong loading this settings update. Please try again. If you continue to have a problem with this, please email us using the Contact Us button in the Settings tab of the menu.";
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(message)
+                .setPositiveButton("Okay", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialogInterface, int id) {
+                        // do nothing
+                    }
+                });
+        (builder.create()).show();
+    }
     private void displayProblemDialog(final String packName) {
         String message = "Unfortunately, something went wrong loading your new purchase into our system. Press 'Try Again' to try loading it again. If you continue to have a problem with this, please email us using the Contact Us button in the Settings tab of the menu.";
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage(message)
-            .setPositiveButton("Try Again", new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialog, int id) {
-                    updatePackAvailability(packName,true);
-                }})
-            .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialogInterface, int id) {
-                    // do nothing
-                }
-            });
+                .setPositiveButton("Try Again", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        updateAPackToTrue(packName);
+                    }})
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialogInterface, int id) {
+                        // do nothing
+                    }
+                });
         (builder.create()).show();
+    }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        InAppPurchaseFragment inAppPurchaseFragment  = (InAppPurchaseFragment) getSupportFragmentManager().findFragmentByTag("android:switcher:" + R.id.pager + ":" + viewPager.getCurrentItem());
+        if(inAppPurchaseFragment != null) {
+            inAppPurchaseFragment.onActivityResult(requestCode, resultCode, data);
+        }
     }
 
     private static class MainMenuAsyncQueryHandler extends AsyncQueryHandler {
         private final WeakReference<MainMenu> mainMenuWeakReference;
 
-        public MainMenuAsyncQueryHandler(ContentResolver cr, MainMenu mainMenu) {
-            super(cr);
+        public MainMenuAsyncQueryHandler(ContentResolver contentResolver, MainMenu mainMenu) {
+            super(contentResolver);
             mainMenuWeakReference = new WeakReference<MainMenu>(mainMenu);
         }
-        @Override
+        /*@Override
         protected void onUpdateComplete(int token, Object cookie, int result) {
             if(token == 0) {
                 // move the pack from inAppPurchasePacks to purchasedInAppPurchasePacks
@@ -90,7 +170,7 @@ public class MainMenu extends ActionBarActivity implements ActionBar.TabListener
                 }
             }
 
-        }
+        }*/
 
         @Override
         protected void onDeleteComplete(int token, Object cookie, int result) {
@@ -108,38 +188,6 @@ public class MainMenu extends ActionBarActivity implements ActionBar.TabListener
             }
         }
     }
-    /*private void createAsyncQueryHandler() {
-        mainMenuAsyncQueryHandler = new AsyncQueryHandler(getContentResolver()) {
-            @Override
-            protected void onUpdateComplete(int token, Object cookie, int result) {
-                if(token == 0) {
-                    // move the pack from inAppPurchasePacks to purchasedInAppPurchasePacks
-                    if(result == 1) {
-                        displayYourPurchaseHasBeenSuccessfulDialog();
-                    } else {
-                       displayProblemDialog((String) cookie);
-                    }
-                }
-
-            }
-
-            @Override
-            protected void onDeleteComplete(int token, Object cookie, int result) {
-                switch (token) {
-                    case 1:
-                        mainMenuAsyncQueryHandler.startDelete(2, cookie, Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/delete/poem"),
-                                MagnetDatabaseContract.MagnetEntry._ID + " = " + cookie, null);
-                        break;
-                    case 2:
-                        mainMenuAsyncQueryHandler.startDelete(0, null, Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/delete/poem/detail"),
-                                MagnetDatabaseContract.MagnetEntry.COLUMN_POEM_ID + " = " + cookie,null);
-                        break;
-
-
-                }
-            }
-        };
-    }*/
 
     public void loadMyWebsite(View view) {
         Uri uri = Uri.parse("http://www.wit00.com");
@@ -207,7 +255,6 @@ public class MainMenu extends ActionBarActivity implements ActionBar.TabListener
         return super.onOptionsItemSelected(item);
     }
 
-    
     /**
      * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
      * one of the sections/tabs/pages.
@@ -267,8 +314,6 @@ public class MainMenu extends ActionBarActivity implements ActionBar.TabListener
     }
 
 
-
-
     // When the given tab is selected, switch to the corresponding page in
     // the ViewPager.
     @Override
@@ -317,7 +362,6 @@ public class MainMenu extends ActionBarActivity implements ActionBar.TabListener
         builder.setTitle("Delete Your Poem?")
                 .setPositiveButton("yes", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
-
                         mainMenuAsyncQueryHandler.startDelete(1, poemID, Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/delete/currentPoem"),
                                 MagnetDatabaseContract.MagnetEntry.COLUMN_IF_SAVED_ID + " = " + poemID, null);
                     }

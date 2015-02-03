@@ -47,7 +47,6 @@ public class SettingsFragment extends android.support.v4.app.Fragment implements
     private InAppPurchaseFragment.InAppPurchaseListener inAppPurchaseListener;
 
 
-
     public static SettingsFragment newInstance() {
         return new SettingsFragment();
     }
@@ -110,9 +109,13 @@ public class SettingsFragment extends android.support.v4.app.Fragment implements
                 displayInAppPurchaseSetupFailureMessage();
             }
             else {
+                ArrayList<String> purchases = new ArrayList<String>();
                 for(String sku : skuList) {
-                    if(inventory.hasPurchase(sku)) inAppPurchaseListener.inAppPurchaseClicked(sku);
+                    if(inventory.hasPurchase(sku)) {
+                        purchases.add(sku);
+                    }
                 }
+                inAppPurchaseListener.resetInAppPurchases(purchases.toArray(new String[purchases.size()]));
             }
         }
     };
