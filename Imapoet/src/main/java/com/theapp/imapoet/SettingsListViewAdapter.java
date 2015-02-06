@@ -101,7 +101,7 @@ public class SettingsListViewAdapter extends BaseAdapter {
                 return view;
             case 11:
                 view = LayoutInflater.from(context).inflate(R.layout.fragment_settings_list_row, parent, false);
-                ((TextView) (view.findViewById(R.id.settingsRow))).setText("If something is wrong with your packs and/or words, you can restore them here.");
+                ((TextView) (view.findViewById(R.id.settingsRow))).setText("If something is wrong with your packs and/or words, you can restore them here. If you have made in app purchases, you should return to this page and press the 'restore purchases' button above.");
                 ((ImageView) (view.findViewById(R.id.settingsRowImage))).setImageResource(R.drawable.restore);
                 return view;
             default:

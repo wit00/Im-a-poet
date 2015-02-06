@@ -206,6 +206,36 @@ public class InAppPurchaseFragment extends android.support.v4.app.Fragment imple
             }
         }
     };
+
+    // check if this deck is downloaded, if so launch the purchase flow
+    // shouldn't have to use this because of for(sku : skulist)
+    /*private class CheckIfPackHasBeenDownloadedAsyncTask extends AsyncTask<String, Void, Boolean> {
+        String productSKU;
+        protected Boolean doInBackground(String... sku) {
+            productSKU = sku[0];
+            Cursor hasBeenDownloadedCursor = getActivity().getContentResolver().query(ApplicationContract.getPacks_URI,new String[]{MagnetDatabaseContract.MagnetEntry.COLUMN_PACK_NAME}, MagnetDatabaseContract.MagnetEntry.COLUMN_PACK_NAME + " = " + productSKU,null,null);
+            hasBeenDownloadedCursor.moveToFirst();
+            boolean cursorSize = hasBeenDownloadedCursor.getCount() > 0;
+            hasBeenDownloadedCursor.close();
+            return cursorSize;
+        }
+        protected void onPostExecute(Boolean packHasBeenDownloaded) {
+            if(packHasBeenDownloaded) iabHelper.launchPurchaseFlow(getActivity(), productSKU, 1001, purchaseFinishedListener, null);
+            else displayHasNotBeenDownloadedDialog();
+        }
+    }*/
+
+    private void displayHasNotBeenDownloadedDialog() {
+        String message = "Unfortunately, this in app purchase pack hasn't yet been downloaded to your system. Please check for for an app update in the google play store. You credit card has not been charged.";
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        builder.setMessage(message)
+                .setNeutralButton("okay", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                    }
+                });
+        (builder.create()).show();
+    }
+
     private void purchaseInAppProduct(String productSKU) {
         iabHelper.launchPurchaseFlow(getActivity(), productSKU, 1001 ,purchaseFinishedListener,null);
     }

@@ -209,7 +209,7 @@ public class MagnetContentProvider extends ContentProvider {
                 magnetCursor.setNotificationUri(context.getContentResolver(),uri);
                 break;
             case PACKS:
-                magnetCursor = database.query(MagnetDatabaseContract.MagnetEntry.PACKS_TABLE_NAME,projection,null,null,null,null,sortOrder);
+                magnetCursor = database.query(MagnetDatabaseContract.MagnetEntry.PACKS_TABLE_NAME,projection,selection,selectionArgs,null,null,sortOrder);
                 magnetCursor.setNotificationUri(context.getContentResolver(),uri);
                 break;
             case MAGNETS:

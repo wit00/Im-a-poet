@@ -154,7 +154,7 @@ public class AsyncTaskRetainDataFragment extends Fragment {
     public void signUpForFirstRunCompletionNotification(Activity activity) {
         asyncTaskListener = (AsyncTaskListener) activity;
         if(firstRunComplete) {
-            asyncTaskListener.updateAsyncLoadingComplete();
+            asyncTaskListener.firstRunAsyncLoadingComplete();
         }
     }
 

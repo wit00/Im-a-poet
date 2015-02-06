@@ -222,6 +222,7 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
         return magnets;
     }
 
+
     /* Drag events occur when the magnet tile is dragged from the drawer fragment onto the canvas.
     *  Implements View.OnDragListener */
     @Override
@@ -234,35 +235,79 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
         yTouch = (-1 * scalePivotY / scaleFactor) + (oldYTouch / scaleFactor) + (scalePivotY);
         switch (dragEvent.getAction()) {
             case DragEvent.ACTION_DRAG_STARTED: // The magnet has been clicked (a long-click event in the drawerFragment)
+                clickedMagnet = null;
                 notAddedTile = true;
                 return true;
             case DragEvent.ACTION_DRAG_ENTERED: // The magnet has entered the drawing area
-                currentTile = addTileToCanvas();
-                clickedMagnet = magnets.get(currentTile);
+                if(clickedMagnet == null) {
+                    currentTile = addTileToCanvas();
+                    clickedMagnet = magnets.get(currentTile);
+                }
+                else { // toDo this else statement is new, evaluate
+                    sidesToLockToNext.clear();
+                    handleMovingClickedTile(clickedMagnet,xTouch,yTouch);
+                }
                 break;
             case DragEvent.ACTION_DRAG_LOCATION: // Called every time the magnet is moved in the drawing area
 
-                /*if (currentTile != -1) {
-                    handleMovingClickedTile(magnets.get(currentTile), xTouch,yTouch);
-                } else {
-                    handleMovingClickedTile(magnets.get(0), xTouch,yTouch);
-                }*/
-                if(clickedMagnet != null) clickedMagnet.setXAndY(xTouch, yTouch);
-
+                //if(clickedMagnet != null) clickedMagnet.setXAndY(xTouch, yTouch);
+                if (clickedMagnet != null) { // toDo, this if condition and below is new, evaluate (old code is the line above, if(clickedMagnet != null) clickedMagnet.setXAndY(xTouch,yTouch);
+                    sidesToLockToNext.clear();
+                    handleMovingClickedTile(clickedMagnet, xTouch, yTouch);
+               }
                 break;
             case DragEvent.ACTION_DROP: // The magnet is dropped when the finger moves up, off the screen
                 if (notAddedTile) {
                     currentTile = addTileToCanvas();
                     magnets.get(currentTile).setX(xTouch);
                     magnets.get(currentTile).setY(yTouch);
+                } else {
+                    adjustTheClickedTile();   // get the tile in the right position (no overlap)
+                    toHighlightMagnets.clear();
                 }
-                //adjustTheClickedTile();
                 break;
         }
         this.invalidate();
         return false;
     }
 
+    /* Overrides the View method of the same name. onTouchEvent is the center of user interaction for the drawing area. The action, Action_Down occurs when the user touches the drawing area. Action_Move happens when the user moves their finger across the drawing area. Action_Up occurs when the user moves their finger off of the screen. */
+    @Override
+    public boolean onTouchEvent(MotionEvent motionEvent) {
+        boolean retVal = scaleGestureDetector.onTouchEvent(motionEvent);
+        retVal = gestureDetector.onTouchEvent(motionEvent) || retVal;
+        float oldXTouch, oldYTouch, xTouch, yTouch;
+        oldXTouch = motionEvent.getX();
+        oldYTouch = motionEvent.getY();
+        oldXTouch = oldXTouch + xScrollOffset;
+        oldYTouch = oldYTouch + yScrollOffset;
+        xTouch = (-1 * scalePivotX / scaleFactor) + (oldXTouch / scaleFactor) + (scalePivotX);
+        yTouch = (-1 * scalePivotY / scaleFactor) + (oldYTouch / scaleFactor) + (scalePivotY);
+        switch (motionEvent.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                clickedMagnet = null;
+                // has the user clicked a magnet, if so, set clickedMagnetTile to this magnet
+                checkForTouchCollisions(xTouch, yTouch, oldXTouch, oldYTouch);
+                break;
+            case MotionEvent.ACTION_MOVE:
+                // does the user have a magnet? If so, deal with magnet-magnet collisions, etc.
+                if (clickedMagnet != null) {
+                    sidesToLockToNext.clear();
+                    checkIfTheMagnetIsAboveTheTrashCan(clickedMagnet);
+                    handleMovingClickedTile(clickedMagnet, xTouch, yTouch);
+                }
+                break;
+            case MotionEvent.ACTION_UP:
+                ifThereIsAMagnetOverTheTrashCanDeleteIt();
+                adjustTheClickedTile();   // get the tile in the right position (no overlap)
+                toHighlightMagnets.clear();
+                break;
+
+
+        }
+        this.invalidate();
+        return retVal || super.onTouchEvent(motionEvent);
+    }
 
     private float getDensity() {
         return getResources().getDisplayMetrics().density;
@@ -310,42 +355,7 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
         return (-1 * scalePivotX / scaleFactor) + (coordinate / scaleFactor) + (scalePivotX);
     }
 
-    /* Overrides the View method of the same name. onTouchEvent is the center of user interaction for the drawing area. The action, Action_Down occurs when the user touches the drawing area. Action_Move happens when the user moves their finger across the drawing area. Action_Up occurs when the user moves their finger off of the screen. */
-    @Override
-    public boolean onTouchEvent(MotionEvent motionEvent) {
-        boolean retVal = scaleGestureDetector.onTouchEvent(motionEvent);
-        retVal = gestureDetector.onTouchEvent(motionEvent) || retVal;
-        float oldXTouch, oldYTouch, xTouch, yTouch;
-        oldXTouch = motionEvent.getX();
-        oldYTouch = motionEvent.getY();
-        oldXTouch = oldXTouch + xScrollOffset;
-        oldYTouch = oldYTouch + yScrollOffset;
-        xTouch = (-1 * scalePivotX / scaleFactor) + (oldXTouch / scaleFactor) + (scalePivotX);
-        yTouch = (-1 * scalePivotY / scaleFactor) + (oldYTouch / scaleFactor) + (scalePivotY);
-        switch (motionEvent.getAction()) {
-            case MotionEvent.ACTION_DOWN:
-                clickedMagnet = null;
-                // has the user clicked a magnet, if so, set clickedMagnetTile to this magnet
-                checkForTouchCollisions(xTouch, yTouch, oldXTouch, oldYTouch);
-                break;
-            case MotionEvent.ACTION_MOVE:
-                // does the user have a magnet? If so, deal with magnet-magnet collisions, etc.
-                if (clickedMagnet != null) {
-                    sidesToLockToNext.clear();
-                    handleMovingClickedTile(clickedMagnet, xTouch, yTouch);
-                }
-                break;
-            case MotionEvent.ACTION_UP:
-                ifThereIsAMagnetOverTheTrashCanDeleteIt();
-                adjustTheClickedTile();   // get the tile in the right position (no overlap)
-                toHighlightMagnets.clear();
-                break;
 
-
-        }
-        this.invalidate();
-        return retVal || super.onTouchEvent(motionEvent);
-    }
 
     /* This is a convenience function only used by onTouchEvent. When the user removes their finger from the screen, if a magnet is currently being held over the trash can, delete it. */
     private void ifThereIsAMagnetOverTheTrashCanDeleteIt() {
@@ -495,7 +505,6 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
     *  Otherwise, if the moving tile is not near any other tiles, just move the darn thing.
     * */
     private void handleMovingClickedTile(Magnet movingMagnet, float xTouchPosition, float yTouchPosition) {
-        checkIfTheMagnetIsAboveTheTrashCan(movingMagnet);
         boolean collision = false;
         int closePadding = (int) (35 * scaleFactor);
         ArrayList<MagnetSide> closestMagnets = new ArrayList<MagnetSide>();
@@ -505,7 +514,7 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
             Side newConnectedSide;
             MagnetSide newClosestMagnetSide;
             if (magnet.id() != movingMagnet.id()) {
-                int currentQuadrant = getQuadrant(magnet);
+                int currentQuadrant = getQuadrant(movingMagnet,magnet);
                 PointF movingMagnetTopLeftNewPoint = new PointF(movingMagnet.leftTopCorner().x + shiftX, movingMagnet.leftTopCorner().y + shiftY);
                 PointF movingMagnetBottomLeftNewPoint = new PointF(movingMagnet.leftBottomCorner().x + shiftX, movingMagnet.leftBottomCorner().y + shiftY);
                 PointF movingMagnetTopRightNewPoint = new PointF(movingMagnet.rightTopCorner().x + shiftX, movingMagnet.rightTopCorner().y + shiftY);
@@ -733,9 +742,9 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
         return collidedSide;
     }
 
-    private int getQuadrant(Magnet magnet) {
-        float centerX = clickedMagnet.x();
-        float centerY = clickedMagnet.y();
+    private int getQuadrant(Magnet movingMagnet, Magnet magnet) {
+        float centerX = movingMagnet.x();
+        float centerY = movingMagnet.y();
         if (magnet.x() <= centerX) {
             if (magnet.y() <= centerY) {
                 return 1;

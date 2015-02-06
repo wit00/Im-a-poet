@@ -196,7 +196,6 @@ public class MainActivity extends FragmentActivity implements AsyncTaskRetainDat
             gameState.loadSavedMagnets(extras);
         } else { // we are not loading from save
             // it's an orientation change, so just load the magnets from data retaining fragment
-//System.out.println("magnet: loading from drawing panel retain data fragment");
             if(drawingPanelRetainDataFragment == null) { // this is not an orientation change because drawingPanelRetainFragment is null
                 if(drawingPanelFragment.isAdded()) drawingPanelFragment.loadMagnets();
                 else {
@@ -416,7 +415,6 @@ public class MainActivity extends FragmentActivity implements AsyncTaskRetainDat
         applicationIsRunning = true;
         getSupportLoaderManager().initLoader(0,null,this);
         ((DrawerLayout)findViewById(R.id.pager)).setDrawerListener(new MagnetDrawerListener(this));
-
         if(sharedPreferences.getBoolean(ApplicationContract.FIRST_LAUNCH,true)) {
             findViewById(R.id.big_loading_spinner).setVisibility(View.VISIBLE);
             findViewById(R.id.loading_spinner).setVisibility(View.VISIBLE);
@@ -545,9 +543,14 @@ public class MainActivity extends FragmentActivity implements AsyncTaskRetainDat
     }
 
     private class ShareTask extends AsyncTask<Void, Void, File> {
+        private Bitmap screenshot;
+        private File file;
+
+        protected void onPreExecute() {
+            screenshot = ScreenshotCreator.createScreenshotWithWatermark(getSupportFragmentManager().findFragmentById(R.id.the_canvas).getView(), helperContext, R.drawable.watermark);
+            file = new File(helperContext.getCacheDir(), "tempShareBitmap.jpg");
+        }
         protected File doInBackground(Void... nothing) {
-            Bitmap screenshot = ScreenshotCreator.createScreenshotWithWatermark(getSupportFragmentManager().findFragmentById(R.id.the_canvas).getView(), helperContext, R.drawable.watermark);
-            File file = new File(helperContext.getCacheDir(), "tempShareBitmap.jpg");
             try {
                 file.createNewFile();
                 file.setReadable(true,false);
@@ -562,10 +565,8 @@ public class MainActivity extends FragmentActivity implements AsyncTaskRetainDat
             }
             return file;
         }
-
         protected void onPostExecute(File file) {
             createShareIntent(Uri.fromFile(file));
-
         }
     }
 
@@ -629,6 +630,7 @@ public class MainActivity extends FragmentActivity implements AsyncTaskRetainDat
         fadeOutView(findViewById(R.id.loading_spinner));
         fadeOutView(findViewById(R.id.big_loading_spinner));
         updateSharedPreferencesVersionNumber(getSharedPreferences(ApplicationContract.PREFERENCES_FILE,0));
+        if(iabHelper != null) iabHelper.queryInventoryAsync(true, skuList,queryForNotPurchasedPacksFinishedListener);
     }
 
 
@@ -701,23 +703,15 @@ public class MainActivity extends FragmentActivity implements AsyncTaskRetainDat
         }
         @Override
         protected void onUpdateComplete(int token, Object cookie, int result) {
-            System.out.println("on update completed moo ");
-
             if (token == 0) {
-                System.out.println("on update completed token 1 moo ");
-
                 MainActivity mainActivity = mainActivityWeakReference.get();
                 // move the pack from inAppPurchasePacks to purchasedInAppPurchasePacks
                 if (result == 1) {
-                    System.out.println("on update completed token 1 result 1 moo ");
-
                     // if(DataLoaderHelper.copyFile((String) cookie, "inAppPurchasePacks", "purchasedInAppPurchasePacks", getApplicationContext())) {
                     // if has succeeded
                     if(mainActivity != null) mainActivity.displayYourPurchaseHasBeenSuccessfulDialog();
                     //displayYourPurchaseHasBeenSuccessfulDialog((String) cookie);
                 } else {
-                    System.out.println("on update completed token 1 result not 1 moo ");
-
                     // io exception
                     // displayProblemDialog("love.txt");
                     if(mainActivity != null) mainActivity.displayProblemDialog((String) cookie);
@@ -809,9 +803,21 @@ public class MainActivity extends FragmentActivity implements AsyncTaskRetainDat
         (builder.create()).show();
     }
     private void purchaseInAppProduct(String productSKU) {
+        // check if this in app product exists in the google system, if so purchase, if not give a message
         iabHelper.launchPurchaseFlow(this, productSKU, 10001 ,purchaseFinishedListener,null);
+
     }
 
+    private void displayGoogleDoesNotHaveProductDialog() {
+        String message = "Unfortunately there is a problem with the google market, and this in app purchase pack is not available for purchase at this time. Please try again later. If you continue to have problems, please send us an email through the settings page in this application.";
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(message)
+                .setPositiveButton("okay", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                    }
+                });
+        (builder.create()).show();
+    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -841,6 +847,25 @@ public class MainActivity extends FragmentActivity implements AsyncTaskRetainDat
                     }
                 });
         (builder.create()).show();
+    }
+
+    private void displayYouHavePurchasedDialog () {
+        String message = "You have purchased this pack. Press okay to reload it into your system. If you continue to get this message, please go to the settings page to reload your decks and your in app purchases.";
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(message)
+                .setPositiveButton("Okay", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        iabHelper.queryInventoryAsync(true, skuList,queryForNotPurchasedPacksFinishedListener);
+                    }
+                });
+        AlertDialog alertDialog = (builder.create());
+        (alertDialog).setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialog) {
+                iabHelper.queryInventoryAsync(true, skuList, queryForNotPurchasedPacksFinishedListener);
+            }
+        });
+        alertDialog.show();
     }
 
     private void displayWouldYouLikeToBuyDialog(final InAppPurchase inAppPurchase) {
@@ -885,13 +910,16 @@ public class MainActivity extends FragmentActivity implements AsyncTaskRetainDat
             if (result.isFailure()) {
                 displaySomethingIsWrongWithInAppPurchaseDialog();
             } else {
-                SkuDetails skuDetails = inventory.getSkuDetails(clickedSku);
-                displayWouldYouLikeToBuyDialog(new InAppPurchase(
-                        skuDetails.getTitle(),
-                        skuDetails.getDescription(),
-                        skuDetails.getType(),
-                        skuDetails.getPrice(),
-                        skuDetails.getSku(),false));
+                if(inventory.getSkuDetails(clickedSku) != null) {
+                    if(!inventory.hasPurchase(clickedSku)) {
+                        SkuDetails skuDetails = inventory.getSkuDetails(clickedSku);
+                        displayWouldYouLikeToBuyDialog(new InAppPurchase(skuDetails.getTitle(),skuDetails.getDescription(),skuDetails.getType(),skuDetails.getPrice(),skuDetails.getSku(),false));
+                    } else {
+                        displayYouHavePurchasedDialog();
+                    }
+                } else {
+                    displayGoogleDoesNotHaveProductDialog();
+                }
             }
         }
     };
@@ -904,7 +932,7 @@ public class MainActivity extends FragmentActivity implements AsyncTaskRetainDat
                 ArrayList<String> purchasedPacks = new ArrayList<String>();
                 for(String sku : skuList) {
                     SkuDetails skuDetails = inventory.getSkuDetails(sku);
-                    if (inventory.hasPurchase(sku)) {
+                    if (skuDetails != null && inventory.hasPurchase(sku)) {
                         InAppPurchase inAppPurchase = new InAppPurchase(skuDetails.getTitle(),skuDetails.getDescription(),skuDetails.getType(),skuDetails.getPrice(),skuDetails.getSku(),true);
                         purchasedPacks.add(inAppPurchase.productId());
                     }
@@ -914,10 +942,9 @@ public class MainActivity extends FragmentActivity implements AsyncTaskRetainDat
         }
     };
 
-
     private class CheckIfAvailableTask extends AsyncTask<String, Void, Void> {
         protected Void doInBackground(String... googleInAppPurchasePacks) {
-            Cursor databaseInAppPurchasedPacksCursor = getContentResolver().query(ApplicationContract.getPacks_URI,new String[]{MagnetDatabaseContract.MagnetEntry.COLUMN_PACK_NAME}, MagnetDatabaseContract.MagnetEntry.COLUMN_IS_AVAILABLE,new String[]{"1"},null);
+            Cursor databaseInAppPurchasedPacksCursor = getContentResolver().query(ApplicationContract.getPacks_URI,new String[]{MagnetDatabaseContract.MagnetEntry.COLUMN_PACK_NAME}, MagnetDatabaseContract.MagnetEntry.COLUMN_IS_AVAILABLE + " = 1",null,null);
             ArrayList<String> databaseInAppPurchasedPacks = new ArrayList<String>();
             while(databaseInAppPurchasedPacksCursor.moveToNext()) {
                 databaseInAppPurchasedPacks.add(databaseInAppPurchasedPacksCursor.getString(databaseInAppPurchasedPacksCursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry.COLUMN_PACK_NAME)));
@@ -929,6 +956,7 @@ public class MainActivity extends FragmentActivity implements AsyncTaskRetainDat
                     getContentResolver().update(Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/update/pack"),updatedPackValues,MagnetDatabaseContract.MagnetEntry.COLUMN_PACK_NAME + " = " + "'" + googleInAppPurchasePack + "'", null);
                 }
             }
+            if(!databaseInAppPurchasedPacksCursor.isClosed()) databaseInAppPurchasedPacksCursor.close();
             return null;
         }
     }

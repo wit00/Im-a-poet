@@ -56,12 +56,12 @@ public class InAppPurchaseListViewAdapter extends BaseAdapter {
         ((TextView)rowView.findViewById(R.id.inAppPrice)).setText(inAppPurchase.price());*/
         String productId = inAppPurchase.productId().substring(0, inAppPurchase.productId().length()-4);
         int newDeckImageResourceID = context.getResources().getIdentifier(productId, "drawable", "com.theapp.imapoet");
-        System.out.println("product id " + productId);
         if(newDeckImageResourceID != 0) ((ImageView)rowView.findViewById(R.id.new_deck_icon)).setImageResource(newDeckImageResourceID);
         else ((ImageView)rowView.findViewById(R.id.new_deck_icon)).setImageResource(R.drawable.default_new_deck);
     }
 
     private void setGrayedOutText(InAppPurchase inAppPurchase, View rowView) {
+        ((ImageView)rowView.findViewById(R.id.new_deck_icon)).setImageResource(R.drawable.default_new_deck);
         TextView title = ((TextView)rowView.findViewById(R.id.inAppPurchaseTitle));
         title.setTextColor(Color.GRAY);
         title.setText(inAppPurchase.title());

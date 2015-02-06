@@ -21,7 +21,6 @@ import android.support.v4.view.ViewPager;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
 
@@ -47,7 +46,7 @@ public class MainMenu extends ActionBarActivity implements ActionBar.TabListener
 
     private class CheckIfAvailableTask extends AsyncTask<String, Void, Void> {
         protected Void doInBackground(String... googleInAppPurchasePacks) {
-            Cursor databaseInAppPurchasedPacksCursor = getContentResolver().query(ApplicationContract.getPacks_URI,new String[]{MagnetDatabaseContract.MagnetEntry.COLUMN_PACK_NAME}, MagnetDatabaseContract.MagnetEntry.COLUMN_IS_AVAILABLE,new String[]{"1"},null);
+            Cursor databaseInAppPurchasedPacksCursor = getContentResolver().query(ApplicationContract.getPacks_URI,new String[]{MagnetDatabaseContract.MagnetEntry.COLUMN_PACK_NAME}, MagnetDatabaseContract.MagnetEntry.COLUMN_IS_AVAILABLE + " = 1",null,null);
             ArrayList<String> databaseInAppPurchasedPacks = new ArrayList<String>();
             while(databaseInAppPurchasedPacksCursor.moveToNext()) {
                 databaseInAppPurchasedPacks.add(databaseInAppPurchasedPacksCursor.getString(databaseInAppPurchasedPacksCursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry.COLUMN_PACK_NAME)));
@@ -116,7 +115,7 @@ public class MainMenu extends ActionBarActivity implements ActionBar.TabListener
                     }});
         (builder.create()).show();
     }
-    private void displayProblemWithSettingsUpdateDialog() {
+    /*private void displayProblemWithSettingsUpdateDialog() {
         String message = "Unfortunately, something went wrong loading this settings update. Please try again. If you continue to have a problem with this, please email us using the Contact Us button in the Settings tab of the menu.";
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage(message)
@@ -126,7 +125,7 @@ public class MainMenu extends ActionBarActivity implements ActionBar.TabListener
                     }
                 });
         (builder.create()).show();
-    }
+    }*/
     private void displayProblemDialog(final String packName) {
         String message = "Unfortunately, something went wrong loading your new purchase into our system. Press 'Try Again' to try loading it again. If you continue to have a problem with this, please email us using the Contact Us button in the Settings tab of the menu.";
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -152,11 +151,11 @@ public class MainMenu extends ActionBarActivity implements ActionBar.TabListener
     }
 
     private static class MainMenuAsyncQueryHandler extends AsyncQueryHandler {
-        private final WeakReference<MainMenu> mainMenuWeakReference;
+        //private final WeakReference<MainMenu> mainMenuWeakReference;
 
-        public MainMenuAsyncQueryHandler(ContentResolver contentResolver, MainMenu mainMenu) {
+        public MainMenuAsyncQueryHandler(ContentResolver contentResolver) {
             super(contentResolver);
-            mainMenuWeakReference = new WeakReference<MainMenu>(mainMenu);
+            //mainMenuWeakReference = new WeakReference<MainMenu>(mainMenu);
         }
         /*@Override
         protected void onUpdateComplete(int token, Object cookie, int result) {
@@ -219,7 +218,7 @@ public class MainMenu extends ActionBarActivity implements ActionBar.TabListener
         setContentView(R.layout.activity_main_menu);
         setUpActionBarAndStuff();
         //createAsyncQueryHandler();
-        mainMenuAsyncQueryHandler = new MainMenuAsyncQueryHandler(getContentResolver(),this);
+        mainMenuAsyncQueryHandler = new MainMenuAsyncQueryHandler(getContentResolver());
     }
 
 
