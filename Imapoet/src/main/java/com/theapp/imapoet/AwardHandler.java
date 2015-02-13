@@ -6,6 +6,7 @@ import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.database.Cursor;
 import android.net.Uri;
@@ -44,10 +45,8 @@ public class AwardHandler {
         public void loadAward(String name, String description, int id);
     }
 
-
-
     public void setUpDatabaseAndAttachAwardTypes() {
-        setUpAwardsDatabase();
+        (new SetupAwardsBackgroundTask()).execute();
     }
 
     public void attachAwardTypes() {
@@ -56,39 +55,125 @@ public class AwardHandler {
 
     private void queryAwardsDatabase() {
         asyncQueryHandler.startQuery(1, null, Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/awards"), null, null, null, null);
-
     }
 
+    private class SetupAwardsBackgroundTask extends AsyncTask<Void, Void, Void> {
+        @Override
+        protected Void doInBackground(Void... params) {
+            ArrayList<String> awardCodes = new ArrayList<String>();
+            ArrayList<Integer> currentValuesForCodes = new ArrayList<Integer>();
+            ArrayList<String> awardNames = new ArrayList<String>();
+            ArrayList<Integer> currentValuesForNames = new ArrayList<Integer>();
+            Cursor awardsCursor = context.getContentResolver().query(Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/awards"),null,null,null,null);
+            while(awardsCursor.moveToNext()) {
+                awardCodes.add(awardsCursor.getString(awardsCursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry.COLUMN_CODE)));
+                currentValuesForCodes.add(awardsCursor.getInt(awardsCursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry.COLUMN_CURRENT_VALUE)));
+            }
+            Cursor awardsDetailCursor = context.getContentResolver().query(Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/awards/detail"),null,null,null,null);
+            while(awardsDetailCursor.moveToNext()) {
+                awardNames.add(awardsDetailCursor.getString(awardsDetailCursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry.COLUMN_NAME)));
+                currentValuesForNames.add(awardsDetailCursor.getInt(awardsDetailCursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry.COLUMN_COMPLETED)));
+            }
+            // delete old stuff
+            context.getContentResolver().delete(Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/delete/awards"),null,null);
+            context.getContentResolver().delete(Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/delete/award/details"),null,null);
+            if(!awardsCursor.isClosed()) awardsCursor.close();
+            if(!awardsDetailCursor.isClosed()) awardsDetailCursor.close();
+            // get award data
+            JSONArray statisticsAndAwards = loadAwardData(context, rawFile);
+            try {
+                for (int i = 0; i < statisticsAndAwards.length(); i++) {
+                    JSONObject pair = statisticsAndAwards.getJSONObject(i);
+                    ContentValues statisticValues = new ContentValues();
+                    statisticValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_CODE, pair.getString("AWARD_CODE"));
+                    int awardValue = 0;
+                    if(awardCodes.contains(pair.getString("AWARD_CODE"))) { awardValue = currentValuesForCodes.get(awardCodes.indexOf(pair.getString("AWARD_CODE")));}
+                    statisticValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_CURRENT_VALUE, awardValue);
+                    JSONArray awardList = pair.getJSONArray("AWARD_WIN_CONDITIONS");
+                    Uri uri = context.getContentResolver().insert(Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/insert/award"), statisticValues);
+                    int statisticID = Integer.parseInt(uri.getLastPathSegment());
+                    for (int j = 0; j < awardList.length(); j++) {
+                        JSONObject award = awardList.getJSONObject(j);
+                        ContentValues awardsValues = new ContentValues();
+                        awardsValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_AWARD_ID, statisticID);
+                        awardsValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_NAME, award.getString("AWARD_NAME"));
+                        awardsValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_DESCRIPTION, award.getString("DESCRIPTION"));
+                        awardsValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_WIN_CONDITION_VALUE, award.getString("WIN_CONDITION"));
+                        int completedValue = 0;
+                        if(awardNames.contains(award.getString("AWARD_NAME"))) { completedValue = currentValuesForNames.get(awardNames.indexOf(award.getString("AWARD_NAME")));}
+                        awardsValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_COMPLETED, completedValue);
+                        awardsValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_COMPLETED_IMAGE_ID, award.getString("COMPLETED_IMAGE_ID"));
+                        awardsValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_UNCOMPLETED_IMAGE_ID, award.getString("UNCOMPLETED_IMAGE_ID"));
+                        context.getContentResolver().insert(Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/insert/award/detail"),awardsValues);
+                    }
+                }
+            } catch (JSONException jsonException) {
+                jsonException.printStackTrace();
+            }
+            asyncQueryHandler.startQuery(1, null, Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/awards"), null, null, null, null);
+            return null;
+        }
+        @Override
+        protected void onPostExecute(Void nothing) {
+            SharedPreferences sharedPreferences = context.getSharedPreferences(ApplicationContract.PREFERENCES_FILE,0);
+            SharedPreferences.Editor sharedPreferencesEditor = sharedPreferences.edit();
+            sharedPreferencesEditor.putInt("awardsVersion",ApplicationContract.AWARDS_VERSION);
+            sharedPreferencesEditor.apply();
+        }
+    }
 
-    private class SetupAwardsBackgroundTask extends AsyncTask<Void, Void, JSONArray> {
+    /*private class SetupAwardsBackgroundTask2 extends AsyncTask<Void, Void, JSONArray> {
         @Override
         protected JSONArray doInBackground(Void... params) {
             // delete old stuff
             context.getContentResolver().delete(Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/delete/awards"),null,null);
             context.getContentResolver().delete(Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/delete/award/details"),null,null);
             // get award data
-            return loadAwardData(context, rawFile);
-        }
-        @Override
-        protected void onPostExecute(JSONArray statisticsAndAwards) {
+            JSONArray statisticsAndAwards = loadAwardData(context, rawFile);
+            //ContentValues[] allStatisticsAndAwardsContentValues = new ContentValues[statisticsAndAwards.length()];
             try {
                 for (int i = 0; i < statisticsAndAwards.length(); i++) {
                     JSONObject pair = statisticsAndAwards.getJSONObject(i);
                     ContentValues statisticValues = new ContentValues();
-                    statisticValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_CODE,pair.getString("AWARD_CODE"));
-                    statisticValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_CURRENT_VALUE,0);
+                    statisticValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_CODE, pair.getString("AWARD_CODE"));
+                    statisticValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_CURRENT_VALUE, 0);
                     JSONArray awardList = pair.getJSONArray("AWARD_WIN_CONDITIONS");
-                    asyncQueryHandler.startInsert(1,awardList,Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/insert/award"),statisticValues);
+                    System.out.println("award list length " + Integer.toString(awardList.length()));
+                    Uri uri = context.getContentResolver().insert(Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/insert/award"), statisticValues);
+                    int statisticID = Integer.parseInt(uri.getLastPathSegment());
+                    for (int j = 0; j < awardList.length(); j++) {
+                        JSONObject award = awardList.getJSONObject(j);
+                        ContentValues awardsValues = new ContentValues();
+                        awardsValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_AWARD_ID, statisticID);
+                        awardsValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_NAME, award.getString("AWARD_NAME"));
+                        awardsValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_DESCRIPTION, award.getString("DESCRIPTION"));
+                        awardsValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_WIN_CONDITION_VALUE, award.getString("WIN_CONDITION"));
+                        awardsValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_COMPLETED, 0);
+                        awardsValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_COMPLETED_IMAGE_ID, award.getString("COMPLETED_IMAGE_ID"));
+                        awardsValues.put(MagnetDatabaseContract.MagnetEntry.COLUMN_UNCOMPLETED_IMAGE_ID, award.getString("UNCOMPLETED_IMAGE_ID"));
+                        context.getContentResolver().insert(Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/insert/award/detail"),awardsValues);
+                    }
                 }
             } catch (JSONException jsonException) {
+                System.out.println("json exception");
                 jsonException.printStackTrace();
             }
+            asyncQueryHandler.startQuery(1, null, Uri.parse("content://com.theapp.imapoet.provider.magnetcontentprovider/awards"), null, null, null, null);
+            return null;
         }
-    }
+        @Override
+        protected void onPostExecute(JSONArray statisticsAndAwards) {
+            SharedPreferences sharedPreferences = context.getSharedPreferences(ApplicationContract.PREFERENCES_FILE,0);
+            SharedPreferences.Editor sharedPreferencesEditor = sharedPreferences.edit();
+            sharedPreferencesEditor.putInt("awardsVersion",ApplicationContract.AWARDS_VERSION);
+            sharedPreferencesEditor.apply();
+            System.out.println("shared preferences updated to: " + Integer.toString(sharedPreferences.getInt("awardsVersion",-1)));
 
-    private void setUpAwardsDatabase() {
-        (new SetupAwardsBackgroundTask()).execute();
-    }
+            //awardManagerListener.
+        }
+    }*/
+
+
 
     private void updateAwardCurrentValue(String id, int currentValue) {
         ContentValues updateAwardContentValues = new ContentValues();

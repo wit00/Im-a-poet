@@ -56,6 +56,7 @@ import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Date;
 import java.util.ArrayList;
+import java.util.Locale;
 
 
 public class MainActivity extends FragmentActivity implements AsyncTaskRetainDataFragment.AsyncTaskListener,
@@ -232,6 +233,7 @@ public class MainActivity extends FragmentActivity implements AsyncTaskRetainDat
     private void setFirstLaunchToFalse(SharedPreferences sharedPreferences) {
         SharedPreferences.Editor sharedPreferencesEditor = sharedPreferences.edit();
         sharedPreferencesEditor.putBoolean(ApplicationContract.FIRST_LAUNCH, false);
+        sharedPreferencesEditor.putInt("awardsVersion",ApplicationContract.AWARDS_VERSION);
         sharedPreferencesEditor.apply();
     }
 
@@ -448,8 +450,11 @@ public class MainActivity extends FragmentActivity implements AsyncTaskRetainDat
                     ((AsyncTaskRetainDataFragment)(fragmentManager.findFragmentByTag("asyncData"))).signUpForUpdateCompletionNotification(this);
                 }
             }
-
-            gameState = new GameState(drawingPanelFragment.drawingPanel(),false,this);
+            if(sharedPreferences.getInt("awardsVersion",-1) != ApplicationContract.AWARDS_VERSION) {
+                gameState = new GameState(drawingPanelFragment.drawingPanel(),true,this);
+            } else {
+                gameState = new GameState(drawingPanelFragment.drawingPanel(),false,this);
+            }
         }
         loadMagnetsOntoCanvas(fragmentManager);
     }
@@ -465,7 +470,7 @@ public class MainActivity extends FragmentActivity implements AsyncTaskRetainDat
     }
 
     private String getDate() {
-        return (new SimpleDateFormat("MM-dd-yyyy")).format(new Date());
+        return (new SimpleDateFormat("dd-mm-yyyy",Locale.US)).format(new Date());
     }
 
 
@@ -507,6 +512,8 @@ public class MainActivity extends FragmentActivity implements AsyncTaskRetainDat
     protected void onDestroy() {
         super.onDestroy();
         new File(this.getCacheDir(), "tempShareBitmap.jpg").delete();
+        if(iabHelper != null) iabHelper.dispose();
+        iabHelper = null;
         //unbindFromMediaMusicService();
     }
 
@@ -691,9 +698,7 @@ public class MainActivity extends FragmentActivity implements AsyncTaskRetainDat
                     }
                 });
         (builder.create()).show();
-
     }
-
 
     private static class MainActivityAsyncQueryHandler extends AsyncQueryHandler {
         private final WeakReference<MainActivity> mainActivityWeakReference;
@@ -705,21 +710,16 @@ public class MainActivity extends FragmentActivity implements AsyncTaskRetainDat
         protected void onUpdateComplete(int token, Object cookie, int result) {
             if (token == 0) {
                 MainActivity mainActivity = mainActivityWeakReference.get();
-                // move the pack from inAppPurchasePacks to purchasedInAppPurchasePacks
                 if (result == 1) {
-                    // if(DataLoaderHelper.copyFile((String) cookie, "inAppPurchasePacks", "purchasedInAppPurchasePacks", getApplicationContext())) {
                     // if has succeeded
                     if(mainActivity != null) mainActivity.displayYourPurchaseHasBeenSuccessfulDialog();
-                    //displayYourPurchaseHasBeenSuccessfulDialog((String) cookie);
                 } else {
                     // io exception
-                    // displayProblemDialog("love.txt");
                     if(mainActivity != null) mainActivity.displayProblemDialog((String) cookie);
                 }
             }
         }
     }
-
 
     private void setGridViewListener() {
         gridView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
@@ -739,7 +739,6 @@ public class MainActivity extends FragmentActivity implements AsyncTaskRetainDat
 
         });
     }
-
 
     private void displayInAppPurchaseSetupFailureMessage() {
         String message = "In app purchasing is not working at this time. Sorry for the inconvenience.";
@@ -783,11 +782,17 @@ public class MainActivity extends FragmentActivity implements AsyncTaskRetainDat
         builder.setMessage(message)
                 .setPositiveButton("Okay", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
-                        //purchaseInAppProduct(inAppPurchase.productId());
-                        // tempPurchaseInAppProduct();
+                        setSpinnerToFirstPosition();
                     }
                 });
-        (builder.create()).show();
+        AlertDialog alertDialog = (builder.create());
+        (alertDialog).setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialog) {
+                setSpinnerToFirstPosition();
+            }
+        });
+        alertDialog.show();
     }
 
     private void displaySomethingIsWrongWithInAppPurchaseDialog() {
@@ -796,16 +801,50 @@ public class MainActivity extends FragmentActivity implements AsyncTaskRetainDat
         builder.setMessage(message)
                 .setPositiveButton("Okay", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
-                        //purchaseInAppProduct(inAppPurchase.productId());
-                        // tempPurchaseInAppProduct();
+                        setSpinnerToFirstPosition();
                     }
                 });
-        (builder.create()).show();
+        AlertDialog alertDialog = (builder.create());
+        (alertDialog).setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialog) {
+                setSpinnerToFirstPosition();
+            }
+        });
+        alertDialog.show();
     }
+
+    private void displayWaitDialog() {
+        String message = "The google play market is still setting up, so in-app purchases cannot be made yet. Please try again in a minute.";
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(message)
+                .setPositiveButton("Okay", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        setSpinnerToFirstPosition();
+                    }
+                });
+        AlertDialog alertDialog = (builder.create());
+        (alertDialog).setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialog) {
+                setSpinnerToFirstPosition();
+            }
+        });
+        alertDialog.show();
+    }
+
     private void purchaseInAppProduct(String productSKU) {
         // check if this in app product exists in the google system, if so purchase, if not give a message
-        iabHelper.launchPurchaseFlow(this, productSKU, 10001 ,purchaseFinishedListener,null);
+        if(iabHelper.mAsyncInProgress) {
+            displayWaitDialog();
+        } else {
+            iabHelper.launchPurchaseFlow(this, productSKU, 10001 ,purchaseFinishedListener,null);
+        }
+    }
 
+    private void setSpinnerToFirstPosition() {
+        ((Spinner) findViewById(R.id.sets_spinner)).setSelection(0);
+        loadSpinner();
     }
 
     private void displayGoogleDoesNotHaveProductDialog() {
@@ -814,10 +853,17 @@ public class MainActivity extends FragmentActivity implements AsyncTaskRetainDat
         builder.setMessage(message)
                 .setPositiveButton("okay", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
+                        setSpinnerToFirstPosition();
                     }
                 });
-        (builder.create()).show();
-    }
+        AlertDialog alertDialog = (builder.create());
+        (alertDialog).setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialog) {
+                setSpinnerToFirstPosition();
+            }
+        });
+        alertDialog.show();    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -879,16 +925,14 @@ public class MainActivity extends FragmentActivity implements AsyncTaskRetainDat
                 })
                 .setNegativeButton("Not right now.", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialogInterface, int id) {
-                        ((Spinner) findViewById(R.id.sets_spinner)).setSelection(spinnerPosition);
-                        loadSpinner();
+                       setSpinnerToFirstPosition();
                     }
                 });
         AlertDialog alertDialog = (builder.create());
         (alertDialog).setOnCancelListener(new DialogInterface.OnCancelListener() {
             @Override
             public void onCancel(DialogInterface dialog) {
-                ((Spinner) findViewById(R.id.sets_spinner)).setSelection(spinnerPosition);
-                loadSpinner();
+               setSpinnerToFirstPosition();
             }
         });
         alertDialog.show();
@@ -978,8 +1022,9 @@ public class MainActivity extends FragmentActivity implements AsyncTaskRetainDat
         Cursor cursor = (Cursor) drawerSpinnerAdapter.getItem(position);
         if(cursor.getInt(cursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry.COLUMN_IS_AVAILABLE))==0) {
             clickedSku = cursor.getString(cursor.getColumnIndex(MagnetDatabaseContract.MagnetEntry.COLUMN_PACK_NAME));
-            resetSpinner(position,cursor,true);
             iabHelper.queryInventoryAsync(true, skuList,queryForClickedSkuFinishedListener);
+            resetSpinner(position,cursor,true);
+            // toDo, think about async stuff for race conditions
         } else {
             resetSpinner(position,cursor,false);
         }

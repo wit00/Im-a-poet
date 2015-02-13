@@ -61,6 +61,13 @@ public class SettingsFragment extends android.support.v4.app.Fragment implements
         }
     }
 
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        inAppPurchaseListener = null;
+        if(iabHelper != null) iabHelper.dispose();
+        iabHelper = null;
+    }
 
     @Override
     public void onAttach(Activity activity) {

@@ -25,7 +25,7 @@
     <string name="statistics_magnets_deleted">Number of Magnets Deleted:</string>
     <string name="requires_an_in_app_purchase_spinner_adapter">* requires an in-app purchase</string>
     <string name="demo_drawer_opened">Excellent! Your words are separated into packs. To use a new pack, select it from the drop down list above. Select a new pack to continue.</string>
-    <string name="demo_packs_selected">You can use a word by dragging it to the right. Touch, hold, and drag a word to the right to continue. </string>
+    <string name="demo_packs_selected">You can use a word by dragging it to the right. Touch and hold a word to drag it to the right and continue. </string>
     <string name="demo_magnet_tiles_changed">To see your poem better, you can scale in or out and drag the workspace around. To turn dragging on or off, tap the screen twice. Try that now, tap the screen twice, and drag your workspace.</string>
     <string name="demo_dragged">You can win awards by completing certain tasks. When you win an award, the award icon will light up. Click on the award icon to continue.</string>
     <string name="demo_award_clicked">You can delete magnets by dragging them into the trash can. Delete a magnet to continue.</string>

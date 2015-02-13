@@ -120,7 +120,7 @@ public class Magnet {
         clearAllConnectedMagnets();
         this.word = word;
         this.context = context;
-        this.id = id + 1;
+        this.id = id;
         this.packID = packID;
         //setTextSizeBasedOnDensity(density);
         textPaint.setTextSize(context.getResources().getDimensionPixelSize(R.dimen.magnet_starting_text_size));

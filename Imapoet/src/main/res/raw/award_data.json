@@ -31,7 +31,7 @@
           "WIN_CONDITION":25,
           "COMPLETED_IMAGE_ID":"number_1_trophy",
           "UNCOMPLETED_IMAGE_ID":"trophy_outline"
-        },
+        }
 
       ]
     },
@@ -177,17 +177,82 @@
          ]
     },
     {
-    "AWARD_CODE":"LOVE_PACK_USED",
+    "AWARD_CODE":"ROMANCE_PACK_USED",
     "AWARD_WIN_CONDITIONS":
         [
           {
-            "AWARD_NAME":"Lover",
-            "DESCRIPTION":"A true lover! You'll receive this award when you've used the Love pack.",
+            "AWARD_NAME":"Romance Novel Enthusiast",
+            "DESCRIPTION":"A true romance novel enthusiast! You'll receive this award when you've used the romance novel pack.",
             "WIN_CONDITION":1,
             "COMPLETED_IMAGE_ID":"green_ribbon",
             "UNCOMPLETED_IMAGE_ID":"ribbon_outline"
           }
         ]
+     },
+     {
+     "AWARD_CODE":"SHAKESPEARE_PACK_USED",
+     "AWARD_WIN_CONDITIONS":
+         [
+           {
+             "AWARD_NAME":"Shakespearean",
+             "DESCRIPTION":"Every poet must use a bit of Shakespeare now and again. You'll get this award when you've used the Shakespeare pack.",
+             "WIN_CONDITION":1,
+             "COMPLETED_IMAGE_ID":"red_ribbon",
+             "UNCOMPLETED_IMAGE_ID":"ribbon_outline"
+           }
+         ]
+      },
+      {
+       "AWARD_CODE":"SPANISH_PACK_USED",
+       "AWARD_WIN_CONDITIONS":
+           [
+             {
+               "AWARD_NAME":"Hola!",
+               "DESCRIPTION":"Very impressive! You get this award when you have used the basic Spanish words pack.",
+               "WIN_CONDITION":1,
+               "COMPLETED_IMAGE_ID":"earth_medal",
+               "UNCOMPLETED_IMAGE_ID":"medal_outline"
+             }
+           ]
+     },
+     {
+       "AWARD_CODE":"PIRATES_PACK_USED",
+       "AWARD_WIN_CONDITIONS":
+           [
+             {
+               "AWARD_NAME":"Arrrrr!",
+               "DESCRIPTION":"Arrrr! It's a pirate's life for you, matey! To win this award, you must use the Pirates words pack in a poem.",
+               "WIN_CONDITION":1,
+               "COMPLETED_IMAGE_ID":"bright_award_necklace",
+               "UNCOMPLETED_IMAGE_ID":"award_necklace_outline"
+             }
+           ]
+     },
+     {
+       "AWARD_CODE":"WILD_WEST_PACK_USED",
+       "AWARD_WIN_CONDITIONS":
+           [
+             {
+               "AWARD_NAME":"Honkey Tonk Scoundrel!",
+               "DESCRIPTION":"Are you a hero or a villain of the wild west? It doesn't matter, just that you've used the wild west pack!",
+               "WIN_CONDITION":1,
+               "COMPLETED_IMAGE_ID":"blue_ribbon",
+               "UNCOMPLETED_IMAGE_ID":"ribbon_outline"
+             }
+           ]
+     },
+     {
+       "AWARD_CODE":"IN_LOVE_PACK_USED",
+       "AWARD_WIN_CONDITIONS":
+           [
+             {
+               "AWARD_NAME":"Lover!",
+               "DESCRIPTION":"You're a true lover! To win this award, you must use the love words pack in a poem.",
+               "WIN_CONDITION":1,
+               "COMPLETED_IMAGE_ID":"number_1_trophy",
+               "UNCOMPLETED_IMAGE_ID":"trophy_outline"
+             }
+           ]
      },
      {
      "AWARD_CODE":"MAGNET_DELETED",

@@ -223,6 +223,7 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
     }
 
 
+
     /* Drag events occur when the magnet tile is dragged from the drawer fragment onto the canvas.
     *  Implements View.OnDragListener */
     @Override
@@ -239,25 +240,27 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
                 notAddedTile = true;
                 return true;
             case DragEvent.ACTION_DRAG_ENTERED: // The magnet has entered the drawing area
-                if(clickedMagnet == null) {
+                if(clickedMagnet == null && notAddedTile) {
                     currentTile = addTileToCanvas();
                     clickedMagnet = magnets.get(currentTile);
                 }
-                else { // toDo this else statement is new, evaluate
+                else {
                     sidesToLockToNext.clear();
                     handleMovingClickedTile(clickedMagnet,xTouch,yTouch);
                 }
                 break;
             case DragEvent.ACTION_DRAG_LOCATION: // Called every time the magnet is moved in the drawing area
-
-                //if(clickedMagnet != null) clickedMagnet.setXAndY(xTouch, yTouch);
-                if (clickedMagnet != null) { // toDo, this if condition and below is new, evaluate (old code is the line above, if(clickedMagnet != null) clickedMagnet.setXAndY(xTouch,yTouch);
+                if(clickedMagnet == null && notAddedTile) {
+                    currentTile = addTileToCanvas();
+                    clickedMagnet = magnets.get(currentTile);
+                }
+                else {
                     sidesToLockToNext.clear();
-                    handleMovingClickedTile(clickedMagnet, xTouch, yTouch);
-               }
+                    handleMovingClickedTile(clickedMagnet,xTouch,yTouch);
+                }
                 break;
             case DragEvent.ACTION_DROP: // The magnet is dropped when the finger moves up, off the screen
-                if (notAddedTile) {
+                if (notAddedTile && clickedMagnet == null) {
                     currentTile = addTileToCanvas();
                     magnets.get(currentTile).setX(xTouch);
                     magnets.get(currentTile).setY(yTouch);
@@ -302,8 +305,6 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
                 adjustTheClickedTile();   // get the tile in the right position (no overlap)
                 toHighlightMagnets.clear();
                 break;
-
-
         }
         this.invalidate();
         return retVal || super.onTouchEvent(motionEvent);
@@ -315,7 +316,12 @@ public class DrawingPanel extends SurfaceView implements SurfaceHolder.Callback,
 
     /* addTileToCanvas is used only by the onDrag event listener to add a new magnet tile */
     private int addTileToCanvas() {
-        magnets.add(new Magnet(getContext(), word, magnets.size(), 1.0f, packID, null, null, null, null, getDensity()));
+        // eventual todo, this is an inelegant solution to the problem of unique ids. consider switching this to UUID in the future
+        int maxID = 0;
+        for(Magnet magnet : magnets) {
+            maxID = Math.max(maxID,magnet.id());
+        }
+        magnets.add(new Magnet(getContext(), word, maxID + 1, 1.0f, packID, null, null, null, null, getDensity()));
         notAddedTile = false;
         canvasListener.magnetTilesChanged(magnets.size());
         return magnets.size() - 1;

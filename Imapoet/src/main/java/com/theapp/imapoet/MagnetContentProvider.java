@@ -221,6 +221,7 @@ public class MagnetContentProvider extends ContentProvider {
                 break;
             case SAVED_POEMS:
                 magnetCursor = database.query(MagnetDatabaseContract.MagnetEntry.SAVED_POEMS_TABLE_NAME,projection,selection,selectionArgs,null,null,sortOrder);
+                magnetCursor.setNotificationUri(context.getContentResolver(),uri);
                 break;
             case SAVED_POEM:
                 magnetCursor = database.query(MagnetDatabaseContract.MagnetEntry.SAVED_POEMS_MAGNET_DETAIL_TABLE_NAME,projection,selection,selectionArgs,null,null,sortOrder);

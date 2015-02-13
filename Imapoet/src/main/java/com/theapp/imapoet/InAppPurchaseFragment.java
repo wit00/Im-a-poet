@@ -57,12 +57,14 @@ public class InAppPurchaseFragment extends android.support.v4.app.Fragment imple
                 ArrayList<String> purchasedPacks = new ArrayList<String>();
                 for(String sku : skuList) {
                     SkuDetails skuDetails = inventory.getSkuDetails(sku);
-                    if (inventory.hasPurchase(sku)) {
-                        InAppPurchase inAppPurchase = new InAppPurchase(skuDetails.getTitle(),skuDetails.getDescription(),skuDetails.getType(),skuDetails.getPrice(),skuDetails.getSku(),true);
-                        inAppProducts.add(inAppPurchase);
-                        purchasedPacks.add(inAppPurchase.productId());
-                    } else {
-                        inAppProducts.add(new InAppPurchase(skuDetails.getTitle(), skuDetails.getDescription(), skuDetails.getType(), skuDetails.getPrice(), skuDetails.getSku(), false));
+                    if(inventory.hasDetails(sku)) {
+                        if (inventory.hasPurchase(sku)) {
+                            InAppPurchase inAppPurchase = new InAppPurchase(skuDetails.getTitle(),skuDetails.getDescription(),skuDetails.getType(),skuDetails.getPrice(),skuDetails.getSku(),true);
+                            inAppProducts.add(inAppPurchase);
+                            purchasedPacks.add(inAppPurchase.productId());
+                        } else {
+                            inAppProducts.add(new InAppPurchase(skuDetails.getTitle(), skuDetails.getDescription(), skuDetails.getType(), skuDetails.getPrice(), skuDetails.getSku(), false));
+                        }
                     }
                 }
                 inAppPurchaseListener.checkInAppPurchases(purchasedPacks.toArray(new String[purchasedPacks.size()]));
@@ -90,7 +92,7 @@ public class InAppPurchaseFragment extends android.support.v4.app.Fragment imple
         AlphaAnimation alphaAnimation = new AlphaAnimation(1.0f, 0.0f);
         alphaAnimation.setDuration(1000);
         alphaAnimation.setRepeatCount(0);
-        view.startAnimation(alphaAnimation);
+        if(view != null) view.startAnimation(alphaAnimation);
         alphaAnimation.setAnimationListener(new Animation.AnimationListener() {
             @Override
             public void onAnimationStart(Animation animation) {
@@ -98,7 +100,7 @@ public class InAppPurchaseFragment extends android.support.v4.app.Fragment imple
 
             @Override
             public void onAnimationEnd(Animation animation) {
-                view.setVisibility(View.GONE);
+                if(view != null) view.setVisibility(View.GONE);
             }
 
             @Override
@@ -236,8 +238,24 @@ public class InAppPurchaseFragment extends android.support.v4.app.Fragment imple
         (builder.create()).show();
     }
 
+    private void displayWaitDialog() {
+        String message = "The google play market is still setting up, so in-app purchases cannot be made yet. Please try again in a minute.";
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        builder.setMessage(message)
+                .setPositiveButton("Okay", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                       //
+                    }
+                });
+        (builder.create()).show();
+    }
+
     private void purchaseInAppProduct(String productSKU) {
-        iabHelper.launchPurchaseFlow(getActivity(), productSKU, 1001 ,purchaseFinishedListener,null);
+        if(iabHelper.mAsyncInProgress) {
+            displayWaitDialog();
+        } else {
+            iabHelper.launchPurchaseFlow(getActivity(), productSKU, 1001, purchaseFinishedListener, null);
+        }
     }
     private void displayWouldYouLikeToBuyDialog(final InAppPurchase inAppPurchase) {
         String message = "Would you like to buy " + inAppPurchase.title() + " for " + inAppPurchase.price() + " ?";

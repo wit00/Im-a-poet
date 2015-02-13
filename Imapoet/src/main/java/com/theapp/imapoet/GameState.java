@@ -59,8 +59,13 @@ public class GameState {
     }
     public void updatePackSize(int numberPacksUsed, String currentPackName) {
         awardHandler.newSetValueAction("PACK_USED",numberPacksUsed);
-        if(currentPackName.equals("english_letters.txt")) awardHandler.newSetToTrueAction("ENGLISH_ALPHABET_PACK_USED");
-        if(currentPackName.equals("love.txt")) awardHandler.newSetToTrueAction("LOVE_PACK_USED");
+        if(currentPackName.equals("english_alphabet.txt")) awardHandler.newSetToTrueAction("ENGLISH_ALPHABET_PACK_USED");
+        if(currentPackName.equals("romance_novel.txt")) awardHandler.newSetToTrueAction("ROMANCE_PACK_USED");
+        if(currentPackName.equals("shakespeare.txt")) awardHandler.newSetToTrueAction("SHAKESPEARE_PACK_USED");
+        if(currentPackName.equals("basic_spanish_words.txt")) awardHandler.newSetToTrueAction("SPANISH_PACK_USED");
+        if(currentPackName.equals("pirates.txt")) awardHandler.newSetToTrueAction("PIRATES_PACK_USED");
+        if(currentPackName.equals("wild_west.txt")) awardHandler.newSetToTrueAction("WILD_WEST_PACK_USED");
+        if(currentPackName.equals("in_love.txt")) awardHandler.newSetToTrueAction("IN_LOVE_PACK_USED");
     }
 
     public void magnetTilesChanged(int numberMagnetTiles) {
